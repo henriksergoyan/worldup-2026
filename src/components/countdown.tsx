@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
-export function formatCountdownFull(ms: number, endedLabel = "Locked"): string {
+export function formatCountdownFull(ms: number, endedLabel = "Փակված է"): string {
   if (ms <= 0) return endedLabel;
   const totalSec = Math.floor(ms / 1000);
   const days = Math.floor(totalSec / 86400);
@@ -12,25 +12,25 @@ export function formatCountdownFull(ms: number, endedLabel = "Locked"): string {
   const seconds = totalSec % 60;
 
   const parts: string[] = [];
-  if (days > 0) parts.push(`${days} ${days === 1 ? "day" : "days"}`);
-  if (hours > 0 || days > 0) parts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
-  parts.push(`${minutes} ${minutes === 1 ? "minute" : "minutes"}`);
-  parts.push(`${seconds} ${seconds === 1 ? "second" : "seconds"}`);
+  if (days > 0) parts.push(`${days} օր`);
+  if (hours > 0 || days > 0) parts.push(`${hours} ժամ`);
+  parts.push(`${minutes} րոպե`);
+  parts.push(`${seconds} վայրկյան`);
 
   return parts.join(", ");
 }
 
-export function formatDaysRemaining(ms: number, endedLabel = "Locked"): string {
+export function formatDaysRemaining(ms: number, endedLabel = "Փակված է"): string {
   if (ms <= 0) return endedLabel;
   const days = Math.ceil(ms / 86400000);
-  if (days <= 1) return "1 day";
-  return `${days} days`;
+  if (days <= 1) return "1 օր";
+  return `${days} օր`;
 }
 
 export function Countdown({
   target,
   className,
-  endedLabel = "Locked",
+  endedLabel = "Փակված է",
   prefix = "",
   mode = "full",
 }: {

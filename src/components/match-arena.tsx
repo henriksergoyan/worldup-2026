@@ -84,7 +84,7 @@ export function MatchArena(props: MatchArenaProps) {
   const stageLabel =
     props.stage === STAGES.KNOCKOUT
       ? ROUND_LABELS[(props.round as Round) ?? "R32"]
-      : `Group ${props.groupCode}`;
+      : `Խումբ ${props.groupCode}`;
 
   return (
     <div className="space-y-5">
@@ -98,13 +98,13 @@ export function MatchArena(props: MatchArenaProps) {
             </span>
             {!props.canReveal && (
               <Badge variant="warning">
-                Predictions lock in <Countdown target={props.lockAt} mode="days" className="inline text-inherit" />
+                Կանխատեսումները կողպվում են <Countdown target={props.lockAt} mode="days" className="inline text-inherit" />
               </Badge>
             )}
             {props.canReveal && !props.finalized && (
-              <Badge variant="info">Predictions revealed — match upcoming</Badge>
+              <Badge variant="info">Կանխատեսումները բացված են — սպասում ենք խաղին</Badge>
             )}
-            {props.finalized && <Badge variant="success">Final</Badge>}
+            {props.finalized && <Badge variant="success">Ավարտված է</Badge>}
           </div>
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
             <TeamChip name={props.homeName} seedLabel={props.homeSeedLabel} align="right" className="text-lg" />
@@ -118,8 +118,8 @@ export function MatchArena(props: MatchArenaProps) {
               )}
               {me && (
                 <div className="mt-1 text-xs text-pitch-300">
-                  Your pick: {me.home}–{me.away}
-                  {me.points !== null && ` · +${me.points} pts`}
+                  Ձեր կանխատեսումը՝ {me.home}–{me.away}
+                  {me.points !== null && ` · +${me.points} միավոր`}
                 </div>
               )}
             </div>
@@ -134,22 +134,19 @@ export function MatchArena(props: MatchArenaProps) {
           <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
             <div className="text-5xl">🎭</div>
             <div>
-              <h3 className="font-display text-xl font-bold text-white">Predictions are hidden</h3>
+              <h3 className="font-display text-xl font-bold text-white">Կանխատեսումները դեռ թաքնված են</h3>
               <p className="mt-1 max-w-md text-sm text-navy-300">
-                <span className="font-bold text-white">{preds.length}</span> of{" "}
-                <span className="font-bold text-white">{props.totalPlayers}</span> players have submitted
-                picks.                 Everyone&apos;s choices unlock in{" "}
-                <Countdown target={props.lockAt} mode="days" className="inline font-semibold text-amber-200" /> (1 hour
-                before kickoff).
+                <span className="font-bold text-white">{preds.length}</span> մասնակից <span className="font-bold text-white">{props.totalPlayers}</span>-ից արդեն լրացրել է: Բոլորի գուշակումները կբացվեն{" "}
+                <Countdown target={props.lockAt} mode="days" className="inline font-semibold text-amber-200" /> (խաղից 1 ժամ առաջ):
               </p>
             </div>
             <div className="flex gap-6 text-center">
-              <TeaserStat label="Submitted" value={String(preds.length)} />
-              <TeaserStat label="Waiting" value={String(Math.max(0, props.totalPlayers - preds.length))} />
+              <TeaserStat label="Լրացրել են" value={String(preds.length)} />
+              <TeaserStat label="Դեռ չեն լրացրել" value={String(Math.max(0, props.totalPlayers - preds.length))} />
             </div>
             {me && (
               <div className="rounded-xl border border-pitch-500/30 bg-pitch-500/10 px-4 py-2 text-sm text-pitch-100">
-                Your prediction is locked in: <strong>{me.home}–{me.away}</strong>
+                Ձեր կանխատեսումը հաստատված է՝ <strong>{me.home}–{me.away}</strong>
               </div>
             )}
           </CardContent>
@@ -161,28 +158,28 @@ export function MatchArena(props: MatchArenaProps) {
         <>
           {/* Quick stats row */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <MiniStat label="Predictions" value={preds.length} icon="📋" />
+            <MiniStat label="Կանխատեսումներ" value={preds.length} icon="📋" />
             <MiniStat
-              label="Most picked"
+              label="Ամենատարածված հաշիվ"
               value={scoreCounts[0] ? scoreCounts[0][0] : "—"}
-              sub={scoreCounts[0] ? `${scoreCounts[0][1]} players` : undefined}
+              sub={scoreCounts[0] ? `${scoreCounts[0][1]} մասնակից` : undefined}
               icon="🎯"
             />
-            <MiniStat label="Soulmates" value={soulmates.length} sub="same as you" icon="🤝" />
-            <MiniStat label="Contrarians" value={contrarians.length} sub="different outcome" icon="⚔️" />
+            <MiniStat label="Համախոհներ" value={soulmates.length} sub="նույն կանխատեսումը" icon="🤝" />
+            <MiniStat label="Հակառակորդներ" value={contrarians.length} sub="այլ ելք" icon="⚔️" />
           </div>
 
           {/* Outcome bars */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Crowd consensus</CardTitle>
+              <CardTitle className="text-base">Մասնակիցների կարծիքները</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {(
                 [
-                  ["1", `${props.homeName ?? "Home"} win`, "from-pitch-600 to-pitch-400"],
-                  ["X", "Draw", "from-amber-600 to-amber-400"],
-                  ["2", `${props.awayName ?? "Away"} win`, "from-sky-600 to-sky-400"],
+                  ["1", `${props.homeName ?? "Տանտերերի"} հաղթանակ`, "from-pitch-600 to-pitch-400"],
+                  ["X", "Ոչ-ոքի", "from-amber-600 to-amber-400"],
+                  ["2", `${props.awayName ?? "Հյուրերի"} հաղթանակ`, "from-sky-600 to-sky-400"],
                 ] as const
               ).map(([k, label, grad]) => {
                 const count = dist[k];
@@ -214,10 +211,10 @@ export function MatchArena(props: MatchArenaProps) {
           <div className="flex gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.02] p-1.5">
             {(
               [
-                ["crowd", "👥 Everyone"],
-                ["columns", "📊 Score board"],
+                ["crowd", "👥 Բոլորը"],
+                ["columns", "📊 Ցուցատախտակ"],
                 ["heatmap", "🔥 Heatmap"],
-                ["rivals", "⚔️ Rivals"],
+                ["rivals", "⚔️ Մրցակիցներ"],
               ] as const
             ).map(([id, label]) => (
               <button
@@ -255,15 +252,15 @@ export function MatchArena(props: MatchArenaProps) {
                         <div>
                           <div className="font-semibold text-white">
                             {p.name}
-                            {p.isMe && <span className="ml-2 text-xs text-pitch-300">(you)</span>}
+                            {p.isMe && <span className="ml-2 text-xs text-pitch-300">(դուք)</span>}
                           </div>
                           {me && !p.isMe && (
                             <div className="text-xs text-navy-400">
                               {p.home === me.home && p.away === me.away
-                                ? "🤝 Exact same pick!"
+                                ? "🤝 Ճիշտ նույն հաշիվը"
                                 : getOutcome(p.home, p.away) === getOutcome(me.home, me.away)
-                                  ? "Same outcome"
-                                  : "Different outcome"}
+                                  ? "Նույն ելքը"
+                                  : "Այլ ելք"}
                             </div>
                           )}
                         </div>
@@ -283,21 +280,21 @@ export function MatchArena(props: MatchArenaProps) {
           {tab === "columns" && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Column scoreboard</CardTitle>
+                <CardTitle className="text-base">Արդյունքների ցուցատախտակ</CardTitle>
                 <p className="text-xs text-navy-400">
-                  <span className="text-pitch-300">Green</span> = {props.homeName ?? "Home"} win ·{" "}
-                  <span className="text-amber-300">Amber</span> = draw ·{" "}
-                  <span className="text-sky-300">Blue</span> = {props.awayName ?? "Away"} win
+                  <span className="text-pitch-300">Կանաչ</span> = {props.homeName ?? "Տանտերերի"} հաղթանակ ·{" "}
+                  <span className="text-amber-300">Դեղին</span> = Ոչ-ոքի ·{" "}
+                  <span className="text-sky-300">Կապույտ</span> = {props.awayName ?? "Հյուրերի"} հաղթանակ
                 </p>
               </CardHeader>
               <CardContent className="overflow-x-auto p-0">
                 <table className="w-full min-w-[520px] text-sm">
                   <thead>
                     <tr className="border-b border-white/10 bg-white/[0.03] text-left text-xs uppercase tracking-wide text-navy-400">
-                      <th className="px-4 py-2.5">Player</th>
-                      <th className="px-4 py-2.5 text-center">Pick</th>
-                      <th className="px-4 py-2.5">Outcome</th>
-                      <th className="px-4 py-2.5 text-right">Pts</th>
+                      <th className="px-4 py-2.5">Խաղացող</th>
+                      <th className="px-4 py-2.5 text-center">Կանխատեսում</th>
+                      <th className="px-4 py-2.5">Ելք</th>
+                      <th className="px-4 py-2.5 text-right">Միավոր</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -323,17 +320,17 @@ export function MatchArena(props: MatchArenaProps) {
                           >
                             <td className="px-4 py-2.5 font-semibold text-white">
                               {p.name}
-                              {p.isMe && <span className="ml-1 text-xs text-pitch-300">(you)</span>}
+                              {p.isMe && <span className="ml-1 text-xs text-pitch-300">(դուք)</span>}
                             </td>
                             <td className="px-4 py-2.5 text-center">
                               <ScorePill home={p.home} away={p.away} highlight={p.isMe} />
                             </td>
                             <td className="px-4 py-2.5 text-navy-200">
                               {outcome === "1"
-                                ? `${props.homeName ?? "Home"} win`
+                                ? `${props.homeName ?? "Տանտերերի"} հաղթանակ`
                                 : outcome === "X"
-                                  ? "Draw"
-                                  : `${props.awayName ?? "Away"} win`}
+                                  ? "Ոչ-ոքի"
+                                  : `${props.awayName ?? "Հյուրերի"} հաղթանակ`}
                             </td>
                             <td className="px-4 py-2.5 text-right font-bold tabular-nums text-pitch-300">
                               {p.points !== null ? `+${p.points}` : "—"}
@@ -350,12 +347,12 @@ export function MatchArena(props: MatchArenaProps) {
           {tab === "heatmap" && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Score heatmap</CardTitle>
+                <CardTitle className="text-base">Կանխատեսումների տաք քարտեզը 🔥</CardTitle>
               </CardHeader>
               <CardContent>
                 <ScoreHeatmap predictions={preds} me={me} actual={props.actual} />
                 <p className="mt-3 text-xs text-navy-400">
-                  Brighter cells = more players picked that score. ★ = your pick.
+                  Ինչքան վառ է վանդակը, այնքան շատ մասնակից է այդ հաշիվը նշել: ★ = քո կանխատեսումն է:
                 </p>
               </CardContent>
             </Card>
@@ -363,8 +360,8 @@ export function MatchArena(props: MatchArenaProps) {
 
           {tab === "rivals" && (
             <div className="grid gap-4 md:grid-cols-2">
-              <RivalList title="🤝 Soulmates" subtitle="Picked the exact same score as you" items={soulmates} me={me} />
-              <RivalList title="⚔️ Contrarians" subtitle="Predicted a different outcome" items={contrarians.slice(0, 12)} me={me} />
+              <RivalList title="🤝 Համախոհներ" subtitle="Ձեզ հետ նույն հաշիվն են կանխատեսել" items={soulmates} me={me} />
+              <RivalList title="⚔️ Հակառակորդներ" subtitle="Այլ ելք են կանխատեսել" items={contrarians.slice(0, 12)} me={me} />
             </div>
           )}
 
@@ -372,14 +369,14 @@ export function MatchArena(props: MatchArenaProps) {
             <Card className="border-pitch-500/30 bg-pitch-500/[0.06]">
               <CardContent className="flex flex-wrap items-center justify-between gap-4 pt-5">
                 <div>
-                  <div className="text-xs uppercase tracking-wide text-pitch-300">Head-to-head</div>
+                  <div className="text-xs uppercase tracking-wide text-pitch-300">Դեմ առ դեմ համեմատություն ⚔️</div>
                   <div className="mt-1 font-display text-lg font-bold text-white">
-                    You vs {selected.name}
+                    Դուք ընդդեմ {selected.name}-ի
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-center">
-                    <div className="text-xs text-navy-400">You</div>
+                    <div className="text-xs text-navy-400">Դուք</div>
                     <ScorePill home={me.home} away={me.away} highlight />
                   </div>
                   <span className="text-navy-500">vs</span>
@@ -397,12 +394,12 @@ export function MatchArena(props: MatchArenaProps) {
       <div className="flex gap-2">
         <Link href="/predictions">
           <Button variant="ghost" size="sm">
-            ← My predictions
+            ← Իմ կանխատեսումները
           </Button>
         </Link>
         <Link href="/leaderboard">
           <Button variant="ghost" size="sm">
-            Leaderboard
+            Աղյուսակը
           </Button>
         </Link>
       </div>
@@ -558,7 +555,7 @@ function RivalList({
       </CardHeader>
       <CardContent className="space-y-2">
         {items.length === 0 ? (
-          <p className="py-4 text-center text-sm text-navy-500">None yet</p>
+          <p className="py-4 text-center text-sm text-navy-500">Դեռ ոչ մեկը չկա 🤷‍♂️</p>
         ) : (
           items.map((p) => (
             <div key={p.userId} className="flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-2">

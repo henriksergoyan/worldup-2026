@@ -33,10 +33,9 @@ export default async function LeaderboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Leaderboard</h1>
+        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Մրցաշարային Աղյուսակ 🏆</h1>
         <p className="text-sm text-navy-300">
-          {rows.length} players · prize pool {prizePool.toLocaleString()} AMD · {paidCount} paid · ties broken by exact
-          score count
+          {rows.length} խաղացող · Մրցանակային ֆոնդ՝ {prizePool.toLocaleString()} AMD · {paidCount} հոգի վճարած 💸 · Հավասար միավորների դեպքում առաջնայինը տոչնի (ճիշտ) հաշիվների քանակն է:
         </p>
       </div>
       <LeaderboardClient rows={rows} prizePool={prizePool} />

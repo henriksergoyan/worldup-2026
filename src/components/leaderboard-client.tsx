@@ -25,11 +25,11 @@ export interface Row {
 type Tab = "overall" | "group" | "knockout" | "champion" | "prizes";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "overall", label: "Overall" },
-  { id: "group", label: "Group Stage" },
-  { id: "knockout", label: "Knockout" },
-  { id: "champion", label: "Champion" },
-  { id: "prizes", label: "Prize Table" },
+  { id: "overall", label: "Ընդհանուր" },
+  { id: "group", label: "Խմբային փուլ" },
+  { id: "knockout", label: "Փլեյ-օֆֆ" },
+  { id: "champion", label: "Չեմպիոն 🏆" },
+  { id: "prizes", label: "Մրցանակներ 💰" },
 ];
 
 function rankBadge(rank: number) {
@@ -82,16 +82,16 @@ export function LeaderboardClient({ rows, prizePool }: { rows: Row[]; prizePool:
                 <thead>
                   <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wide text-navy-400">
                     <th className="px-4 py-3">#</th>
-                    <th className="px-4 py-3">Player</th>
-                    <th className="px-3 py-3 text-right">Total</th>
-                    <th className="px-3 py-3 text-right">Group</th>
-                    <th className="px-3 py-3 text-right">KO Teams</th>
-                    <th className="px-3 py-3 text-right">KO Stage</th>
-                    <th className="px-3 py-3 text-right">Champ</th>
-                    <th className="px-3 py-3 text-right">Exact</th>
-                    <th className="px-3 py-3 text-right">Compl.</th>
-                    <th className="px-3 py-3 text-right">Outcomes</th>
-                    <th className="px-4 py-3 text-right">Prize</th>
+                    <th className="px-4 py-3">Խաղացող</th>
+                    <th className="px-3 py-3 text-right">Ընդհանուր</th>
+                    <th className="px-3 py-3 text-right">Խմբային</th>
+                    <th className="px-3 py-3 text-right">16 Թիմ</th>
+                    <th className="px-3 py-3 text-right">Փլեյ-օֆֆ</th>
+                    <th className="px-3 py-3 text-right">Չեմպ</th>
+                    <th className="px-3 py-3 text-right">Տոչնի</th>
+                    <th className="px-3 py-3 text-right">Բարդ ճիշտ</th>
+                    <th className="px-3 py-3 text-right">Ելքեր</th>
+                    <th className="px-4 py-3 text-right">Մրցանակ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -114,7 +114,7 @@ export function LeaderboardClient({ rows, prizePool }: { rows: Row[]; prizePool:
                       </td>
                       <td className="px-4 py-2.5 font-semibold text-white">
                         {r.name}
-                        {r.isMe && <span className="ml-2 text-xs text-pitch-300">(you)</span>}
+                        {r.isMe && <span className="ml-2 text-xs text-pitch-300">(դու)</span>}
                       </td>
                       <td className="px-3 py-2.5 text-right font-bold tabular-nums text-pitch-300">
                         {r.totalPoints}
@@ -146,15 +146,15 @@ export function LeaderboardClient({ rows, prizePool }: { rows: Row[]; prizePool:
                       {tab === "overall" ? (rankBadge(r.rank) ?? r.rank) : i + 1}
                     </span>
                     <span className="font-semibold text-white">{r.name}</span>
-                    {r.isMe && <span className="text-xs text-pitch-300">(you)</span>}
+                    {r.isMe && <span className="text-xs text-pitch-300">(դու)</span>}
                   </div>
-                  <span className="text-lg font-black tabular-nums text-pitch-300">{r.totalPoints}</span>
+                  <span className="text-lg font-black tabular-nums text-pitch-300">{r.totalPoints} միավոր</span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5 text-xs text-navy-300">
-                  <Badge variant="muted">Group {r.groupStagePoints}</Badge>
-                  <Badge variant="muted">KO {r.knockoutStagePoints + r.knockoutTeamPoints}</Badge>
-                  <Badge variant="muted">Champ {r.championPoints}</Badge>
-                  <Badge variant="muted">{r.exactScoreHits} exact</Badge>
+                  <Badge variant="muted">Խումբ՝ {r.groupStagePoints}</Badge>
+                  <Badge variant="muted">Փլեյ-օֆֆ՝ {r.knockoutStagePoints + r.knockoutTeamPoints}</Badge>
+                  <Badge variant="muted">Չեմպ՝ {r.championPoints}</Badge>
+                  <Badge variant="muted">{r.exactScoreHits} տոչնի</Badge>
                   {r.prizeAmount > 0 && <Badge variant="gold">{formatAMD(r.prizeAmount)}</Badge>}
                 </div>
               </Card>
@@ -171,20 +171,20 @@ function PrizeTable({ rows, prizePool }: { rows: Row[]; prizePool: number }) {
   return (
     <Card className="overflow-hidden">
       <div className="border-b border-white/10 p-5">
-        <div className="text-xs font-semibold uppercase tracking-wider text-navy-400">Total prize pool</div>
+        <div className="text-xs font-semibold uppercase tracking-wider text-navy-400">Ընդհանուր մրցանակային ֆոնդ 💰</div>
         <div className="mt-1 text-3xl font-black text-gold-400">{formatAMD(prizePool)}</div>
       </div>
       {winners.length === 0 ? (
         <div className="p-8 text-center text-sm text-navy-300">
-          No prizes allocated yet — set paid players and enter results.
+          Մրցանակներ դեռ չկան բաշխված — վճարած խաղացողներին նշիր ու խաղերի արդյունքները մուտքագրի՛ր:
         </div>
       ) : (
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wide text-navy-400">
-              <th className="px-5 py-3">Rank</th>
-              <th className="px-5 py-3">Player</th>
-              <th className="px-5 py-3 text-right">Prize</th>
+              <th className="px-5 py-3">Տեղ</th>
+              <th className="px-5 py-3">Խաղացող</th>
+              <th className="px-5 py-3 text-right">Մրցանակ</th>
             </tr>
           </thead>
           <tbody>

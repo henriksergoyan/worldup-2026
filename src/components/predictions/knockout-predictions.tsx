@@ -64,7 +64,7 @@ export function KnockoutPredictions({ matches }: { matches: MatchDTO[] }) {
   function save() {
     const items = [...dirty].map((id) => ({ matchId: id, ...local[id] }));
     if (items.length === 0) {
-      toast("No changes to save.", "info");
+      toast("Պահպանելու փոփոխություններ չկան:", "info");
       return;
     }
     start(async () => {
@@ -78,10 +78,9 @@ export function KnockoutPredictions({ matches }: { matches: MatchDTO[] }) {
     return (
       <div className="glass flex flex-col items-center justify-center py-16 text-center">
         <div className="text-4xl">🥅</div>
-        <p className="mt-3 font-semibold text-white">Knockout matches not available yet</p>
+        <p className="mt-3 font-semibold text-white">Փլեյ-օֆֆի խաղերը դեռ հասանելի չեն</p>
         <p className="mt-1 max-w-sm text-sm text-navy-300">
-          The admin will add knockout fixtures once group standings are known. Check back after the
-          group stage.
+          Ադմինիստրատորը կավելացնի փլեյ-օֆֆի խաղերը, հենց խմբերի արդյունքները պարզ դառնան:
         </p>
       </div>
     );
@@ -130,8 +129,8 @@ function KnockoutRow({
           #{m.matchNumber} · {formatDateTime(m.scheduledAt)}
         </span>
         <div className="flex flex-wrap items-center gap-1.5">
-          {m.points !== null && <Badge variant="success">+{m.points} pts</Badge>}
-          {m.locked && <Badge variant="muted">🔒 Locked</Badge>}
+          {m.points !== null && <Badge variant="success">+{m.points} միավոր</Badge>}
+          {m.locked && <Badge variant="muted">🔒 Կողպված</Badge>}
         </div>
       </div>
 
@@ -139,11 +138,35 @@ function KnockoutRow({
         <div className="min-w-0 flex-1">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
             <TeamChip name={m.homeName} seedLabel={m.homeSeedLabel} align="right" />
-            <div className="flex items-center gap-1.5">
-              <ScoreInput value={value.normalHome} onChange={(v) => onChange({ normalHome: v })} disabled={disabled} />
-              <span className="text-navy-500">:</span>
-              <ScoreInput value={value.normalAway} onChange={(v) => onChange({ normalAway: v })} disabled={disabled} />
-            </div>
+            {m.actual ? (
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalHome}</span>
+                  <span className="text-navy-500 font-bold text-lg">:</span>
+                  <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalAway}</span>
+                </div>
+                <div className="text-[11px] font-semibold text-pitch-300">
+                  Ձեր կանխատեսումը՝ <span className="font-bold">{value.normalHome ?? "—"} – {value.normalAway ?? "—"}</span>
+                </div>
+              </div>
+            ) : m.locked ? (
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-black text-white/60 tabular-nums">{value.normalHome ?? "—"}</span>
+                  <span className="text-navy-500 font-bold text-lg">:</span>
+                  <span className="text-2xl font-black text-white/60 tabular-nums">{value.normalAway ?? "—"}</span>
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-navy-400">
+                  🔒 Կանխատեսումը (Կողպված)
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <ScoreInput value={value.normalHome} onChange={(v) => onChange({ normalHome: v })} disabled={disabled} />
+                <span className="text-navy-500">:</span>
+                <ScoreInput value={value.normalAway} onChange={(v) => onChange({ normalAway: v })} disabled={disabled} />
+              </div>
+            )}
             <TeamChip name={m.awayName} seedLabel={m.awaySeedLabel} />
           </div>
         </div>
@@ -152,7 +175,7 @@ function KnockoutRow({
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <SmallScorePair
-          label="Extra time"
+          label="Լրացուցիչ ժամանակ"
           home={value.extraHome}
           away={value.extraAway}
           onHome={(v) => onChange({ extraHome: v })}
@@ -160,7 +183,7 @@ function KnockoutRow({
           disabled={disabled}
         />
         <SmallScorePair
-          label="Penalties"
+          label="Պենալտիներ"
           home={value.penaltyHome}
           away={value.penaltyAway}
           onHome={(v) => onChange({ penaltyHome: v })}
@@ -170,22 +193,22 @@ function KnockoutRow({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-navy-400">Advances:</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-navy-400">Անցնում է հաջորդ փուլ՝</span>
         <WinnerPill
-          label={m.homeName ?? m.homeSeedLabel ?? "Home"}
+          label={m.homeName ?? m.homeSeedLabel ?? "Տանտեր"}
           active={derivedWinner === "HOME"}
           onClick={() => !disabled && onChange({ winner: "HOME" })}
           disabled={disabled}
         />
         <WinnerPill
-          label={m.awayName ?? m.awaySeedLabel ?? "Away"}
+          label={m.awayName ?? m.awaySeedLabel ?? "Հյուր"}
           active={derivedWinner === "AWAY"}
           onClick={() => !disabled && onChange({ winner: "AWAY" })}
           disabled={disabled}
         />
         {ambiguous && (
           <span className="text-xs font-medium text-amber-300">
-            Tie unresolved — choose the advancing team or add penalties.
+            Ոչ-ոքի է — ընտրի՛ր անցնող թիմին կամ պենալտիներ նշանակի՛ր:
           </span>
         )}
       </div>

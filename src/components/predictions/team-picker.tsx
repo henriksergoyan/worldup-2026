@@ -42,7 +42,7 @@ export function TeamPicker({
       if (next.has(id)) next.delete(id);
       else if (next.size < limit) next.add(id);
       else {
-        toast(`You can pick at most ${limit} teams.`, "error");
+        toast(`Դու կարող ես ընտրել առավելագույնը ${limit} թիմ:`, "error");
       }
       return next;
     });
@@ -59,25 +59,25 @@ export function TeamPicker({
     <div className="space-y-4 pb-24">
       <div className="glass flex flex-wrap items-center justify-between gap-3 p-4">
         <div>
-          <h3 className="font-display text-lg font-bold text-white">Knockout team picks 🎯</h3>
+          <h3 className="font-display text-lg font-bold text-white">Փլեյ-օֆֆի 16 թիմերդ 🎯</h3>
           <p className="text-sm text-navy-300">
-            Pick the teams you think will reach the knockout stage — 2 points each.{" "}
+            Ընտրի՛ր այն թիմերին, որոնք քո կարծիքով կանցնեն խմբից (փլեյ-օֆֆ) — ամեն ճիշտ թիմի համար 2 միավոր:{" "}
             {lock.locked ? (
-              <Badge variant="muted">🔒 Locked</Badge>
+              <Badge variant="muted">🔒 Կողպված ա</Badge>
             ) : lock.lockAt ? (
-              <span className="text-navy-400">Locks {formatDateTime(lock.lockAt)}</span>
+              <span className="text-navy-400">Կողպվում է {formatDateTime(lock.lockAt)}</span>
             ) : null}
           </p>
         </div>
         <Badge variant={selected.size === limit ? "success" : "info"} className="text-sm">
-          {selected.size}/{limit} selected
+          Ընտրված է {selected.size}/{limit} թիմ
         </Badge>
       </div>
 
       <div className="space-y-4">
         {byGroup.map(([code, list]) => (
           <div key={code}>
-            <h4 className="mb-2 text-sm font-bold text-navy-200">Group {code}</h4>
+            <h4 className="mb-2 text-sm font-bold text-navy-200">Խումբ {code}</h4>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {list.map((t) => {
                 const active = selected.has(t.id);
@@ -110,7 +110,7 @@ export function TeamPicker({
         pending={pending}
         onSave={save}
         disabled={lock.locked}
-        label={`${selected.size}/${limit} teams selected`}
+        label={`Ընտրված է ${selected.size}/${limit} թիմ`}
       />
     </div>
   );

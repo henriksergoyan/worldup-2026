@@ -16,7 +16,7 @@ export function LoginForm() {
     <>
       <form action={formAction} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="username">Username</Label>
+          <Label htmlFor="username">Մուտքանուն (Username)</Label>
           <Input
             id="username"
             name="username"
@@ -28,7 +28,7 @@ export function LoginForm() {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Գաղտնաբառ (Password)</Label>
           <Input
             id="password"
             name="password"
@@ -46,7 +46,7 @@ export function LoginForm() {
         )}
 
         <Button type="submit" size="lg" loading={pending} className="mt-2 w-full">
-          {pending ? "Signing in..." : "Sign in"}
+          {pending ? "Մուտք ենք գործում..." : "Մուտք գործել"}
         </Button>
 
         <Button
@@ -55,7 +55,7 @@ export function LoginForm() {
           className="w-full text-sm text-navy-300 hover:text-pitch-200"
           onClick={() => setContactOpen(true)}
         >
-          Want to join this league or have any questions?
+          Ուզու՞մ ես միանալ մեր լիգային կամ հարցեր ունե՞ս: 🤔
         </Button>
       </form>
 

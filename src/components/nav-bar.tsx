@@ -23,13 +23,13 @@ export function NavBar({
 
   const links: NavLink[] = isAdmin
     ? [
-        { href: "/admin", label: "Admin" },
-        { href: "/leaderboard", label: "Leaderboard" },
+        { href: "/admin", label: "Ադմինիստրատորի էջ" },
+        { href: "/leaderboard", label: "Մրցաշարային աղյուսակ" },
       ]
     : [
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/predictions", label: "My Predictions" },
-        { href: "/leaderboard", label: "Leaderboard" },
+        { href: "/dashboard", label: "Իմ էջը" },
+        { href: "/predictions", label: "Իմ կանխատեսումները ⚽" },
+        { href: "/leaderboard", label: "Մրցաշարային աղյուսակ" },
       ];
 
   const homeHref = isAdmin ? "/admin" : "/dashboard";
@@ -73,14 +73,14 @@ export function NavBar({
               <div className="text-sm font-semibold text-white">{user.name}</div>
               {isAdmin && (
                 <Badge variant="gold" className="px-1.5 py-0 text-[10px]">
-                  ADMIN
+                  Ադմին
                 </Badge>
               )}
             </div>
           </div>
           <form action={signOut}>
             <button className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-navy-300 transition hover:bg-white/5 hover:text-white">
-              Sign out
+              Դուրս գալ
             </button>
           </form>
           <button

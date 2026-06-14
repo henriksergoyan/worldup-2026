@@ -25,7 +25,7 @@ export function ChampionHero({
             {hasPick ? flagFor(teamName ?? "") : "🏆"}
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-bold uppercase tracking-wider text-gold-400/90">Your champion</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-gold-400/90">Քո չեմպիոնը 🏆</div>
             {hasPick ? (
               <>
                 <div className="mt-0.5 truncate font-display text-2xl font-black text-white sm:text-3xl">
@@ -33,26 +33,26 @@ export function ChampionHero({
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   {groupCode && (
-                    <span className="text-sm text-navy-300">Group {groupCode}</span>
+                    <span className="text-sm text-navy-300">Խումբ {groupCode}</span>
                   )}
-                  <Badge variant="muted">🔒 Locked</Badge>
-                  {isActualChampion && <Badge variant="success">World Cup winner ★</Badge>}
+                  <Badge variant="muted">🔒 Կողպված է (փոփոխման ենթակա չէ)</Badge>
+                  {isActualChampion && <Badge variant="success">Աշխարհի չեմպիոն ★</Badge>}
                   {championPoints > 0 && (
-                    <Badge variant="gold">+{championPoints} pts</Badge>
+                    <Badge variant="gold">+{championPoints} միավոր</Badge>
                   )}
                 </div>
               </>
             ) : (
               <>
-                <div className="mt-0.5 font-display text-xl font-bold text-navy-200">Not assigned yet</div>
-                <p className="mt-1 text-sm text-navy-400">Your champion pick will appear here once set.</p>
+                <div className="mt-0.5 font-display text-xl font-bold text-navy-200">Դեռ ընտրված չէ</div>
+                <p className="mt-1 text-sm text-navy-400">Ձեր ընտրած չեմպիոնը կհայտնվի այստեղ:</p>
               </>
             )}
           </div>
         </div>
         <Link href="/champion" className="shrink-0">
           <Button variant="outline" className="w-full border-gold-500/30 sm:w-auto">
-            Crowd champion stats →
+            Տեսնել մասնակիցների չեմպիոններին 🏆 →
           </Button>
         </Link>
       </div>

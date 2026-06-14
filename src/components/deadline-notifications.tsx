@@ -39,20 +39,20 @@ function DeadlineRow({
       </div>
       <div className="text-right">
         {locked ? (
-          <Badge variant="muted">Completed</Badge>
+          <Badge variant="muted">Ավարտված է</Badge>
         ) : (
           <>
             <Countdown
               target={d.lockAt}
               mode="days"
-              prefix="in "
+              prefix="— "
               className={cn(
                 "text-base font-bold",
                 variant === "active" ? "text-amber-200" : "text-pitch-300",
               )}
             />
             {variant === "active" && (
-              <div className="text-[10px] font-semibold uppercase text-amber-400/90">Act next</div>
+              <div className="text-[10px] font-semibold uppercase text-amber-400/90">Շուտով կփակվի</div>
             )}
           </>
         )}
@@ -104,7 +104,7 @@ export function DeadlineNotifications({ deadlines }: { deadlines: DeadlineItem[]
   if (deadlines.length === 0) {
     return (
       <Card className="border-white/10">
-        <CardContent className="py-6 text-center text-sm text-navy-300">No phase deadlines configured.</CardContent>
+        <CardContent className="py-6 text-center text-sm text-navy-300">Վերջնաժամկետներ սահմանված չեն:</CardContent>
       </Card>
     );
   }
@@ -113,20 +113,20 @@ export function DeadlineNotifications({ deadlines }: { deadlines: DeadlineItem[]
     <Card className={cn(actNext.length > 0 && "border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent")}>
       <CardHeader className="pb-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">⏰ Deadlines</CardTitle>
+          <CardTitle className="text-base">⏰ Վերջնաժամկետներ</CardTitle>
           {next && (
             <Badge variant={actNext.length > 0 ? "warning" : "info"}>
-              Next:{" "}
-              <Countdown target={next.lockAt} prefix="in " className="inline text-inherit" />
+              Հաջորդը՝{" "}
+              <Countdown target={next.lockAt} prefix="— " className="inline text-inherit" />
             </Badge>
           )}
         </div>
-        <p className="text-xs text-navy-400">Asia/Yerevan · live countdown</p>
+        <p className="text-xs text-navy-400">Երևանի ժամանակով · ուղիղ հետհաշվարկ</p>
       </CardHeader>
       <CardContent className="space-y-5">
-        <Section title="✅ Completed" items={completed} variant="done" empty="Nothing completed yet." />
-        <Section title="⚡ Act next" items={actNext} variant="active" empty="No urgent deadlines right now." />
-        <Section title="📅 Coming up" items={notStarted} variant="later" empty="No later deadlines." />
+        <Section title="✅ Ավարտված փուլեր" items={completed} variant="done" empty="Դեռ ոչ մի փուլ չի ավարտվել:" />
+        <Section title="⚡ Շուտով փակվող" items={actNext} variant="active" empty="Այս պահին շտապ փակվող փուլեր չկան:" />
+        <Section title="📅 Սպասվող փուլեր" items={notStarted} variant="later" empty="Այլ սահմանված վերջնաժամկետներ չկան:" />
       </CardContent>
     </Card>
   );

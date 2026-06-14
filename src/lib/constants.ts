@@ -18,12 +18,12 @@ export const ROUNDS = ["R32", "R16", "QF", "SF", "3RD", "FINAL"] as const;
 export type Round = (typeof ROUNDS)[number];
 
 export const ROUND_LABELS: Record<Round, string> = {
-  R32: "Round of 32 (1/16)",
-  R16: "Round of 16 (1/8)",
-  QF: "Quarter-final",
-  SF: "Semi-final",
-  "3RD": "Third-place match",
-  FINAL: "Final",
+  R32: "1/16 եզրափակիչ",
+  R16: "1/8 եզրափակիչ",
+  QF: "Քառորդ եզրափակիչ (1/4)",
+  SF: "Կիսաեզրափակիչ (1/2)",
+  "3RD": "3-րդ տեղի հանդիպում",
+  FINAL: "Եզրափակիչ (Ֆինալ) 🏆",
 };
 
 export const MATCH_STATUS = {
@@ -52,15 +52,15 @@ export const PHASES = {
 export type Phase = (typeof PHASES)[keyof typeof PHASES];
 
 export const PHASE_LABELS: Record<Phase, string> = {
-  GROUP_R1_R2: "Group Stage — Rounds 1 & 2",
-  GROUP_R3: "Group Stage — Round 3",
-  KO_R32: "Round of 32 (1/16)",
-  KO_R16: "Round of 16 (1/8)",
-  KO_QF: "Quarter-finals",
-  KO_SF: "Semi-finals",
-  KO_3RD_FINAL: "Third-place & Final",
-  CHAMPION: "Champion prediction",
-  KNOCKOUT_TEAMS: "Knockout-team picks",
+  GROUP_R1_R2: "Խմբային փուլ — 1-ին և 2-րդ տուր",
+  GROUP_R3: "Խմբային փուլ — 3-րդ տուր",
+  KO_R32: "1/16 եզրափակիչ",
+  KO_R16: "1/8 եզրափակիչ",
+  KO_QF: "Քառորդ եզրափակիչներ",
+  KO_SF: "Կիսաեզրափակիչներ",
+  KO_3RD_FINAL: "3-րդ տեղ և Եզրափակիչ",
+  CHAMPION: "Չեմպիոնի ընտրություն 🏆",
+  KNOCKOUT_TEAMS: "Փլեյ-օֆֆի թիմերի ընտրություն",
 };
 
 export const PHASE_ORDER: Phase[] = [

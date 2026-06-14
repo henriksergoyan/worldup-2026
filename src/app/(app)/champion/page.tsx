@@ -38,12 +38,12 @@ export default async function ChampionPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-black text-white md:text-3xl">Champion picks</h1>
-          <p className="text-sm text-navy-300">Who does the crowd think will win the World Cup?</p>
+          <h1 className="font-display text-2xl font-black text-white md:text-3xl">Չեմպիոնի ընտրությունները 🏆</h1>
+          <p className="text-sm text-navy-300">Ու՞մ վրա են հույս դրել (ում են չեմպիոն տեսնում) մեր տղերքը:</p>
         </div>
         <Link href="/dashboard">
           <Button variant="ghost" size="sm">
-            ← Dashboard
+            ← Իմ էջը
           </Button>
         </Link>
       </div>

@@ -43,26 +43,26 @@ export function ChampionStats({
         <CardContent className="pt-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-gold-400/90">Your champion</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-gold-400/90">Քո չեմպիոնը</div>
               {myPick ? (
                 <div className="mt-1 flex items-center gap-2 font-display text-2xl font-bold text-white">
                   <span>{flagFor(myPick.teamName)}</span>
                   {myPick.teamName}
-                  {actualChampionId === myPick.teamId && <Badge variant="success">Actual ★</Badge>}
+                  {actualChampionId === myPick.teamId && <Badge variant="success">Իրական չեմպիոն ★</Badge>}
                 </div>
               ) : (
-                <p className="mt-1 text-navy-300">You haven&apos;t picked a champion yet.</p>
+                <p className="mt-1 text-navy-300">Դու դեռ չեմպիոն չես ընտրել:</p>
               )}
             </div>
-            {myPick && <Badge variant="muted">🔒 Locked</Badge>}
+            {myPick && <Badge variant="muted">🔒 Կողպված ա</Badge>}
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">🏆 Crowd champion picks</CardTitle>
-          <p className="text-xs text-navy-400">{picks.length} players submitted</p>
+          <CardTitle className="text-base">🏆 Չեմպիոնների ընտրությունը</CardTitle>
+          <p className="text-xs text-navy-400">{picks.length} մասնակից կատարել է ընտրություն</p>
         </CardHeader>
         <CardContent className="space-y-3">
           {byTeam.map(([teamId, row]) => {
@@ -85,11 +85,11 @@ export function ChampionStats({
                   <div className="flex items-center gap-2 font-semibold text-white">
                     <span>{flagFor(row.teamName)}</span>
                     {row.teamName}
-                    {isMine && <Badge variant="info">You</Badge>}
-                    {isActual && <Badge variant="gold">Champion</Badge>}
+                    {isMine && <Badge variant="info">Դուք</Badge>}
+                    {isActual && <Badge variant="gold">Չեմպիոն 🏆</Badge>}
                   </div>
                   <span className="text-sm font-bold tabular-nums text-pitch-300">
-                    {row.count} · {pct}%
+                    {row.count} մասնակից · {pct}%
                   </span>
                 </div>
                 <div className="mb-2 h-2 overflow-hidden rounded-full bg-white/10">
@@ -107,14 +107,14 @@ export function ChampionStats({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">📋 All picks</CardTitle>
+          <CardTitle className="text-base">📋 Բոլորի ընտրությունները</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
           <table className="w-full min-w-[400px] text-sm">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.03] text-left text-xs uppercase text-navy-400">
-                <th className="px-4 py-2.5">Player</th>
-                <th className="px-4 py-2.5">Champion</th>
+                <th className="px-4 py-2.5">Խաղացող</th>
+                <th className="px-4 py-2.5">Չեմպիոն</th>
               </tr>
             </thead>
             <tbody>
@@ -132,7 +132,7 @@ export function ChampionStats({
                   >
                     <td className="px-4 py-2.5 font-medium text-white">
                       {p.name}
-                      {p.isMe && <span className="ml-1 text-xs text-pitch-300">(you)</span>}
+                      {p.isMe && <span className="ml-1 text-xs text-pitch-300">(դուք)</span>}
                     </td>
                     <td className="px-4 py-2.5 text-navy-200">
                       {flagFor(p.teamName)} {p.teamName}

@@ -48,7 +48,7 @@ export function GroupPredictions({ matches }: { matches: MatchDTO[] }) {
       away: local[id].away,
     }));
     if (items.length === 0) {
-      toast("No changes to save.", "info");
+      toast("Պահպանելու փոփոխություններ չկան:", "info");
       return;
     }
     start(async () => {
@@ -63,8 +63,8 @@ export function GroupPredictions({ matches }: { matches: MatchDTO[] }) {
       {groups.map(([code, list]) => (
         <div key={code}>
           <div className="mb-2 flex items-center gap-2">
-            <h3 className="font-display text-lg font-bold text-white">Group {code}</h3>
-            <span className="text-xs text-navy-400">{list.length} matches</span>
+            <h3 className="font-display text-lg font-bold text-white">Խումբ {code}</h3>
+            <span className="text-xs text-navy-400">{list.length} խաղ</span>
           </div>
           <div className="space-y-2">
             {list.map((m) => (
@@ -103,31 +103,55 @@ function MatchRow({
         <div className="flex flex-wrap items-center gap-1.5">
           {m.actual && (
             <Badge variant="info">
-              Result {m.actual.normalHome}–{m.actual.normalAway}
+              Արդյունք՝ {m.actual.normalHome}–{m.actual.normalAway}
             </Badge>
           )}
-          {m.points !== null && <Badge variant="success">+{m.points} pts</Badge>}
-          {m.locked && !m.actual && <Badge variant="muted">🔒 Locked</Badge>}
+          {m.points !== null && <Badge variant="success">+{m.points} միավոր</Badge>}
+          {m.locked && !m.actual && <Badge variant="muted">🔒 Կողպված է</Badge>}
         </div>
       </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="grid min-w-0 flex-1 grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
           <TeamChip name={m.homeName} seedLabel={m.homeSeedLabel} align="right" />
-          <div className="flex items-center gap-1.5">
-            <ScoreInput
-              value={value.home}
-              onChange={(v) => onChange("home", v)}
-              disabled={disabled}
-              ariaLabel={`${m.homeName} goals`}
-            />
-            <span className="text-navy-500">:</span>
-            <ScoreInput
-              value={value.away}
-              onChange={(v) => onChange("away", v)}
-              disabled={disabled}
-              ariaLabel={`${m.awayName} goals`}
-            />
-          </div>
+          {m.actual ? (
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalHome}</span>
+                <span className="text-navy-500 font-bold text-lg">:</span>
+                <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalAway}</span>
+              </div>
+              <div className="text-[11px] font-semibold text-pitch-300">
+                Ձեր կանխատեսումը՝ <span className="font-bold">{value.home ?? "—"} – {value.away ?? "—"}</span>
+              </div>
+            </div>
+          ) : m.locked ? (
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-black text-white/60 tabular-nums">{value.home ?? "—"}</span>
+                <span className="text-navy-500 font-bold text-lg">:</span>
+                <span className="text-2xl font-black text-white/60 tabular-nums">{value.away ?? "—"}</span>
+              </div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-navy-400">
+                🔒 Կանխատեսումը (Կողպված)
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <ScoreInput
+                value={value.home}
+                onChange={(v) => onChange("home", v)}
+                disabled={disabled}
+                ariaLabel={`${m.homeName} goals`}
+              />
+              <span className="text-navy-500">:</span>
+              <ScoreInput
+                value={value.away}
+                onChange={(v) => onChange("away", v)}
+                disabled={disabled}
+                ariaLabel={`${m.awayName} goals`}
+              />
+            </div>
+          )}
           <TeamChip name={m.awayName} seedLabel={m.awaySeedLabel} />
         </div>
         <CrowdArenaLink matchId={m.id} />
@@ -151,15 +175,14 @@ export function SaveBar({
         <span className="text-sm text-navy-300">
           {count > 0 ? (
             <>
-              <span className="font-bold text-white">{count}</span> unsaved change
-              {count === 1 ? "" : "s"}
+              Ունեք <span className="font-bold text-white">{count}</span> չպահպանված կանխատեսում ✍️
             </>
           ) : (
-            "All changes saved"
+            "Բոլոր կանխատեսումները պահպանված են"
           )}
         </span>
         <Button onClick={onSave} loading={pending} disabled={count === 0}>
-          Save changes
+          Պահպանել
         </Button>
       </div>
     </div>

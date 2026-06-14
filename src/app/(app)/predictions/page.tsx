@@ -98,9 +98,9 @@ export default async function PredictionsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-black text-white md:text-3xl">My Predictions</h1>
+        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Իմ Պրոգնոզները 🔮</h1>
         <p className="text-sm text-navy-300">
-          Enter your scores before each phase locks. Points appear once results are finalized.
+          Լրացրու հաշիվները նախքան փուլերի փակվելը: Միավորները կերևան, երբ խաղերի արդյունքները վերջնական հաստատվեն Շեֆի (Ադմինի) կողմից:
         </p>
       </div>
 

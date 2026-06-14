@@ -8,13 +8,12 @@ import { ChampionPicker } from "./champion-picker";
 import { TeamPicker } from "./team-picker";
 import { cn } from "@/lib/utils";
 
-type Tab = "group" | "knockout" | "champion" | "teams";
+type Tab = "group" | "knockout" | "champion";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "group", label: "Group Stage", icon: "🏟️" },
-  { id: "knockout", label: "Knockouts", icon: "🥅" },
-  { id: "champion", label: "Champion", icon: "🏆" },
-  { id: "teams", label: "Team Picks", icon: "🎯" },
+  { id: "group", label: "Խմբային փուլ", icon: "🏟️" },
+  { id: "knockout", label: "Փլեյ-օֆֆ", icon: "🥅" },
+  { id: "champion", label: "Չեմպիոն 🏆", icon: "🏆" },
 ];
 
 export function PredictionsTabs({
@@ -64,9 +63,6 @@ export function PredictionsTabs({
       {tab === "knockout" && <KnockoutPredictions matches={knockoutMatches} />}
       {tab === "champion" && (
         <ChampionPicker teams={teams} current={championPick} lock={championLock} />
-      )}
-      {tab === "teams" && (
-        <TeamPicker teams={teams} current={qualifierPicks} limit={pickLimit} lock={teamsLock} />
       )}
     </div>
   );

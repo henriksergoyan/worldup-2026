@@ -19,7 +19,7 @@ export function CrowdArenaLink({
           className,
         )}
       >
-        <span aria-hidden>👥</span> Crowd Arena
+        <span aria-hidden>👥</span> Խաղի կենտրոն
       </NextLink>
     );
   }
@@ -36,9 +36,9 @@ export function CrowdArenaLink({
         👥
       </span>
       <span className="mt-1 font-display text-sm font-bold text-pitch-100 group-hover:text-white">
-        Crowd Arena
+        Խաղի կենտրոն
       </span>
-      <span className="text-[10px] font-medium text-pitch-300/90">See all picks</span>
+      <span className="text-[10px] font-medium text-pitch-300/90">Բոլոր կանխատեսումները</span>
     </NextLink>
   );
 }

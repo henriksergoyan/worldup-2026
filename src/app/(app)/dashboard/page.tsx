@@ -53,7 +53,12 @@ export default async function DashboardPage() {
       }),
       prisma.match.findMany({
         where: { tournamentId: tournament.id, actualResult: { finalized: true } },
-        include: { homeTeam: true, awayTeam: true, actualResult: true },
+        include: {
+          homeTeam: true,
+          awayTeam: true,
+          actualResult: true,
+          predictions: { where: { userId: user.id } },
+        },
         orderBy: { scheduledAt: "desc" },
         take: 5,
       }),
@@ -87,12 +92,12 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-black text-white md:text-3xl">
-            Welcome back, {user.name.split(" ")[0]} 👋
+            Բարի վերադարձ, {user.name.split(" ")[0]} 👋
           </h1>
-          <p className="text-sm text-navy-300">{tournament.name} · prediction league</p>
+          <p className="text-sm text-navy-300">{tournament.name} · Կանխատեսումների լիգա</p>
         </div>
         <Link href="/predictions">
-          <Button>Enter predictions →</Button>
+          <Button>Կատարել կանխատեսումներ ✍️ →</Button>
         </Link>
       </div>
 
@@ -106,32 +111,32 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat
-          label="Total points"
+          label="Միավորներ"
           value={me?.totalPoints ?? 0}
           accent="text-pitch-400"
-          sub={`${me?.exactScoreHits ?? 0} exact · ${me?.correctOutcomes ?? 0} outcomes`}
+          sub={`${me?.exactScoreHits ?? 0} ճիշտ հաշիվ · ${me?.correctOutcomes ?? 0} ելք`}
         />
         <Stat
-          label="Rank"
+          label="Դիրքը մրցաշարային աղյուսակում"
           value={myRank ? `#${myRank.rank}` : "—"}
-          sub={`of ${leaderboard.length} players`}
+          sub={`${leaderboard.length} մասնակցից`}
         />
         <Stat
-          label="Next deadline"
+          label="Հաջորդ վերջնաժամկետը"
           value={
             next?.lockAt ? (
-              <Countdown target={next.lockAt} mode="days" prefix="in " className="text-3xl text-white" />
+              <Countdown target={next.lockAt} mode="days" prefix="— " className="text-3xl text-white" />
             ) : (
               "—"
             )
           }
-          sub={next ? PHASE_LABELS[next.phase] : "No upcoming lock"}
+          sub={next ? PHASE_LABELS[next.phase] : "Բոլոր խաղերը փակված են"}
         />
         <Stat
-          label="Projected prize"
+          label="Հնարավոր մրցանակ"
           value={myRank && myRank.prizeAmount > 0 ? formatAMD(myRank.prizeAmount) : "—"}
           accent="text-gold-400"
-          sub={myRank && myRank.prizeAmount > 0 ? "if standings hold" : "outside prizes"}
+          sub={myRank && myRank.prizeAmount > 0 ? "եթե դիրքերը պահպանվեն" : "դեռ մրցանակային տեղերում չեք"}
         />
       </div>
 
@@ -140,12 +145,12 @@ export default async function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Your predictions</CardTitle>
+            <CardTitle>Կանխատեսումներ</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <div className="mb-1.5 flex items-center justify-between text-sm">
-                <span className="text-navy-300">Match predictions</span>
+                <span className="text-navy-300">Կատարված կանխատեսումներ</span>
                 <span className="font-semibold text-white">
                   {predictionsMade}/{totalMatches}
                 </span>
@@ -158,36 +163,25 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Link href="/predictions?tab=group" className="group">
                 <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition group-hover:border-pitch-500/40">
                   <div className="text-2xl">🏟️</div>
-                  <div className="mt-1 text-sm font-semibold text-white">Group Stage</div>
+                  <div className="mt-1 text-sm font-semibold text-white">Խմբային փուլ</div>
                 </div>
               </Link>
               <Link href="/predictions?tab=knockout" className="group">
                 <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition group-hover:border-pitch-500/40">
                   <div className="text-2xl">🥅</div>
-                  <div className="mt-1 text-sm font-semibold text-white">Knockouts</div>
+                  <div className="mt-1 text-sm font-semibold text-white">Փլեյ-օֆֆեր</div>
                 </div>
               </Link>
               <Link href="/champion" className="group">
                 <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition group-hover:border-pitch-500/40">
                   <div className="text-2xl">🏆</div>
-                  <div className="mt-1 text-sm font-semibold text-white">Champion stats</div>
+                  <div className="mt-1 text-sm font-semibold text-white">Չեմպիոնի կանխատեսում</div>
                   <div className="mt-2 text-[11px] font-medium text-gold-400/90 group-hover:text-gold-300">
-                    View crowd picks →
-                  </div>
-                </div>
-              </Link>
-              <Link href="/predictions?tab=teams" className="group">
-                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition group-hover:border-pitch-500/40">
-                  <div className="text-2xl">🎯</div>
-                  <div className="mt-1 text-sm font-semibold text-white">Team Picks</div>
-                  <div className="mt-1">
-                    <Badge variant={qualifierCount > 0 ? "success" : "warning"}>
-                      {qualifierCount}/{tournament.knockoutPickCount}
-                    </Badge>
+                    Տեսնել բոլորի ընտրությունները →
                   </div>
                 </div>
               </Link>
@@ -197,7 +191,7 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Leaderboard</CardTitle>
+            <CardTitle>Առաջատարներ</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {leaderboard.slice(0, 6).map((e) => (
@@ -211,12 +205,12 @@ export default async function DashboardPage() {
                   <span className="w-5 text-center font-bold text-navy-400">{e.rank}</span>
                   <span className="font-semibold text-white">{e.name}</span>
                 </div>
-                <span className="font-bold tabular-nums text-pitch-300">{e.totalPoints}</span>
+                <span className="font-bold tabular-nums text-pitch-300">{e.totalPoints} միավոր</span>
               </div>
             ))}
             <Link href="/leaderboard" className="block pt-1">
               <Button variant="ghost" size="sm" className="w-full">
-                View full leaderboard →
+                Տեսնել ամբողջ աղյուսակը →
               </Button>
             </Link>
           </CardContent>
@@ -225,34 +219,44 @@ export default async function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent results</CardTitle>
+          <CardTitle>Վերջին խաղերի արդյունքները ⚽</CardTitle>
         </CardHeader>
         <CardContent>
           {recentResults.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <div className="text-4xl">⏳</div>
               <p className="mt-2 text-sm text-navy-300">
-                No results yet. Points appear here once the admin finalizes matches.
+                Արդյունքներ դեռ չկան: Միավորները կհաշվարկվեն, երբ ադմինիստրատորը մուտքագրի խաղերի վերջնական արդյունքները:
               </p>
             </div>
           ) : (
             <div className="space-y-2">
-              {recentResults.map((m) => (
-                <Link
-                  key={m.id}
-                  href={`/matches/${m.id}`}
-                  className="flex items-center gap-3 rounded-lg bg-white/[0.02] px-3 py-2.5 transition hover:bg-white/[0.05]"
-                >
-                  <div className="grid flex-1 grid-cols-[1fr_auto_1fr] items-center gap-2">
-                    <TeamChip name={m.homeTeam?.name} seedLabel={m.homeSeedLabel} align="right" />
-                    <span className="rounded-lg bg-navy-900 px-2.5 py-1 text-sm font-bold tabular-nums text-white">
-                      {m.actualResult?.normalHomeGoals}–{m.actualResult?.normalAwayGoals}
-                    </span>
-                    <TeamChip name={m.awayTeam?.name} seedLabel={m.awaySeedLabel} />
-                  </div>
-                  <Badge variant="success">+{me?.matchPoints[m.id] ?? 0} pts</Badge>
-                </Link>
-              ))}
+              {recentResults.map((m) => {
+                const pred = m.predictions[0] ?? null;
+                return (
+                  <Link
+                    key={m.id}
+                    href={`/matches/${m.id}`}
+                    className="flex items-center gap-3 rounded-lg bg-white/[0.02] px-3 py-2.5 transition hover:bg-white/[0.05]"
+                  >
+                    <div className="grid flex-1 grid-cols-[1fr_auto_1fr] items-center gap-2">
+                      <TeamChip name={m.homeTeam?.name} seedLabel={m.homeSeedLabel} align="right" />
+                      <div className="flex flex-col items-center">
+                        <span className="rounded-lg bg-navy-900 px-2.5 py-1 text-sm font-bold tabular-nums text-white">
+                          {m.actualResult?.normalHomeGoals}–{m.actualResult?.normalAwayGoals}
+                        </span>
+                        {pred && (
+                          <span className="mt-1 text-[10px] font-semibold text-pitch-300">
+                            Կանխատեսումը՝ {pred.normalHomeGoals}–{pred.normalAwayGoals}
+                          </span>
+                        )}
+                      </div>
+                      <TeamChip name={m.awayTeam?.name} seedLabel={m.awaySeedLabel} />
+                    </div>
+                    <Badge variant="success">+{me?.matchPoints[m.id] ?? 0} միավոր</Badge>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </CardContent>
