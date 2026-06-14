@@ -39,7 +39,7 @@ export interface MatchArenaProps {
   totalPlayers: number;
 }
 
-type Tab = "crowd" | "heatmap" | "rivals";
+type Tab = "crowd" | "columns" | "heatmap" | "rivals";
 
 export function MatchArena(props: MatchArenaProps) {
   const [tab, setTab] = useState<Tab>("crowd");
@@ -211,7 +211,8 @@ export function MatchArena(props: MatchArenaProps) {
             {(
               [
                 ["crowd", "👥 Everyone"],
-                ["heatmap", "🔥 Score heatmap"],
+                ["columns", "📊 Score board"],
+                ["heatmap", "🔥 Heatmap"],
                 ["rivals", "⚔️ Rivals"],
               ] as const
             ).map(([id, label]) => (
@@ -271,6 +272,73 @@ export function MatchArena(props: MatchArenaProps) {
                       </div>
                     </button>
                   ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {tab === "columns" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Column scoreboard</CardTitle>
+                <p className="text-xs text-navy-400">
+                  <span className="text-pitch-300">Green</span> = {props.homeName ?? "Home"} win ·{" "}
+                  <span className="text-amber-300">Amber</span> = draw ·{" "}
+                  <span className="text-sky-300">Blue</span> = {props.awayName ?? "Away"} win
+                </p>
+              </CardHeader>
+              <CardContent className="overflow-x-auto p-0">
+                <table className="w-full min-w-[520px] text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/[0.03] text-left text-xs uppercase tracking-wide text-navy-400">
+                      <th className="px-4 py-2.5">Player</th>
+                      <th className="px-4 py-2.5 text-center">Pick</th>
+                      <th className="px-4 py-2.5">Outcome</th>
+                      <th className="px-4 py-2.5 text-right">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {preds
+                      .slice()
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((p) => {
+                        const outcome = getOutcome(p.home, p.away);
+                        const rowClass =
+                          outcome === "1"
+                            ? "bg-pitch-500/10"
+                            : outcome === "X"
+                              ? "bg-amber-500/10"
+                              : "bg-sky-500/10";
+                        return (
+                          <tr
+                            key={p.userId}
+                            className={cn(
+                              "border-b border-white/5 transition hover:brightness-110",
+                              rowClass,
+                              p.isMe && "ring-1 ring-inset ring-pitch-400/50",
+                            )}
+                          >
+                            <td className="px-4 py-2.5 font-semibold text-white">
+                              {p.name}
+                              {p.isMe && <span className="ml-1 text-xs text-pitch-300">(you)</span>}
+                            </td>
+                            <td className="px-4 py-2.5 text-center">
+                              <ScorePill home={p.home} away={p.away} highlight={p.isMe} />
+                            </td>
+                            <td className="px-4 py-2.5 text-navy-200">
+                              {outcome === "1"
+                                ? `${props.homeName ?? "Home"} win`
+                                : outcome === "X"
+                                  ? "Draw"
+                                  : `${props.awayName ?? "Away"} win`}
+                            </td>
+                            <td className="px-4 py-2.5 text-right font-bold tabular-nums text-pitch-300">
+                              {p.points !== null ? `+${p.points}` : "—"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
               </CardContent>
             </Card>
           )}

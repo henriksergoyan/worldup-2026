@@ -1,7 +1,8 @@
 # Render Blueprint — https://render.com/docs/blueprint-spec
 # Deploy: Dashboard → New → Blueprint → connect henriksergoyan/worldup-2026
 
-# Starter plan required for persistent disk (SQLite database file).
+# IMPORTANT: Never run `npm run db:seed` on redeploy — it wipes all player data.
+# Data lives on the persistent disk at DATABASE_URL. Migrations only add schema.
 
 services:
   - type: web

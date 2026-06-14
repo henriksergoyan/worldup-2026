@@ -7,6 +7,8 @@ import { requireAdmin, hashPassword } from "@/lib/auth";
 import { generateReadablePassword } from "@/lib/user-utils";
 import { getActiveTournament } from "@/lib/standings";
 import { resolveKnockoutWinner } from "@/lib/scoring";
+import { refreshBracketFromResults } from "@/lib/bracket-engine";
+import { EXCEL_DEADLINES } from "@/lib/excel-deadlines";
 import { MATCH_STATUS, STAGES } from "@/lib/constants";
 import type { Prisma } from "@prisma/client";
 
@@ -107,6 +109,10 @@ export async function saveResult(input: z.input<typeof resultSchema>): Promise<A
     data: { status: finalized ? MATCH_STATUS.FINISHED : MATCH_STATUS.SCHEDULED },
   });
   await audit(admin.id, finalized ? "FINALIZE_RESULT" : "SAVE_RESULT", "Match", match.id, undefined, payload);
+
+  if (finalized) {
+    await refreshBracketFromResults(tournament.id);
+  }
 
   revalidateAll();
   return { ok: true, message: `Match ${match.matchNumber} ${finalized ? "finalized" : "saved"}.` };
@@ -324,11 +330,33 @@ export async function deleteMatch(matchId: string): Promise<AdminResult> {
 
 export async function recalculate(): Promise<AdminResult> {
   const admin = await requireAdmin();
-  // Scoring is computed on demand from finalized results; this revalidates caches
-  // and records the action in the audit log.
-  await audit(admin.id, "RECALCULATE", "Tournament", null, undefined, undefined);
+  const tournament = await getActiveTournament();
+
+  for (const d of EXCEL_DEADLINES) {
+    await prisma.deadline.upsert({
+      where: { tournamentId_phase: { tournamentId: tournament.id, phase: d.phase } },
+      create: {
+        tournamentId: tournament.id,
+        phase: d.phase,
+        lockAt: d.lockAt,
+        isOpen: true,
+      },
+      update: { lockAt: d.lockAt },
+    });
+  }
+
+  const result = await refreshBracketFromResults(tournament.id);
+  await audit(admin.id, "RECALCULATE", "Tournament", tournament.id, undefined, {
+    resultsApplied: result.resultsApplied,
+    r32Filled: result.r32Filled,
+    winnersPropagated: result.winnersPropagated,
+    qualifiersMarked: result.qualifiersMarked,
+  });
   revalidateAll();
-  return { ok: true, message: "Standings recalculated." };
+  return {
+    ok: true,
+    message: `Updated: Excel deadlines synced, ${result.resultsApplied} scores applied, ${result.r32Filled} R32 slots filled, ${result.winnersPropagated} winners advanced.`,
+  };
 }
 
 const userProfileSchema = z.object({

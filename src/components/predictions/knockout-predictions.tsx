@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import Link from "next/link";
+import { CrowdArenaLink } from "@/components/crowd-arena-link";
 import { MatchDTO } from "./types";
 import { ScoreInput } from "./score-input";
 import { SaveBar } from "./group-predictions";
@@ -124,31 +124,30 @@ function KnockoutRow({
   const ambiguous = hasScores && derivedWinner === null;
 
   return (
-    <div className="glass p-3 sm:p-4">
-      <div className="mb-2 flex items-center justify-between text-xs text-navy-400">
+    <div className="glass overflow-hidden p-3 sm:p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-400">
         <span>
           #{m.matchNumber} · {formatDateTime(m.scheduledAt)}
         </span>
-        <div className="flex items-center gap-1.5">
-          <Link
-            href={`/matches/${m.id}`}
-            className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-semibold text-pitch-300 transition hover:border-pitch-500/40 hover:bg-pitch-500/10"
-          >
-            👥 Crowd
-          </Link>
+        <div className="flex flex-wrap items-center gap-1.5">
           {m.points !== null && <Badge variant="success">+{m.points} pts</Badge>}
           {m.locked && <Badge variant="muted">🔒 Locked</Badge>}
         </div>
       </div>
 
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
-        <TeamChip name={m.homeName} seedLabel={m.homeSeedLabel} align="right" />
-        <div className="flex items-center gap-1.5">
-          <ScoreInput value={value.normalHome} onChange={(v) => onChange({ normalHome: v })} disabled={disabled} />
-          <span className="text-navy-500">:</span>
-          <ScoreInput value={value.normalAway} onChange={(v) => onChange({ normalAway: v })} disabled={disabled} />
+      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start">
+        <div className="min-w-0 flex-1">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
+            <TeamChip name={m.homeName} seedLabel={m.homeSeedLabel} align="right" />
+            <div className="flex items-center gap-1.5">
+              <ScoreInput value={value.normalHome} onChange={(v) => onChange({ normalHome: v })} disabled={disabled} />
+              <span className="text-navy-500">:</span>
+              <ScoreInput value={value.normalAway} onChange={(v) => onChange({ normalAway: v })} disabled={disabled} />
+            </div>
+            <TeamChip name={m.awayName} seedLabel={m.awaySeedLabel} />
+          </div>
         </div>
-        <TeamChip name={m.awayName} seedLabel={m.awaySeedLabel} />
+        <CrowdArenaLink matchId={m.id} />
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">

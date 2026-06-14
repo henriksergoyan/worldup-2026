@@ -7,6 +7,8 @@ import {
   type ParsedWorkbook,
 } from "./import";
 import { KNOCKOUT_FIXTURES, knockoutScheduledAt } from "../src/lib/knockout-bracket";
+import { EXCEL_DEADLINES } from "../src/lib/excel-deadlines";
+import { refreshBracketFromResults } from "../src/lib/bracket-engine";
 import { lookupResult } from "../src/lib/wc-results";
 import { splitDisplayName } from "../src/lib/user-utils";
 
@@ -259,30 +261,22 @@ async function main() {
     console.log(`Inserted ${predRows.length} predictions.`);
   }
 
-  // --- Deadlines (open by default, future lock times for a usable demo) ---
-  const now = Date.now();
-  const day = 24 * 60 * 60 * 1000;
-  const phaseLocks: Record<string, number> = {
-    CHAMPION: 2,
-    KNOCKOUT_TEAMS: 2,
-    GROUP_R1_R2: 2,
-    GROUP_R3: 7,
-    KO_R32: 14,
-    KO_R16: 18,
-    KO_QF: 22,
-    KO_SF: 26,
-    KO_3RD_FINAL: 30,
-  };
-  for (const [phase, offset] of Object.entries(phaseLocks)) {
+  // --- Deadlines from Excel ToR sheet (Asia/Yerevan) ---
+  for (const d of EXCEL_DEADLINES) {
     await prisma.deadline.create({
       data: {
         tournamentId: tournament.id,
-        phase,
-        lockAt: new Date(now + offset * day),
+        phase: d.phase,
+        lockAt: d.lockAt,
         isOpen: true,
       },
     });
   }
+
+  const bracket = await refreshBracketFromResults(tournament.id);
+  console.log(
+    `Bracket sync: ${bracket.resultsApplied} web scores, ${bracket.r32Filled} R32 slots, ${bracket.qualifiersMarked} qualifiers.`,
+  );
 
   console.log("\nSeed complete.");
   console.log("Login credentials:");

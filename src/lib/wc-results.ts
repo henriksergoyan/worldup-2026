@@ -47,6 +47,8 @@ export const WC_2026_RESULTS: Record<string, ActualScore> = {
   [key("Haiti", "Scotland")]: { home: 0, away: 1, finalized: true },
   [key("Australia", "Turkey")]: { home: 2, away: 0, finalized: true },
   [key("Australia", "Türkiye")]: { home: 2, away: 0, finalized: true },
+  [key("Germany", "Curaçao")]: { home: 7, away: 1, finalized: true },
+  [key("Germany", "Curacao")]: { home: 7, away: 1, finalized: true },
 };
 
 export function lookupResult(homeTeam: string, awayTeam: string): ActualScore | null {

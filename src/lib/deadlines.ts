@@ -87,6 +87,17 @@ export function canRevealPredictions(
   return isMatchPredictionLocked(match, options.kickoffLockMinutes ?? DEFAULT_KICKOFF_LOCK_MINUTES);
 }
 
+export function upcomingDeadlines(
+  deadlines: Map<Phase, DeadlineState>,
+  limit = 5,
+): DeadlineState[] {
+  const now = Date.now();
+  return [...deadlines.values()]
+    .filter((d) => d.lockAt && d.isOpen && d.lockAt.getTime() > now)
+    .sort((a, b) => a.lockAt!.getTime() - b.lockAt!.getTime())
+    .slice(0, limit);
+}
+
 export function nextDeadline(deadlines: Map<Phase, DeadlineState>): DeadlineState | null {
   const upcoming = [...deadlines.values()]
     .filter((d) => !d.locked && d.lockAt && d.lockAt.getTime() > Date.now())

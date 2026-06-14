@@ -262,10 +262,14 @@ This app uses **SQLite**, so you need a **Starter** web service with a **persist
    ```bash
    npm run db:seed
    ```
-6. **Settings → Custom Domains** → add `www.copa.team`.
+6. **Settings → Custom Domains** → add `worldcup2026.copa.team`.
 7. In **Namecheap → Advanced DNS** for `copa.team`:
-   - **CNAME** `www` → your `*.onrender.com` hostname from Render
-   - **URL Redirect** `@` → `https://www.copa.team` (optional, for apex)
+
+| Type | Host | Value |
+|------|------|--------|
+| **CNAME** | `worldcup2026` | your `*.onrender.com` hostname from Render |
+
+No changes needed at the root `@` — only this subdomain is used.
 
 ### Manual setup (without blueprint)
 
@@ -286,3 +290,5 @@ This app uses **SQLite**, so you need a **Starter** web service with a **persist
 1. Change the admin password (`admin@example.com`).
 2. Disable registration in Admin → Settings when all players have joined.
 3. Export JSON backups periodically from the admin console.
+4. **Never run `npm run db:seed` on Render after go-live** — it wipes all predictions. Redeploys are safe; data lives on the disk at `file:/var/data/copa.db`.
+5. In **Admin → Recalculate**, sync Excel deadlines, apply web-known scores, and fill the knockout bracket automatically.

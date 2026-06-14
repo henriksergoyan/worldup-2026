@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TeamChip } from "@/components/team-chip";
 import { formatDateTime, relativeTime, formatAMD } from "@/lib/utils";
-import { PHASE_LABELS, TEAM_PICK_TYPES } from "@/lib/constants";
+import { DeadlineNotifications } from "@/components/deadline-notifications";
+import { PHASE_LABELS, PHASE_ORDER, TEAM_PICK_TYPES } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,19 @@ export default async function DashboardPage() {
   const predictionsMade = me?.predictionsMade ?? 0;
   const pct = totalMatches > 0 ? Math.round((predictionsMade / totalMatches) * 100) : 0;
 
+  const deadlineItems = PHASE_ORDER.flatMap((phase) => {
+    const d = deadlines.get(phase);
+    if (!d?.lockAt) return [];
+    return [
+      {
+        phase,
+        lockAt: d.lockAt.toISOString(),
+        locked: d.locked,
+        isOpen: d.isOpen,
+      },
+    ];
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -100,6 +114,8 @@ export default async function DashboardPage() {
           sub={myRank && myRank.prizeAmount > 0 ? "if standings hold" : "outside prizes"}
         />
       </div>
+
+      <DeadlineNotifications deadlines={deadlineItems} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
