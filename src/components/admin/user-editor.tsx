@@ -7,14 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
 import { updateUserProfile, generateUserPassword, deleteUser } from "@/app/actions/admin";
 import { PaidToggle, ActiveToggle } from "./toggles";
-import { buildUserEmail } from "@/lib/user-utils";
+import { buildUsername } from "@/lib/user-utils";
 
 export interface AdminUserRow {
   id: string;
   firstName: string;
   lastName: string;
   name: string;
-  email: string;
+  username: string;
   role: string;
   paid: boolean;
   active: boolean;
@@ -28,7 +28,7 @@ export function UserEditorRow({ user }: { user: AdminUserRow }) {
   const [lastName, setLastName] = useState(user.lastName);
   const [password, setPassword] = useState(user.plainPassword ?? "");
   const dirty = firstName !== user.firstName || lastName !== user.lastName;
-  const previewEmail = buildUserEmail(firstName.trim() || "player", lastName.trim());
+  const previewUsername = buildUsername(firstName.trim() || "player", lastName.trim());
 
   function saveProfile() {
     start(async () => {
@@ -77,9 +77,9 @@ export function UserEditorRow({ user }: { user: AdminUserRow }) {
           <Input value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-9" />
         </div>
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs font-medium text-navy-400">Login (username)</label>
+          <label className="mb-1 block text-xs font-medium text-navy-400">Username</label>
           <div className="rounded-xl border border-white/10 bg-navy-900/50 px-3 py-2 font-mono text-sm text-pitch-200">
-            {dirty ? previewEmail : user.email}
+            {dirty ? previewUsername : user.username}
             {dirty && <span className="ml-2 text-xs text-amber-400">updates on save</span>}
           </div>
         </div>

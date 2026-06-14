@@ -1,101 +1,55 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
-import { TeamDTO, LockInfo } from "./types";
-import { Button } from "@/components/ui/button";
+import { TeamDTO } from "./types";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { cn, formatDateTime } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { flagFor } from "@/lib/flags";
-import { useToast } from "@/components/ui/toast";
-import { setChampion } from "@/app/actions/predictions";
 
 export function ChampionPicker({
   teams,
   current,
-  lock,
 }: {
   teams: TeamDTO[];
   current: string | null;
-  lock: LockInfo;
+  lock?: { locked: boolean; lockAt: string | null };
 }) {
-  const { toast } = useToast();
-  const [pending, start] = useTransition();
-  const [selected, setSelected] = useState<string | null>(current);
-  const [query, setQuery] = useState("");
-
-  const filtered = useMemo(
-    () => teams.filter((t) => t.name.toLowerCase().includes(query.toLowerCase())),
-    [teams, query],
-  );
-
-  function save() {
-    start(async () => {
-      const res = await setChampion(selected);
-      toast(res.message, res.ok ? "success" : "error");
-    });
-  }
+  const pick = teams.find((t) => t.id === current);
 
   return (
-    <div className="space-y-4 pb-24">
-      <div className="glass flex flex-wrap items-center justify-between gap-3 p-4">
-        <div>
-          <h3 className="font-display text-lg font-bold text-white">Pick your champion 🏆</h3>
-          <p className="text-sm text-navy-300">
-            8 points if your champion wins the tournament.{" "}
-            {lock.locked ? (
-              <Badge variant="muted">🔒 Locked</Badge>
-            ) : lock.lockAt ? (
-              <span className="text-navy-400">Locks {formatDateTime(lock.lockAt)}</span>
-            ) : null}
-          </p>
-          <Link href="/champion" className="mt-1 inline-block text-sm font-semibold text-gold-400 hover:text-gold-300">
-            See crowd champion stats →
-          </Link>
-        </div>
-        <Input
-          placeholder="Search team…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full sm:w-56"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-        {filtered.map((t) => {
-          const active = selected === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              disabled={lock.locked}
-              onClick={() => setSelected(active ? null : t.id)}
-              className={cn(
-                "flex items-center gap-2.5 rounded-xl border p-3 text-left transition",
-                active
-                  ? "border-gold-500/50 bg-gold-500/15 shadow-glow"
-                  : "border-white/10 bg-white/[0.02] hover:border-white/25",
-                lock.locked && "cursor-not-allowed opacity-60",
-              )}
+    <div className="space-y-4">
+      <div className="glass p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="font-display text-lg font-bold text-white">Your champion 🏆</h3>
+            <p className="mt-1 text-sm text-navy-300">
+              8 points if your champion wins the tournament. Champion picks are locked and cannot be changed.
+            </p>
+            <Link
+              href="/champion"
+              className="mt-2 inline-block text-sm font-semibold text-gold-400 hover:text-gold-300"
             >
-              <span className="text-xl">{flagFor(t.name)}</span>
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-white">{t.name}</span>
-                <span className="text-xs text-navy-400">Group {t.groupCode}</span>
-              </span>
-              {active && <span className="ml-auto text-gold-400">★</span>}
-            </button>
-          );
-        })}
+              See crowd champion stats →
+            </Link>
+          </div>
+          <Badge variant="muted">🔒 Locked</Badge>
+        </div>
       </div>
 
-      <SaveBarSimple
-        pending={pending}
-        onSave={save}
-        disabled={lock.locked}
-        label={selected ? `Champion: ${teams.find((t) => t.id === selected)?.name}` : "No champion selected"}
-      />
+      {pick ? (
+        <div className="flex items-center gap-4 rounded-2xl border border-gold-500/40 bg-gold-500/10 p-5">
+          <span className="text-5xl">{flagFor(pick.name)}</span>
+          <div>
+            <div className="font-display text-2xl font-bold text-white">{pick.name}</div>
+            <div className="text-sm text-navy-300">Group {pick.groupCode}</div>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center">
+          <div className="text-4xl">🏆</div>
+          <p className="mt-2 text-sm text-navy-300">No champion pick on your profile yet.</p>
+        </div>
+      )}
     </div>
   );
 }

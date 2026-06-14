@@ -44,6 +44,7 @@ function DeadlineRow({
           <>
             <Countdown
               target={d.lockAt}
+              mode="days"
               prefix="in "
               className={cn(
                 "text-base font-bold",

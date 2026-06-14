@@ -67,7 +67,7 @@ async function readSession(): Promise<SessionPayload | null> {
 export interface CurrentUser {
   id: string;
   name: string;
-  email: string;
+  username: string;
   role: Role;
   paid: boolean;
   active: boolean;
@@ -79,7 +79,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!session?.userId) return null;
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    select: { id: true, name: true, email: true, role: true, paid: true, active: true },
+    select: { id: true, name: true, username: true, role: true, paid: true, active: true },
   });
   if (!user || !user.active) return null;
   return user as CurrentUser;

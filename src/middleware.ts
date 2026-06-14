@@ -50,6 +50,18 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Admin accounts manage the league — player-only routes need a separate player profile.
+  const playerOnly =
+    pathname === "/dashboard" ||
+    pathname.startsWith("/predictions") ||
+    pathname === "/champion" ||
+    pathname.startsWith("/matches/");
+  if (payload.role === "ADMIN" && playerOnly) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/admin";
+    return NextResponse.redirect(url);
+  }
+
   return NextResponse.next();
 }
 

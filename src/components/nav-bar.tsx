@@ -19,20 +19,25 @@ export function NavBar({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const isAdmin = user.role === "ADMIN";
 
-  const links: NavLink[] = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/predictions", label: "My Predictions" },
-    { href: "/leaderboard", label: "Leaderboard" },
-  ];
-  if (user.role === "ADMIN") {
-    links.unshift({ href: "/admin", label: "Admin" });
-  }
+  const links: NavLink[] = isAdmin
+    ? [
+        { href: "/admin", label: "Admin" },
+        { href: "/leaderboard", label: "Leaderboard" },
+      ]
+    : [
+        { href: "/dashboard", label: "Dashboard" },
+        { href: "/predictions", label: "My Predictions" },
+        { href: "/leaderboard", label: "Leaderboard" },
+      ];
+
+  const homeHref = isAdmin ? "/admin" : "/dashboard";
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-navy-950/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
-        <Link href={user.role === "ADMIN" ? "/admin" : "/dashboard"} className="flex items-center gap-2">
+        <Link href={homeHref} className="flex items-center gap-2">
           <span className="text-2xl">⚽</span>
           <span className="font-display text-lg font-black tracking-tight text-white">
             WC<span className="text-pitch-400">26</span>
@@ -66,7 +71,7 @@ export function NavBar({
             </div>
             <div className="leading-tight">
               <div className="text-sm font-semibold text-white">{user.name}</div>
-              {user.role === "ADMIN" && (
+              {isAdmin && (
                 <Badge variant="gold" className="px-1.5 py-0 text-[10px]">
                   ADMIN
                 </Badge>

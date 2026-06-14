@@ -174,25 +174,12 @@ export async function saveKnockoutPredictions(
   };
 }
 
-export async function setChampion(teamId: string | null): Promise<ActionResult> {
-  const user = await requireUser();
-  const tournament = await getActiveTournament();
-  const deadlines = await getDeadlineMap(tournament.id);
-  if (deadlines.get(PHASES.CHAMPION)?.locked) {
-    return { ok: false, message: "Champion predictions are locked." };
-  }
-
-  await prisma.teamPick.deleteMany({
-    where: { userId: user.id, tournamentId: tournament.id, type: TEAM_PICK_TYPES.CHAMPION },
-  });
-  if (teamId) {
-    await prisma.teamPick.create({
-      data: { userId: user.id, tournamentId: tournament.id, teamId, type: TEAM_PICK_TYPES.CHAMPION },
-    });
-  }
-  revalidatePath("/predictions");
-  revalidatePath("/dashboard");
-  return { ok: true, message: teamId ? "Champion saved." : "Champion cleared." };
+export async function setChampion(_teamId: string | null): Promise<ActionResult> {
+  await requireUser();
+  return {
+    ok: false,
+    message: "Your champion pick is locked and cannot be changed.",
+  };
 }
 
 export async function setQualifierPicks(teamIds: string[]): Promise<ActionResult> {

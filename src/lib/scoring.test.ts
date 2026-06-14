@@ -180,6 +180,33 @@ describe("calculateLeaderboard", () => {
     expect(lb[0].rank).toBe(1);
   });
 
+  it("breaks equal points by exact score hits for rank and prizes", () => {
+    const lb = calculateLeaderboard(
+      [
+        { ...base, userId: "a", name: "Alice", groupStagePoints: 10, exactScoreHits: 1 },
+        { ...base, userId: "b", name: "Bob", groupStagePoints: 10, exactScoreHits: 3 },
+      ],
+      { entryFee: 10000, prizeSplit: { "1": 0.4, "2": 0.2 } },
+    );
+    expect(lb.map((e) => e.name)).toEqual(["Bob", "Alice"]);
+    expect(lb[0].rank).toBe(1);
+    expect(lb[1].rank).toBe(2);
+    expect(lb[0].prizeAmount).toBe(8000);
+    expect(lb[1].prizeAmount).toBe(4000);
+  });
+
+  it("assigns the same rank when all tie-breakers match", () => {
+    const lb = calculateLeaderboard(
+      [
+        { ...base, userId: "a", name: "Zoe", groupStagePoints: 5, exactScoreHits: 2 },
+        { ...base, userId: "b", name: "Amy", groupStagePoints: 5, exactScoreHits: 2 },
+      ],
+      { entryFee: 10000, prizeSplit: { "1": 0.4, "2": 0.2 } },
+    );
+    expect(lb[0].rank).toBe(1);
+    expect(lb[1].rank).toBe(1);
+  });
+
   it("breaks exact-score ties by complicated, then outcomes, then name", () => {
     const lb = calculateLeaderboard(
       [

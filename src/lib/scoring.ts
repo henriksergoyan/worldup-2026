@@ -313,8 +313,17 @@ export function calculateLeaderboard(
     options.paidCount ?? withTotals.filter((p) => p.paid).length;
   const pool = options.entryFee * paidCount;
 
+  let rank = 1;
   return withTotals.map((entry, index) => {
-    const rank = index + 1;
+    if (index > 0) {
+      const prev = withTotals[index - 1];
+      const sameStanding =
+        prev.totalPoints === entry.totalPoints &&
+        prev.exactScoreHits === entry.exactScoreHits &&
+        prev.complicatedExactScoreHits === entry.complicatedExactScoreHits &&
+        prev.correctOutcomes === entry.correctOutcomes;
+      if (!sameStanding) rank = index + 1;
+    }
     const fraction = options.prizeSplit[String(rank)] ?? 0;
     return {
       ...entry,

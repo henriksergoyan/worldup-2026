@@ -10,7 +10,7 @@ import { KNOCKOUT_FIXTURES, knockoutScheduledAt } from "../src/lib/knockout-brac
 import { EXCEL_DEADLINES } from "../src/lib/excel-deadlines";
 import { refreshBracketFromResults } from "../src/lib/bracket-engine";
 import { lookupResult } from "../src/lib/wc-results";
-import { splitDisplayName, buildUserEmail } from "../src/lib/user-utils";
+import { splitDisplayName, buildUsername, uniqueUsername } from "../src/lib/user-utils";
 
 const prisma = new PrismaClient();
 
@@ -144,7 +144,7 @@ async function main() {
       firstName: "Admin",
       lastName: "",
       name: "Admin",
-      email: "admin@example.com",
+      username: buildUsername("Admin", ""),
       passwordHash: adminHash,
       plainPassword: ADMIN_PASSWORD,
       role: "ADMIN",
@@ -153,22 +153,16 @@ async function main() {
     },
   });
 
-  const usedEmails = new Set<string>(["admin@example.com"]);
+  const usedUsernames = new Set<string>([buildUsername("Admin", "")]);
   for (const displayName of players) {
     const { firstName, lastName } = splitDisplayName(displayName);
-    let email = buildUserEmail(firstName, lastName);
-    let n = 2;
-    while (usedEmails.has(email)) {
-      email = buildUserEmail(firstName, `${lastName}${n}`);
-      n += 1;
-    }
-    const { firstName, lastName } = splitDisplayName(displayName);
+    const username = uniqueUsername(firstName, lastName, usedUsernames);
     await prisma.user.create({
       data: {
         firstName,
         lastName,
         name: displayName,
-        email,
+        username,
         passwordHash: playerHash,
         plainPassword: PLAYER_PASSWORD,
         role: "PLAYER",

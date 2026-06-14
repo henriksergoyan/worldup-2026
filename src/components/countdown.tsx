@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
-export function formatCountdown(ms: number, endedLabel = "Locked"): string {
+export function formatCountdownFull(ms: number, endedLabel = "Locked"): string {
   if (ms <= 0) return endedLabel;
   const totalSec = Math.floor(ms / 1000);
   const days = Math.floor(totalSec / 86400);
@@ -20,26 +20,48 @@ export function formatCountdown(ms: number, endedLabel = "Locked"): string {
   return parts.join(", ");
 }
 
+export function formatDaysRemaining(ms: number, endedLabel = "Locked"): string {
+  if (ms <= 0) return endedLabel;
+  const days = Math.ceil(ms / 86400000);
+  if (days <= 1) return "1 day";
+  return `${days} days`;
+}
+
 export function Countdown({
   target,
   className,
   endedLabel = "Locked",
   prefix = "",
+  mode = "full",
 }: {
   target: string | Date;
   className?: string;
   endedLabel?: string;
   prefix?: string;
+  mode?: "full" | "days";
 }) {
   const targetMs = typeof target === "string" ? new Date(target).getTime() : target.getTime();
-  const [label, setLabel] = useState(() => formatCountdown(targetMs - Date.now(), endedLabel));
+  const [label, setLabel] = useState(() => {
+    const remaining = targetMs - Date.now();
+    return mode === "days"
+      ? formatDaysRemaining(remaining, endedLabel)
+      : formatCountdownFull(remaining, endedLabel);
+  });
 
   useEffect(() => {
-    const tick = () => setLabel(formatCountdown(targetMs - Date.now(), endedLabel));
+    const tick = () => {
+      const remaining = targetMs - Date.now();
+      setLabel(
+        mode === "days"
+          ? formatDaysRemaining(remaining, endedLabel)
+          : formatCountdownFull(remaining, endedLabel),
+      );
+    };
     tick();
-    const id = window.setInterval(tick, 1000);
+    const intervalMs = mode === "days" ? 60_000 : 1000;
+    const id = window.setInterval(tick, intervalMs);
     return () => window.clearInterval(id);
-  }, [targetMs, endedLabel]);
+  }, [targetMs, endedLabel, mode]);
 
   return (
     <span className={cn("tabular-nums tracking-tight", className)}>

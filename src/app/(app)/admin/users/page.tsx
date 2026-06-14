@@ -15,7 +15,7 @@ export default async function AdminUsersPage() {
     firstName: u.firstName,
     lastName: u.lastName,
     name: u.name,
-    email: u.email,
+    username: u.username,
     role: u.role,
     paid: u.paid,
     active: u.active,
@@ -27,7 +27,8 @@ export default async function AdminUsersPage() {
       <div>
         <h1 className="font-display text-2xl font-black text-white md:text-3xl">Players</h1>
         <p className="text-sm text-navy-300">
-          Add players, edit names (login updates to firstname.lastname@example.com), reset passwords, or remove members.
+          Add players, edit names (username updates to firstname.lastname or firstname.[blank]), reset passwords, or
+          remove members. Admin accounts manage the league only — create a separate player profile to compete.
         </p>
       </div>
       <AdminNav />

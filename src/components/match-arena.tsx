@@ -98,7 +98,7 @@ export function MatchArena(props: MatchArenaProps) {
             </span>
             {!props.canReveal && (
               <Badge variant="warning">
-                Predictions lock in <Countdown target={props.lockAt} className="inline text-inherit" />
+                Predictions lock in <Countdown target={props.lockAt} mode="days" className="inline text-inherit" />
               </Badge>
             )}
             {props.canReveal && !props.finalized && (
@@ -139,8 +139,8 @@ export function MatchArena(props: MatchArenaProps) {
                 <span className="font-bold text-white">{preds.length}</span> of{" "}
                 <span className="font-bold text-white">{props.totalPlayers}</span> players have submitted
                 picks.                 Everyone&apos;s choices unlock in{" "}
-                <Countdown target={props.lockAt} className="inline font-semibold text-amber-200" /> (1 hour before
-                kickoff).
+                <Countdown target={props.lockAt} mode="days" className="inline font-semibold text-amber-200" /> (1 hour
+                before kickoff).
               </p>
             </div>
             <div className="flex gap-6 text-center">

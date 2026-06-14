@@ -22,7 +22,7 @@ model User {
   firstName    String
   lastName     String
   name         String   // display name: "firstName lastName"
-  email        String   @unique
+  username     String   @unique
   passwordHash String
   // Last known plaintext password (set on seed/register/reset). Admin-only visibility.
   plainPassword String?

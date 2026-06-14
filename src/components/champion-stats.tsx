@@ -1,12 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { flagFor } from "@/lib/flags";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 export interface ChampionPickRow {
   userId: string;
@@ -56,11 +54,7 @@ export function ChampionStats({
                 <p className="mt-1 text-navy-300">You haven&apos;t picked a champion yet.</p>
               )}
             </div>
-            <Link href="/predictions?tab=champion">
-              <Button variant="outline" size="sm">
-                {myPick ? "Change pick" : "Pick champion"} →
-              </Button>
-            </Link>
+            {myPick && <Badge variant="muted">🔒 Locked</Badge>}
           </div>
         </CardContent>
       </Card>

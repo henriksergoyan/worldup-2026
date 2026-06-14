@@ -7,7 +7,7 @@ export function splitDisplayName(full: string): { firstName: string; lastName: s
   return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
 }
 
-export const USER_EMAIL_DOMAIN = "example.com";
+export const BLANK_SURNAME = "[blank]";
 
 function slugPart(value: string): string {
   return value
@@ -18,11 +18,23 @@ function slugPart(value: string): string {
     .replace(/[^a-z0-9]+/g, "");
 }
 
-/** Login email as firstname.lastname@domain (e.g. henrik.smith@example.com). */
-export function buildUserEmail(firstName: string, lastName: string, domain = USER_EMAIL_DOMAIN): string {
+/** Login username as firstname.lastname, or firstname.[blank] when surname is missing. */
+export function buildUsername(firstName: string, lastName: string): string {
   const first = slugPart(firstName) || "player";
-  const last = slugPart(lastName);
-  return last ? `${first}.${last}@${domain}` : `${first}@${domain}`;
+  const last = lastName.trim() ? slugPart(lastName) : BLANK_SURNAME;
+  return `${first}.${last}`;
+}
+
+/** Pick a unique username by appending a numeric suffix when needed. */
+export function uniqueUsername(firstName: string, lastName: string, used: Set<string>): string {
+  let username = buildUsername(firstName, lastName);
+  let n = 2;
+  while (used.has(username)) {
+    username = `${buildUsername(firstName, lastName)}${n}`;
+    n += 1;
+  }
+  used.add(username);
+  return username;
 }
 
 export function formatUserName(u: { firstName?: string | null; lastName?: string | null; name?: string }): string {

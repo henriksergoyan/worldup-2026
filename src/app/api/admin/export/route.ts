@@ -16,7 +16,7 @@ export async function GET() {
       prisma.tournament.findMany(),
       prisma.team.findMany(),
       prisma.user.findMany({
-        select: { id: true, name: true, email: true, role: true, paid: true, active: true },
+        select: { id: true, name: true, username: true, role: true, paid: true, active: true },
       }),
       prisma.match.findMany({ include: { actualResult: true } }),
       prisma.prediction.findMany(),

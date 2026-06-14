@@ -10,6 +10,7 @@ import { TeamChip } from "@/components/team-chip";
 import { formatDateTime, formatAMD } from "@/lib/utils";
 import { DeadlineNotifications } from "@/components/deadline-notifications";
 import { Countdown } from "@/components/countdown";
+import { ChampionHero } from "@/components/champion-hero";
 import { PHASE_LABELS, PLAYER_DEADLINE_PHASES, TEAM_PICK_TYPES } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export default async function DashboardPage() {
   const user = await requireUser();
   const tournament = await getActiveTournament();
 
-  const [{ leaderboard, breakdownByUser }, deadlines, totalMatches, championPick, qualifierCount, recentResults] =
+  const [{ leaderboard, breakdownByUser }, deadlines, totalMatches, championPick, qualifierCount, recentResults, actualChampion] =
     await Promise.all([
       computeStandings(tournament.id),
       getDeadlineMap(tournament.id),
@@ -55,6 +56,10 @@ export default async function DashboardPage() {
         include: { homeTeam: true, awayTeam: true, actualResult: true },
         orderBy: { scheduledAt: "desc" },
         take: 5,
+      }),
+      prisma.actualTeamStatus.findFirst({
+        where: { tournamentId: tournament.id, champion: true },
+        select: { teamId: true },
       }),
     ]);
 
@@ -91,6 +96,14 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
+      <ChampionHero
+        teamName={championPick?.team.name ?? null}
+        groupCode={championPick?.team.groupCode ?? null}
+        championPoints={me?.championPoints ?? 0}
+        isActualChampion={!!championPick && actualChampion?.teamId === championPick.teamId}
+        hasPick={!!championPick}
+      />
+
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat
           label="Total points"
@@ -107,7 +120,7 @@ export default async function DashboardPage() {
           label="Next deadline"
           value={
             next?.lockAt ? (
-              <Countdown target={next.lockAt} prefix="in " className="text-3xl text-white" />
+              <Countdown target={next.lockAt} mode="days" prefix="in " className="text-3xl text-white" />
             ) : (
               "—"
             )
@@ -161,16 +174,9 @@ export default async function DashboardPage() {
               <Link href="/champion" className="group">
                 <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition group-hover:border-pitch-500/40">
                   <div className="text-2xl">🏆</div>
-                  <div className="mt-1 text-sm font-semibold text-white">Champion</div>
-                  <div className="mt-1">
-                    {championPick ? (
-                      <Badge variant="gold">{championPick.team.name}</Badge>
-                    ) : (
-                      <Badge variant="warning">Not set</Badge>
-                    )}
-                  </div>
+                  <div className="mt-1 text-sm font-semibold text-white">Champion stats</div>
                   <div className="mt-2 text-[11px] font-medium text-gold-400/90 group-hover:text-gold-300">
-                    View crowd stats →
+                    View crowd picks →
                   </div>
                 </div>
               </Link>

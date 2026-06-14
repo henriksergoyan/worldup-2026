@@ -52,19 +52,16 @@ Open http://localhost:3000 and sign in — or **register** at `/register` if reg
 
 ### Seeded login credentials
 
-| Role   | Email                  | Password      |
+| Role   | Username               | Password      |
 | ------ | ---------------------- | ------------- |
-| Admin  | `admin@example.com`    | `admin123`    |
-| Player | `henrik@example.com`   | `password123` |
+| Admin  | `admin.[blank]`        | `admin123`    |
+| Player | `henrik.[blank]`       | `password123` |
 
-**All 28 seeded players** use the password `password123`. Emails are
-`firstname@example.com` style:
+**All seeded players** use the password `password123`. Usernames are
+`firstname.lastname` (or `firstname.[blank]` when no surname is on file):
 
 ```
-abel@, aleksandr@, ara@, aramgm@, aramtsh@, arsen@, artcap@, artdoc@, davit@,
-edgarh@, edgarm@, edmon@, gagikst@, haykst@, henrik@, hovost@, konstantin@,
-levonm@, levont@, mark@, minas@, rench@, ruben@, sipan@, tigrangr@, tigranh@,
-tigrantsh@, vigen@   (all @example.com)
+abel.[blank], aleksandr.[blank], henrik.[blank], tigran.tsh.[blank], …
 ```
 
 > ⚠️ These are development-only credentials. Change `AUTH_SECRET` and all
@@ -287,7 +284,7 @@ No changes needed at the root `@` — only this subdomain is used.
 
 ### After go-live
 
-1. Change the admin password (`admin@example.com`).
+1. Change the admin password (`admin.[blank]`).
 2. Disable registration in Admin → Settings when all players have joined.
 3. Export JSON backups periodically from the admin console.
 4. **Never run `npm run db:seed` on Render after go-live** — it wipes all predictions. Redeploys are safe; data lives on the disk at `file:/var/data/copa.db`.

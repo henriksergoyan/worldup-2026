@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, hashPassword } from "@/lib/auth";
-import { generateReadablePassword, buildUserEmail, formatUserName } from "@/lib/user-utils";
+import { generateReadablePassword, buildUsername, formatUserName } from "@/lib/user-utils";
 import { getActiveTournament } from "@/lib/standings";
 import { resolveKnockoutWinner } from "@/lib/scoring";
 import { refreshBracketFromResults } from "@/lib/bracket-engine";
@@ -372,7 +372,7 @@ const createUserSchema = z.object({
 
 export async function createUser(
   input: z.input<typeof createUserSchema>,
-): Promise<AdminResult & { email?: string; password?: string }> {
+): Promise<AdminResult & { username?: string; password?: string }> {
   const admin = await requireAdmin();
   const parsed = createUserSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Invalid name." };
@@ -380,19 +380,19 @@ export async function createUser(
   const firstName = parsed.data.firstName.trim();
   const lastName = (parsed.data.lastName ?? "").trim();
   const name = formatUserName({ firstName, lastName });
-  const email = buildUserEmail(firstName, lastName);
+  const username = buildUsername(firstName, lastName);
   const password = generateReadablePassword();
   const passwordHash = await hashPassword(password);
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) return { ok: false, message: `Email ${email} already exists.` };
+  const existing = await prisma.user.findUnique({ where: { username } });
+  if (existing) return { ok: false, message: `Username ${username} already exists.` };
 
   const user = await prisma.user.create({
     data: {
       firstName,
       lastName,
       name,
-      email,
+      username,
       passwordHash,
       plainPassword: password,
       role: "PLAYER",
@@ -401,9 +401,9 @@ export async function createUser(
     },
   });
 
-  await audit(admin.id, "CREATE_USER", "User", user.id, undefined, { email, name });
+  await audit(admin.id, "CREATE_USER", "User", user.id, undefined, { username, name });
   revalidatePath("/admin/users");
-  return { ok: true, message: `Created ${name} (${email})`, email, password };
+  return { ok: true, message: `Created ${name} (${username})`, username, password };
 }
 
 export async function deleteUser(userId: string): Promise<AdminResult> {
@@ -418,7 +418,7 @@ export async function deleteUser(userId: string): Promise<AdminResult> {
   }
 
   await prisma.user.delete({ where: { id: userId } });
-  await audit(admin.id, "DELETE_USER", "User", userId, { email: target.email }, undefined);
+  await audit(admin.id, "DELETE_USER", "User", userId, { username: target.username }, undefined);
   revalidatePath("/admin/users");
   return { ok: true, message: `Removed ${target.name}.` };
 }
@@ -431,31 +431,31 @@ const userProfileSchema = z.object({
 export async function updateUserProfile(
   userId: string,
   input: z.input<typeof userProfileSchema>,
-): Promise<AdminResult & { email?: string }> {
+): Promise<AdminResult & { username?: string }> {
   const admin = await requireAdmin();
   const parsed = userProfileSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Invalid profile data." };
   const firstName = parsed.data.firstName.trim();
   const lastName = parsed.data.lastName.trim();
   const name = lastName ? `${firstName} ${lastName}` : firstName;
-  const email = buildUserEmail(firstName, lastName);
+  const username = buildUsername(firstName, lastName);
 
   const conflict = await prisma.user.findFirst({
-    where: { email, NOT: { id: userId } },
+    where: { username, NOT: { id: userId } },
   });
-  if (conflict) return { ok: false, message: `Username ${email} is already taken.` };
+  if (conflict) return { ok: false, message: `Username ${username} is already taken.` };
 
   try {
     await prisma.user.update({
       where: { id: userId },
-      data: { firstName, lastName, name, email },
+      data: { firstName, lastName, name, username },
     });
   } catch {
     return { ok: false, message: "Could not update profile." };
   }
-  await audit(admin.id, "UPDATE_USER", "User", userId, undefined, { firstName, lastName, email });
+  await audit(admin.id, "UPDATE_USER", "User", userId, undefined, { firstName, lastName, username });
   revalidatePath("/admin/users");
-  return { ok: true, message: `Profile updated. Login: ${email}`, email };
+  return { ok: true, message: `Profile updated. Login: ${username}`, username };
 }
 
 export async function generateUserPassword(userId: string): Promise<AdminResult & { password?: string }> {

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { createUser } from "@/app/actions/admin";
-import { buildUserEmail } from "@/lib/user-utils";
+import { buildUsername } from "@/lib/user-utils";
 
 export function AddUserForm() {
   const { toast } = useToast();
@@ -13,14 +13,14 @@ export function AddUserForm() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
 
-  const previewEmail = firstName.trim()
-    ? buildUserEmail(firstName.trim(), lastName.trim())
-    : "firstname.lastname@example.com";
+  const previewUsername = firstName.trim()
+    ? buildUsername(firstName.trim(), lastName.trim())
+    : "firstname.lastname";
 
   function submit() {
     start(async () => {
       const res = await createUser({ firstName, lastName });
-      if (res.ok && res.email && res.password) {
+      if (res.ok && res.username && res.password) {
         toast(`${res.message} Password: ${res.password}`, "success");
         setFirstName("");
         setLastName("");
@@ -34,7 +34,8 @@ export function AddUserForm() {
     <div className="glass space-y-3 p-4">
       <h3 className="font-display text-lg font-bold text-white">Add player</h3>
       <p className="text-xs text-navy-400">
-        Creates login <span className="font-mono text-pitch-300">{previewEmail}</span> with an auto-generated password.
+        Creates login <span className="font-mono text-pitch-300">{previewUsername}</span> with an auto-generated
+        password. To play yourself, add a separate player profile here.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>

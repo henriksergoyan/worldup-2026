@@ -35,7 +35,8 @@ export default async function LeaderboardPage() {
       <div>
         <h1 className="font-display text-2xl font-black text-white md:text-3xl">Leaderboard</h1>
         <p className="text-sm text-navy-300">
-          {rows.length} players · prize pool {prizePool.toLocaleString()} AMD · {paidCount} paid
+          {rows.length} players · prize pool {prizePool.toLocaleString()} AMD · {paidCount} paid · ties broken by exact
+          score count
         </p>
       </div>
       <LeaderboardClient rows={rows} prizePool={prizePool} />

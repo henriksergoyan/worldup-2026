@@ -1,32 +1,52 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 import { signUp, type AuthState } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { buildUsername } from "@/lib/user-utils";
 
 const initial: AuthState = {};
 
 export function RegisterForm() {
   const [state, formAction, pending] = useActionState(signUp, initial);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
+  const previewUsername = useMemo(() => {
+    if (!firstName.trim()) return "firstname.lastname";
+    return buildUsername(firstName.trim(), lastName.trim());
+  }, [firstName, lastName]);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="firstName">First name</Label>
-          <Input id="firstName" name="firstName" required placeholder="Henrik" />
+          <Input
+            id="firstName"
+            name="firstName"
+            required
+            placeholder="Henrik"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="lastName">Last name</Label>
-          <Input id="lastName" name="lastName" placeholder="Sergoyan" />
+          <Input
+            id="lastName"
+            name="lastName"
+            placeholder="Sergoyan"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
         </div>
       </div>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" required />
-      </div>
+      <p className="text-xs text-navy-400">
+        Your username will be <span className="font-mono text-pitch-300">{previewUsername}</span>
+      </p>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="password">Password</Label>
         <Input id="password" name="password" type="password" autoComplete="new-password" minLength={6} required />

@@ -38,7 +38,10 @@ export default async function AdminPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-black text-white md:text-3xl">Admin Console</h1>
-          <p className="text-sm text-navy-300">{tournament.name}</p>
+          <p className="text-sm text-navy-300">
+            {tournament.name} · manage players, results, and settings. To play in the league, create a separate player
+            profile under Players.
+          </p>
         </div>
         <div className="flex gap-2">
           <RecalcButton />

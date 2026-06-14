@@ -16,13 +16,13 @@ export function LoginForm() {
     <>
       <form action={formAction} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="username">Username</Label>
           <Input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
+            id="username"
+            name="username"
+            type="text"
+            autoComplete="username"
+            placeholder="firstname.lastname"
             defaultValue=""
             required
           />
