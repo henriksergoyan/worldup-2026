@@ -1,6 +1,5 @@
 import { LoginForm } from "@/components/login-form";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 export default function LoginPage() {
   return (
@@ -25,18 +24,6 @@ export default function LoginPage() {
         <Card className="p-7">
           <LoginForm />
         </Card>
-
-        <div className="mt-6 rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-xs text-navy-300">
-          <p className="mb-2 font-semibold text-navy-200">Demo accounts</p>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="gold">admin@example.com / admin123</Badge>
-            <Badge variant="success">henrik@example.com / password123</Badge>
-          </div>
-          <p className="mt-2 text-navy-400">
-            All seeded players use <span className="text-navy-200">password123</span> (e.g. abel@,
-            ara@, mark@example.com).
-          </p>
-        </div>
       </div>
     </main>
   );

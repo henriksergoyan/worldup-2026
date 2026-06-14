@@ -43,11 +43,6 @@ export const EXCEL_DEADLINES: ExcelDeadline[] = [
     label: "Champion prediction",
   },
   {
-    phase: PHASES.KNOCKOUT_TEAMS,
-    lockAt: yerevanLocalToUtc(2026, 6, 9, 24, 0),
-    label: "Knockout-team picks",
-  },
-  {
     phase: PHASES.GROUP_R3,
     lockAt: yerevanLocalToUtc(2026, 6, 23, 0, 0),
     label: "Group stage round 3 scores",

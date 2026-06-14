@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { cn, formatDateTime, relativeTime } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
+import { Countdown } from "@/components/countdown";
 import { getOutcome } from "@/lib/scoring";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -96,7 +97,9 @@ export function MatchArena(props: MatchArenaProps) {
               #{props.matchNumber} · {stageLabel} · {formatDateTime(props.scheduledAt)}
             </span>
             {!props.canReveal && (
-              <Badge variant="warning">Predictions lock {relativeTime(props.lockAt)}</Badge>
+              <Badge variant="warning">
+                Predictions lock in <Countdown target={props.lockAt} className="inline text-inherit" />
+              </Badge>
             )}
             {props.canReveal && !props.finalized && (
               <Badge variant="info">Predictions revealed — match upcoming</Badge>
@@ -135,8 +138,9 @@ export function MatchArena(props: MatchArenaProps) {
               <p className="mt-1 max-w-md text-sm text-navy-300">
                 <span className="font-bold text-white">{preds.length}</span> of{" "}
                 <span className="font-bold text-white">{props.totalPlayers}</span> players have submitted
-                picks. Everyone&apos;s choices unlock{" "}
-                <span className="text-amber-200">{relativeTime(props.lockAt)}</span> (1 hour before kickoff).
+                picks.                 Everyone&apos;s choices unlock in{" "}
+                <Countdown target={props.lockAt} className="inline font-semibold text-amber-200" /> (1 hour before
+                kickoff).
               </p>
             </div>
             <div className="flex gap-6 text-center">

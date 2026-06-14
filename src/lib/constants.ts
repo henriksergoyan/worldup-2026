@@ -75,6 +75,11 @@ export const PHASE_ORDER: Phase[] = [
   PHASES.KO_3RD_FINAL,
 ];
 
+/** Phases shown on the player deadline timeline (knockout-team picks have no lock). */
+export const PLAYER_DEADLINE_PHASES: Phase[] = PHASE_ORDER.filter(
+  (p) => p !== PHASES.KNOCKOUT_TEAMS,
+);
+
 // Map a knockout round to its deadline phase.
 export const ROUND_TO_PHASE: Record<Round, Phase> = {
   R32: PHASES.KO_R32,

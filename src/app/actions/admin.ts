@@ -4,12 +4,13 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, hashPassword } from "@/lib/auth";
-import { generateReadablePassword } from "@/lib/user-utils";
+import { generateReadablePassword, buildUserEmail, formatUserName } from "@/lib/user-utils";
 import { getActiveTournament } from "@/lib/standings";
 import { resolveKnockoutWinner } from "@/lib/scoring";
 import { refreshBracketFromResults } from "@/lib/bracket-engine";
 import { EXCEL_DEADLINES } from "@/lib/excel-deadlines";
-import { MATCH_STATUS, STAGES } from "@/lib/constants";
+import { syncTeamPicksFromWorkbook } from "@/lib/sync-team-picks";
+import { MATCH_STATUS, PHASES, STAGES } from "@/lib/constants";
 import type { Prisma } from "@prisma/client";
 
 export interface AdminResult {
@@ -344,47 +345,117 @@ export async function recalculate(): Promise<AdminResult> {
       update: { lockAt: d.lockAt },
     });
   }
+  await prisma.deadline.deleteMany({
+    where: { tournamentId: tournament.id, phase: PHASES.KNOCKOUT_TEAMS },
+  });
 
+  const picks = await syncTeamPicksFromWorkbook(tournament.id);
   const result = await refreshBracketFromResults(tournament.id);
   await audit(admin.id, "RECALCULATE", "Tournament", tournament.id, undefined, {
     resultsApplied: result.resultsApplied,
     r32Filled: result.r32Filled,
     winnersPropagated: result.winnersPropagated,
     qualifiersMarked: result.qualifiersMarked,
+    championPicks: picks.champions,
   });
   revalidateAll();
   return {
     ok: true,
-    message: `Updated: Excel deadlines synced, ${result.resultsApplied} scores applied, ${result.r32Filled} R32 slots filled, ${result.winnersPropagated} winners advanced.`,
+    message: `Updated: deadlines synced, ${picks.champions} champion picks, ${result.resultsApplied} scores, ${result.r32Filled} R32 slots.`,
   };
+}
+
+const createUserSchema = z.object({
+  firstName: z.string().min(1).max(40),
+  lastName: z.string().max(40).optional(),
+});
+
+export async function createUser(
+  input: z.input<typeof createUserSchema>,
+): Promise<AdminResult & { email?: string; password?: string }> {
+  const admin = await requireAdmin();
+  const parsed = createUserSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Invalid name." };
+
+  const firstName = parsed.data.firstName.trim();
+  const lastName = (parsed.data.lastName ?? "").trim();
+  const name = formatUserName({ firstName, lastName });
+  const email = buildUserEmail(firstName, lastName);
+  const password = generateReadablePassword();
+  const passwordHash = await hashPassword(password);
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) return { ok: false, message: `Email ${email} already exists.` };
+
+  const user = await prisma.user.create({
+    data: {
+      firstName,
+      lastName,
+      name,
+      email,
+      passwordHash,
+      plainPassword: password,
+      role: "PLAYER",
+      paid: false,
+      active: true,
+    },
+  });
+
+  await audit(admin.id, "CREATE_USER", "User", user.id, undefined, { email, name });
+  revalidatePath("/admin/users");
+  return { ok: true, message: `Created ${name} (${email})`, email, password };
+}
+
+export async function deleteUser(userId: string): Promise<AdminResult> {
+  const admin = await requireAdmin();
+  if (admin.id === userId) return { ok: false, message: "You cannot delete your own account." };
+
+  const target = await prisma.user.findUnique({ where: { id: userId } });
+  if (!target) return { ok: false, message: "User not found." };
+  if (target.role === "ADMIN") {
+    const admins = await prisma.user.count({ where: { role: "ADMIN", active: true } });
+    if (admins <= 1) return { ok: false, message: "Cannot delete the only admin." };
+  }
+
+  await prisma.user.delete({ where: { id: userId } });
+  await audit(admin.id, "DELETE_USER", "User", userId, { email: target.email }, undefined);
+  revalidatePath("/admin/users");
+  return { ok: true, message: `Removed ${target.name}.` };
 }
 
 const userProfileSchema = z.object({
   firstName: z.string().min(1).max(40),
   lastName: z.string().max(40),
-  email: z.string().email(),
 });
 
 export async function updateUserProfile(
   userId: string,
   input: z.input<typeof userProfileSchema>,
-): Promise<AdminResult> {
+): Promise<AdminResult & { email?: string }> {
   const admin = await requireAdmin();
   const parsed = userProfileSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Invalid profile data." };
-  const { firstName, lastName, email } = parsed.data;
-  const name = lastName.trim() ? `${firstName.trim()} ${lastName.trim()}` : firstName.trim();
+  const firstName = parsed.data.firstName.trim();
+  const lastName = parsed.data.lastName.trim();
+  const name = lastName ? `${firstName} ${lastName}` : firstName;
+  const email = buildUserEmail(firstName, lastName);
+
+  const conflict = await prisma.user.findFirst({
+    where: { email, NOT: { id: userId } },
+  });
+  if (conflict) return { ok: false, message: `Username ${email} is already taken.` };
+
   try {
     await prisma.user.update({
       where: { id: userId },
-      data: { firstName: firstName.trim(), lastName: lastName.trim(), name, email: email.toLowerCase().trim() },
+      data: { firstName, lastName, name, email },
     });
   } catch {
-    return { ok: false, message: "Email already in use." };
+    return { ok: false, message: "Could not update profile." };
   }
-  await audit(admin.id, "UPDATE_USER", "User", userId, undefined, parsed.data);
+  await audit(admin.id, "UPDATE_USER", "User", userId, undefined, { firstName, lastName, email });
   revalidatePath("/admin/users");
-  return { ok: true, message: "Profile updated." };
+  return { ok: true, message: `Profile updated. Login: ${email}`, email };
 }
 
 export async function generateUserPassword(userId: string): Promise<AdminResult & { password?: string }> {

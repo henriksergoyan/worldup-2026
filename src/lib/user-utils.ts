@@ -7,6 +7,24 @@ export function splitDisplayName(full: string): { firstName: string; lastName: s
   return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
 }
 
+export const USER_EMAIL_DOMAIN = "example.com";
+
+function slugPart(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+/** Login email as firstname.lastname@domain (e.g. henrik.smith@example.com). */
+export function buildUserEmail(firstName: string, lastName: string, domain = USER_EMAIL_DOMAIN): string {
+  const first = slugPart(firstName) || "player";
+  const last = slugPart(lastName);
+  return last ? `${first}.${last}@${domain}` : `${first}@${domain}`;
+}
+
 export function formatUserName(u: { firstName?: string | null; lastName?: string | null; name?: string }): string {
   const first = u.firstName?.trim();
   const last = u.lastName?.trim();
@@ -27,4 +45,11 @@ export function generateReadablePassword(): string {
   const w = words[Math.floor(Math.random() * words.length)];
   const n = Math.floor(1000 + Math.random() * 9000);
   return `${w}${n}`;
+}
+
+/** Resolve workbook player label to a user record by display name. */
+export function matchPlayerName<T extends { name: string }>(label: string, users: T[]): T | undefined {
+  const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+  const key = norm(label);
+  return users.find((u) => norm(u.name) === key);
 }

@@ -10,7 +10,7 @@ import { KNOCKOUT_FIXTURES, knockoutScheduledAt } from "../src/lib/knockout-brac
 import { EXCEL_DEADLINES } from "../src/lib/excel-deadlines";
 import { refreshBracketFromResults } from "../src/lib/bracket-engine";
 import { lookupResult } from "../src/lib/wc-results";
-import { splitDisplayName } from "../src/lib/user-utils";
+import { splitDisplayName, buildUserEmail } from "../src/lib/user-utils";
 
 const prisma = new PrismaClient();
 
@@ -35,15 +35,6 @@ const FALLBACK_PLAYERS = [
   "Ruben", "Sipan", "Tigran Gr.", "Tigran H.", "Tigran Tsh.", "Vigen",
   "Edmon", "Minas",
 ];
-
-function slugifyEmail(name: string): string {
-  const slug = name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]/g, "");
-  return `${slug}@example.com`;
-}
 
 function buildFallback(): ParsedWorkbook {
   const groups = "ABCDEFGHIJKL".split("");
@@ -77,6 +68,8 @@ function buildFallback(): ParsedWorkbook {
     teams,
     fixtures,
     predictions: [],
+    championPicks: [],
+    qualifierPicks: [],
     entryFee: 10000,
     prizeSplit: { "1": 0.4, "2": 0.2, "3": 0.15, "4": 0.1, "5": 0.07, "6": 0.05, "7": 0.03 },
   };
@@ -162,13 +155,13 @@ async function main() {
 
   const usedEmails = new Set<string>(["admin@example.com"]);
   for (const displayName of players) {
-    let email = slugifyEmail(displayName);
+    const { firstName, lastName } = splitDisplayName(displayName);
+    let email = buildUserEmail(firstName, lastName);
     let n = 2;
     while (usedEmails.has(email)) {
-      email = slugifyEmail(displayName).replace("@", `${n}@`);
+      email = buildUserEmail(firstName, `${lastName}${n}`);
       n += 1;
     }
-    usedEmails.add(email);
     const { firstName, lastName } = splitDisplayName(displayName);
     await prisma.user.create({
       data: {
@@ -261,6 +254,37 @@ async function main() {
     console.log(`Inserted ${predRows.length} predictions.`);
   }
 
+  // --- Champion & knockout-team picks (Playoff & Winner sheet) ---
+  let championPicks = 0;
+  for (const pick of data.championPicks) {
+    const user = userByName.get(pick.player);
+    const team = teamByName.get(pick.teamName);
+    if (!user || !team) continue;
+    await prisma.teamPick.create({
+      data: {
+        userId: user.id,
+        tournamentId: tournament.id,
+        teamId: team.id,
+        type: "CHAMPION",
+      },
+    });
+    championPicks++;
+  }
+  for (const pick of data.qualifierPicks) {
+    const user = userByName.get(pick.player);
+    const team = teamByName.get(pick.teamName);
+    if (!user || !team) continue;
+    await prisma.teamPick.create({
+      data: {
+        userId: user.id,
+        tournamentId: tournament.id,
+        teamId: team.id,
+        type: "KNOCKOUT_QUALIFIER",
+      },
+    });
+  }
+  if (championPicks > 0) console.log(`Imported ${championPicks} champion picks from workbook.`);
+
   // --- Deadlines from Excel ToR sheet (Asia/Yerevan) ---
   for (const d of EXCEL_DEADLINES) {
     await prisma.deadline.create({
@@ -281,7 +305,7 @@ async function main() {
   console.log("\nSeed complete.");
   console.log("Login credentials:");
   console.log("  ADMIN  -> admin@example.com / admin123");
-  console.log("  PLAYER -> henrik@example.com / password123 (and others, see README)");
+  console.log("  PLAYER -> firstname.lastname@example.com / password123");
 }
 
 main()

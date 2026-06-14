@@ -198,10 +198,6 @@ export async function setChampion(teamId: string | null): Promise<ActionResult> 
 export async function setQualifierPicks(teamIds: string[]): Promise<ActionResult> {
   const user = await requireUser();
   const tournament = await getActiveTournament();
-  const deadlines = await getDeadlineMap(tournament.id);
-  if (deadlines.get(PHASES.KNOCKOUT_TEAMS)?.locked) {
-    return { ok: false, message: "Team picks are locked." };
-  }
 
   const unique = [...new Set(teamIds)];
   if (unique.length > tournament.knockoutPickCount) {

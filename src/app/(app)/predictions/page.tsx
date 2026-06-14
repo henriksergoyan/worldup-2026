@@ -113,7 +113,7 @@ export default async function PredictionsPage({
         qualifierPicks={qualifierPicks}
         pickLimit={tournament.knockoutPickCount}
         championLock={lockInfo(PHASES.CHAMPION)}
-        teamsLock={lockInfo(PHASES.KNOCKOUT_TEAMS)}
+        teamsLock={{ locked: false, lockAt: null }}
       />
     </div>
   );

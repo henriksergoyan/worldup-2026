@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { TeamDTO, LockInfo } from "./types";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,9 @@ export function ChampionPicker({
               <span className="text-navy-400">Locks {formatDateTime(lock.lockAt)}</span>
             ) : null}
           </p>
+          <Link href="/champion" className="mt-1 inline-block text-sm font-semibold text-gold-400 hover:text-gold-300">
+            See crowd champion stats →
+          </Link>
         </div>
         <Input
           placeholder="Search team…"

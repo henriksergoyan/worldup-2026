@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
-import { updateUserProfile, generateUserPassword } from "@/app/actions/admin";
+import { updateUserProfile, generateUserPassword, deleteUser } from "@/app/actions/admin";
 import { PaidToggle, ActiveToggle } from "./toggles";
+import { buildUserEmail } from "@/lib/user-utils";
 
 export interface AdminUserRow {
   id: string;
@@ -25,14 +26,13 @@ export function UserEditorRow({ user }: { user: AdminUserRow }) {
   const [pending, start] = useTransition();
   const [firstName, setFirstName] = useState(user.firstName);
   const [lastName, setLastName] = useState(user.lastName);
-  const [email, setEmail] = useState(user.email);
   const [password, setPassword] = useState(user.plainPassword ?? "");
-  const dirty =
-    firstName !== user.firstName || lastName !== user.lastName || email !== user.email;
+  const dirty = firstName !== user.firstName || lastName !== user.lastName;
+  const previewEmail = buildUserEmail(firstName.trim() || "player", lastName.trim());
 
   function saveProfile() {
     start(async () => {
-      const res = await updateUserProfile(user.id, { firstName, lastName, email });
+      const res = await updateUserProfile(user.id, { firstName, lastName });
       toast(res.message, res.ok ? "success" : "error");
     });
   }
@@ -45,14 +45,29 @@ export function UserEditorRow({ user }: { user: AdminUserRow }) {
     });
   }
 
+  function remove() {
+    if (!window.confirm(`Remove ${user.name}? This cannot be undone.`)) return;
+    start(async () => {
+      const res = await deleteUser(user.id);
+      toast(res.message, res.ok ? "success" : "error");
+    });
+  }
+
   return (
     <div className="glass space-y-3 p-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant={user.role === "ADMIN" ? "gold" : "muted"}>{user.role}</Badge>
-        <span className="text-xs text-navy-400">{user.name}</span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={user.role === "ADMIN" ? "gold" : "muted"}>{user.role}</Badge>
+          <span className="text-xs text-navy-400">{user.name}</span>
+        </div>
+        {user.role !== "ADMIN" && (
+          <Button size="sm" variant="danger" onClick={remove} loading={pending}>
+            Delete
+          </Button>
+        )}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-xs font-medium text-navy-400">First name</label>
           <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="h-9" />
@@ -62,8 +77,11 @@ export function UserEditorRow({ user }: { user: AdminUserRow }) {
           <Input value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-9" />
         </div>
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs font-medium text-navy-400">Email</label>
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="h-9" />
+          <label className="mb-1 block text-xs font-medium text-navy-400">Login (username)</label>
+          <div className="rounded-xl border border-white/10 bg-navy-900/50 px-3 py-2 font-mono text-sm text-pitch-200">
+            {dirty ? previewEmail : user.email}
+            {dirty && <span className="ml-2 text-xs text-amber-400">updates on save</span>}
+          </div>
         </div>
       </div>
 

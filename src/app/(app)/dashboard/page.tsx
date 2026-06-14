@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TeamChip } from "@/components/team-chip";
-import { formatDateTime, relativeTime, formatAMD } from "@/lib/utils";
+import { formatDateTime, formatAMD } from "@/lib/utils";
 import { DeadlineNotifications } from "@/components/deadline-notifications";
-import { PHASE_LABELS, PHASE_ORDER, TEAM_PICK_TYPES } from "@/lib/constants";
+import { Countdown } from "@/components/countdown";
+import { PHASE_LABELS, PLAYER_DEADLINE_PHASES, TEAM_PICK_TYPES } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +64,7 @@ export default async function DashboardPage() {
   const predictionsMade = me?.predictionsMade ?? 0;
   const pct = totalMatches > 0 ? Math.round((predictionsMade / totalMatches) * 100) : 0;
 
-  const deadlineItems = PHASE_ORDER.flatMap((phase) => {
+  const deadlineItems = PLAYER_DEADLINE_PHASES.flatMap((phase) => {
     const d = deadlines.get(phase);
     if (!d?.lockAt) return [];
     return [
@@ -104,7 +105,13 @@ export default async function DashboardPage() {
         />
         <Stat
           label="Next deadline"
-          value={next ? relativeTime(next.lockAt) : "—"}
+          value={
+            next?.lockAt ? (
+              <Countdown target={next.lockAt} prefix="in " className="text-3xl text-white" />
+            ) : (
+              "—"
+            )
+          }
           sub={next ? PHASE_LABELS[next.phase] : "No upcoming lock"}
         />
         <Stat
@@ -151,7 +158,7 @@ export default async function DashboardPage() {
                   <div className="mt-1 text-sm font-semibold text-white">Knockouts</div>
                 </div>
               </Link>
-              <Link href="/predictions?tab=champion" className="group">
+              <Link href="/champion" className="group">
                 <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition group-hover:border-pitch-500/40">
                   <div className="text-2xl">🏆</div>
                   <div className="mt-1 text-sm font-semibold text-white">Champion</div>
@@ -161,6 +168,9 @@ export default async function DashboardPage() {
                     ) : (
                       <Badge variant="warning">Not set</Badge>
                     )}
+                  </div>
+                  <div className="mt-2 text-[11px] font-medium text-gold-400/90 group-hover:text-gold-300">
+                    View crowd stats →
                   </div>
                 </div>
               </Link>

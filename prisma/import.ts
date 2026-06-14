@@ -28,11 +28,23 @@ export interface ParsedPrediction {
   away: number;
 }
 
+export interface ParsedChampionPick {
+  player: string;
+  teamName: string;
+}
+
+export interface ParsedQualifierPick {
+  player: string;
+  teamName: string;
+}
+
 export interface ParsedWorkbook {
   players: string[];
   teams: { name: string; groupCode: string }[];
   fixtures: ParsedFixture[];
   predictions: ParsedPrediction[];
+  championPicks: ParsedChampionPick[];
+  qualifierPicks: ParsedQualifierPick[];
   entryFee: number;
   prizeSplit: Record<string, number>;
 }
@@ -72,6 +84,45 @@ function num(v: unknown): number | null {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v))) return Number(v);
   return null;
+}
+
+function isMark(v: unknown): boolean {
+  if (typeof v === "string") return v.toLowerCase() === "x" || v.toLowerCase() === "v";
+  return false;
+}
+
+/** Parse champion (x) and knockout-qualifier (v) picks from the Playoff & Winner sheet. */
+function parsePlayoffWinnerSheet(wb: XLSX.WorkBook): {
+  championPicks: ParsedChampionPick[];
+  qualifierPicks: ParsedQualifierPick[];
+} {
+  const sheet = wb.Sheets["Playoff & Winner"];
+  if (!sheet) return { championPicks: [], qualifierPicks: [] };
+
+  const m = toMatrix(sheet);
+  const championPicks: ParsedChampionPick[] = [];
+  const qualifierPicks: ParsedQualifierPick[] = [];
+
+  const players: { name: string; vCol: number; xCol: number }[] = [];
+  for (let c = 3; c < (m[1]?.length ?? 0); c += 4) {
+    const name = m[1]?.[c];
+    if (typeof name === "string" && name.trim()) {
+      players.push({ name: name.trim(), vCol: c, xCol: c + 1 });
+    }
+  }
+
+  for (let r = 3; r < m.length; r++) {
+    const team = m[r]?.[0];
+    if (typeof team !== "string" || !team.trim() || team === "Points") continue;
+    const teamName = team.trim();
+
+    for (const p of players) {
+      if (isMark(m[r]?.[p.xCol])) championPicks.push({ player: p.name, teamName });
+      if (isMark(m[r]?.[p.vCol])) qualifierPicks.push({ player: p.name, teamName });
+    }
+  }
+
+  return { championPicks, qualifierPicks };
 }
 
 export function parseMainWorkbook(filePath: string): ParsedWorkbook {
@@ -163,7 +214,9 @@ export function parseMainWorkbook(filePath: string): ParsedWorkbook {
     "7": 0.03,
   };
 
-  return { players, teams, fixtures, predictions, entryFee, prizeSplit };
+  const { championPicks, qualifierPicks } = parsePlayoffWinnerSheet(wb);
+
+  return { players, teams, fixtures, predictions, championPicks, qualifierPicks, entryFee, prizeSplit };
 }
 
 export function defaultWorkbookPath(): string {

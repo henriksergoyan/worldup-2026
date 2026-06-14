@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { UserEditorRow, type AdminUserRow } from "@/components/admin/user-editor";
+import { AddUserForm } from "@/components/admin/add-user-form";
 
 export const dynamic = "force-dynamic";
 
@@ -26,11 +27,11 @@ export default async function AdminUsersPage() {
       <div>
         <h1 className="font-display text-2xl font-black text-white md:text-3xl">Players</h1>
         <p className="text-sm text-navy-300">
-          Edit names, view or reset passwords, and manage paid status. New players can also register at{" "}
-          <span className="text-pitch-300">/register</span>.
+          Add players, edit names (login updates to firstname.lastname@example.com), reset passwords, or remove members.
         </p>
       </div>
       <AdminNav />
+      <AddUserForm />
 
       <div className="space-y-3">
         {rows.map((u) => (
