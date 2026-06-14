@@ -245,4 +245,44 @@ The app code, scoring and queries are database-agnostic.
 5. **Teams** → mark knockout qualifiers and the champion as the tournament unfolds.
 6. **Fixtures** → add knockout matches (with real teams or seed placeholders).
 7. **Export** → download a JSON backup anytime.
-```
+
+---
+
+## Deploy on Render (copa.team)
+
+This app uses **SQLite**, so you need a **Starter** web service with a **persistent disk** (~$7/month). The repo includes a `render.yaml` blueprint.
+
+### Quick deploy
+
+1. Push the repo to GitHub (`henriksergoyan/worldup-2026`).
+2. Go to [render.com](https://render.com) → **New** → **Blueprint**.
+3. Connect the repo — Render reads `render.yaml` automatically.
+4. Approve the blueprint (Starter plan + 1 GB disk).
+5. After the first deploy succeeds, open the service **Shell** and run once:
+   ```bash
+   npm run db:seed
+   ```
+6. **Settings → Custom Domains** → add `www.copa.team`.
+7. In **Namecheap → Advanced DNS** for `copa.team`:
+   - **CNAME** `www` → your `*.onrender.com` hostname from Render
+   - **URL Redirect** `@` → `https://www.copa.team` (optional, for apex)
+
+### Manual setup (without blueprint)
+
+| Setting | Value |
+| -------- | ----- |
+| Type | Web Service |
+| Runtime | Node |
+| Plan | Starter |
+| Build | `npm install && npm run build` |
+| Start | `npx prisma migrate deploy && npm start` |
+| Disk mount | `/var/data` (1 GB) |
+| `DATABASE_URL` | `file:/var/data/copa.db` |
+| `AUTH_SECRET` | long random string |
+| `TZ` | `Asia/Yerevan` |
+
+### After go-live
+
+1. Change the admin password (`admin@example.com`).
+2. Disable registration in Admin → Settings when all players have joined.
+3. Export JSON backups periodically from the admin console.

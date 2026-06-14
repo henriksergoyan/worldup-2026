@@ -1,0 +1,26 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: Dashboard → New → Blueprint → connect henriksergoyan/worldup-2026
+
+# Starter plan required for persistent disk (SQLite database file).
+
+services:
+  - type: web
+    name: worldup-2026
+    runtime: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npx prisma migrate deploy && npm start
+    healthCheckPath: /login
+    disk:
+      name: copa-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TZ
+        value: Asia/Yerevan
+      - key: DATABASE_URL
+        value: file:/var/data/copa.db
+      - key: AUTH_SECRET
+        generateValue: true
