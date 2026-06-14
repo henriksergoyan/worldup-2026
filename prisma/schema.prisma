@@ -1,0 +1,208 @@
+// World Cup 2026 Prediction Game - Prisma schema
+//
+// Uses SQLite for the local MVP. To migrate to PostgreSQL later:
+//   1. change `provider` below to "postgresql"
+//   2. set DATABASE_URL to your Postgres connection string
+//   3. run `prisma migrate dev`
+// The schema intentionally avoids DB-native enums (unsupported on SQLite) and
+// uses validated String fields instead. Allowed values are documented inline.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// role: "PLAYER" | "ADMIN"
+model User {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  name         String   // display name: "firstName lastName"
+  email        String   @unique
+  passwordHash String
+  // Last known plaintext password (set on seed/register/reset). Admin-only visibility.
+  plainPassword String?
+  role         String   @default("PLAYER")
+  paid         Boolean  @default(false)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  predictions Prediction[]
+  teamPicks   TeamPick[]
+  auditLogs   AuditLog[]   @relation("ActorAuditLogs")
+}
+
+model Tournament {
+  id            String   @id @default(cuid())
+  name          String
+  timezone      String   @default("Asia/Yerevan")
+  entryFee      Int      @default(10000)
+  // JSON map of rank -> percentage, e.g. {"1":0.4,"2":0.2,...}
+  prizeSplitJson Json
+  // Number of teams each player must pick as knockout qualifiers
+  knockoutPickCount Int   @default(16)
+  // Minutes before kickoff when match predictions lock (default 60 = 1 hour).
+  kickoffLockMinutes Int  @default(60)
+  registrationOpen   Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  teams              Team[]
+  matches            Match[]
+  teamPicks          TeamPick[]
+  actualTeamStatuses ActualTeamStatus[]
+  deadlines          Deadline[]
+}
+
+model Team {
+  id           String   @id @default(cuid())
+  tournamentId String
+  name         String
+  groupCode    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  homeMatches          Match[]            @relation("HomeTeam")
+  awayMatches          Match[]            @relation("AwayTeam")
+  winnerOfResults      ActualResult[]     @relation("ResultWinner")
+  predictedWinnerOf    Prediction[]       @relation("PredictedWinner")
+  teamPicks            TeamPick[]
+  actualTeamStatuses   ActualTeamStatus[]
+
+  @@unique([tournamentId, name])
+}
+
+// stage: "GROUP" | "KNOCKOUT"
+// round (knockout): "R32" | "R16" | "QF" | "SF" | "3RD" | "FINAL"  (null for group)
+// status: "SCHEDULED" | "LIVE" | "FINISHED"
+model Match {
+  id            String   @id @default(cuid())
+  tournamentId  String
+  matchNumber   Int
+  stage         String
+  round         String?
+  groupCode     String?
+  scheduledAt   DateTime
+  homeTeamId    String?
+  awayTeamId    String?
+  homeSeedLabel String?
+  awaySeedLabel String?
+  status        String   @default("SCHEDULED")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  homeTeam   Team?      @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam   Team?      @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  actualResult ActualResult?
+  predictions  Prediction[]
+
+  @@unique([tournamentId, matchNumber])
+}
+
+model ActualResult {
+  id              String   @id @default(cuid())
+  matchId         String   @unique
+  normalHomeGoals Int?
+  normalAwayGoals Int?
+  extraHomeGoals  Int?
+  extraAwayGoals  Int?
+  penaltyHomeGoals Int?
+  penaltyAwayGoals Int?
+  winnerTeamId    String?
+  finalized       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  match      Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  winnerTeam Team? @relation("ResultWinner", fields: [winnerTeamId], references: [id])
+}
+
+model Prediction {
+  id                   String   @id @default(cuid())
+  userId               String
+  matchId              String
+  normalHomeGoals      Int?
+  normalAwayGoals      Int?
+  extraHomeGoals       Int?
+  extraAwayGoals       Int?
+  penaltyHomeGoals     Int?
+  penaltyAwayGoals     Int?
+  predictedWinnerTeamId String?
+  submittedAt          DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user              User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match             Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  predictedWinner   Team? @relation("PredictedWinner", fields: [predictedWinnerTeamId], references: [id])
+
+  @@unique([userId, matchId])
+}
+
+// type: "KNOCKOUT_QUALIFIER" | "CHAMPION"
+model TeamPick {
+  id           String   @id @default(cuid())
+  userId       String
+  tournamentId String
+  teamId       String
+  type         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  team       Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tournamentId, teamId, type])
+}
+
+model ActualTeamStatus {
+  id                  String   @id @default(cuid())
+  tournamentId        String
+  teamId              String
+  qualifiedToKnockout Boolean  @default(false)
+  champion            Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  team       Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, teamId])
+}
+
+// phase: see PHASES in src/lib/constants.ts
+model Deadline {
+  id           String   @id @default(cuid())
+  tournamentId String
+  phase        String
+  lockAt       DateTime?
+  isOpen       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, phase])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String?
+  beforeJson  Json?
+  afterJson   Json?
+  createdAt   DateTime @default(now())
+
+  actor User? @relation("ActorAuditLogs", fields: [actorUserId], references: [id])
+}
