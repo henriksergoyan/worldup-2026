@@ -20,11 +20,15 @@ export function formatCountdownFull(ms: number, endedLabel = "Փակված է"):
   return parts.join(", ");
 }
 
-export function formatDaysRemaining(ms: number, endedLabel = "Փակված է"): string {
+export function formatDaysRemaining(
+  ms: number,
+  endedLabel = "Փակված է",
+  suffix = "",
+): string {
   if (ms <= 0) return endedLabel;
   const days = Math.ceil(ms / 86400000);
-  if (days <= 1) return "1 օր";
-  return `${days} օր`;
+  if (days <= 1) return `1 օր${suffix}`;
+  return `${days} օր${suffix}`;
 }
 
 export function Countdown({
@@ -33,18 +37,20 @@ export function Countdown({
   endedLabel = "Փակված է",
   prefix = "",
   mode = "full",
+  daysSuffix = "",
 }: {
   target: string | Date;
   className?: string;
   endedLabel?: string;
   prefix?: string;
   mode?: "full" | "days";
+  daysSuffix?: string;
 }) {
   const targetMs = typeof target === "string" ? new Date(target).getTime() : target.getTime();
   const [label, setLabel] = useState(() => {
     const remaining = targetMs - Date.now();
     return mode === "days"
-      ? formatDaysRemaining(remaining, endedLabel)
+      ? formatDaysRemaining(remaining, endedLabel, daysSuffix)
       : formatCountdownFull(remaining, endedLabel);
   });
 
@@ -53,7 +59,7 @@ export function Countdown({
       const remaining = targetMs - Date.now();
       setLabel(
         mode === "days"
-          ? formatDaysRemaining(remaining, endedLabel)
+          ? formatDaysRemaining(remaining, endedLabel, daysSuffix)
           : formatCountdownFull(remaining, endedLabel),
       );
     };
@@ -61,7 +67,7 @@ export function Countdown({
     const intervalMs = mode === "days" ? 60_000 : 1000;
     const id = window.setInterval(tick, intervalMs);
     return () => window.clearInterval(id);
-  }, [targetMs, endedLabel, mode]);
+  }, [targetMs, endedLabel, mode, daysSuffix]);
 
   return (
     <span className={cn("tabular-nums tracking-tight", className)}>

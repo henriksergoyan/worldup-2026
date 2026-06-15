@@ -11,7 +11,9 @@ import { formatDateTime, formatAMD } from "@/lib/utils";
 import { DeadlineNotifications } from "@/components/deadline-notifications";
 import { Countdown } from "@/components/countdown";
 import { ChampionHero } from "@/components/champion-hero";
-import { MATCH_STATUS, PHASE_LABELS, PLAYER_DEADLINE_PHASES, ROUND_LABELS, STAGES, TEAM_PICK_TYPES, type Round } from "@/lib/constants";
+import { PHASE_LABELS, PLAYER_DEADLINE_PHASES, ROUND_LABELS, STAGES, TEAM_PICK_TYPES, type Round } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+import { pickUpcomingMatches } from "@/lib/upcoming-matches";
 
 export const dynamic = "force-dynamic";
 
@@ -20,17 +22,41 @@ function Stat({
   value,
   sub,
   accent,
+  variant = "default",
 }: {
   label: string;
   value: React.ReactNode;
   sub?: React.ReactNode;
   accent?: string;
+  variant?: "default" | "deadline";
 }) {
   return (
-    <Card className="p-4 sm:p-5">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-navy-400 sm:text-xs">{label}</div>
+    <Card
+      className={cn(
+        "p-4 sm:p-5",
+        variant === "deadline" &&
+          "border-amber-500/35 bg-gradient-to-br from-amber-500/12 via-amber-950/20 to-transparent",
+      )}
+    >
+      <div
+        className={cn(
+          "text-[11px] font-semibold uppercase tracking-wider sm:text-xs",
+          variant === "deadline" ? "text-amber-300/90" : "text-navy-400",
+        )}
+      >
+        {label}
+      </div>
       <div className={`mt-2 text-2xl font-black tabular-nums sm:text-3xl ${accent ?? "text-white"}`}>{value}</div>
-      {sub && <div className="mt-1 text-xs text-navy-300 sm:text-sm">{sub}</div>}
+      {sub != null && sub !== "" && (
+        <div
+          className={cn(
+            "mt-1 text-xs sm:text-sm",
+            variant === "deadline" ? "text-amber-200/80" : "text-navy-300",
+          )}
+        >
+          {sub}
+        </div>
+      )}
     </Card>
   );
 }
@@ -39,7 +65,7 @@ export default async function DashboardPage() {
   const user = await requireUser();
   const tournament = await getActiveTournament();
 
-  const [{ leaderboard, breakdownByUser }, deadlines, totalMatches, championPick, qualifierCount, recentResults, actualChampion, upcomingMatches] =
+  const [{ leaderboard, breakdownByUser }, deadlines, totalMatches, championPick, qualifierCount, recentResults, actualChampion, upcomingPool] =
     await Promise.all([
       computeStandings(tournament.id),
       getDeadlineMap(tournament.id),
@@ -69,18 +95,26 @@ export default async function DashboardPage() {
       prisma.match.findMany({
         where: {
           tournamentId: tournament.id,
-          status: { not: MATCH_STATUS.FINISHED },
-          scheduledAt: { gte: new Date() },
+          NOT: { actualResult: { finalized: true } },
+          scheduledAt: { gt: new Date() },
         },
         include: {
           homeTeam: true,
           awayTeam: true,
+          actualResult: true,
           predictions: { where: { userId: user.id } },
         },
         orderBy: { scheduledAt: "asc" },
-        take: 3,
+        take: 24,
       }),
     ]);
+
+  const upcomingMatches = pickUpcomingMatches(
+    upcomingPool,
+    deadlines,
+    tournament.kickoffLockMinutes,
+    3,
+  );
 
   const me = breakdownByUser[user.id];
   const myRank = leaderboard.find((e) => e.userId === user.id);
@@ -137,9 +171,15 @@ export default async function DashboardPage() {
         />
         <Stat
           label="Հաջորդ վերջնաժամկետը"
+          variant="deadline"
           value={
             next?.lockAt ? (
-              <Countdown target={next.lockAt} mode="days" className="text-2xl text-white sm:text-3xl" />
+              <Countdown
+                target={next.lockAt}
+                mode="days"
+                daysSuffix="ից"
+                className="text-2xl text-amber-100 sm:text-3xl"
+              />
             ) : (
               "—"
             )
@@ -162,7 +202,7 @@ export default async function DashboardPage() {
                 <span>📅</span> Գալիք սպասվող խաղեր
               </CardTitle>
               <p className="mt-1 text-xs text-navy-300 sm:text-sm">
-                Հաջորդ 3 խաղերը և ձեր կանխատեսումները
+                Հաջորդ 3 խաղերը, որոնց համար դեռ կարող եք կանխատեսում անել
               </p>
             </div>
             <Link href="/predictions">
@@ -193,7 +233,7 @@ export default async function DashboardPage() {
               return (
                 <Link
                   key={m.id}
-                  href={hasPred ? `/matches/${m.id}` : "/predictions"}
+                  href={!hasPred && !locked ? "/predictions" : `/matches/${m.id}`}
                   className="block rounded-xl border border-white/10 bg-navy-950/40 p-3 transition hover:border-pitch-500/40 hover:bg-white/[0.04] sm:p-4"
                 >
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-400">
@@ -224,7 +264,7 @@ export default async function DashboardPage() {
                     {hasPred ? (
                       <span className="text-xs font-semibold text-pitch-300">✓ Կանխատեսումը լրացված է</span>
                     ) : locked ? (
-                      <span className="text-xs font-semibold text-navy-400">Կանխատեսում չկա</span>
+                      <span className="text-xs font-semibold text-navy-400">Կանխատեսումների փակման ժամանակը անցել է</span>
                     ) : (
                       <span className="text-xs font-semibold text-amber-300">⚠️ Դեռ կանխատեսում չեք արել</span>
                     )}

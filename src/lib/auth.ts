@@ -2,10 +2,22 @@ import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
-import { ROLES, type Role } from "./constants";
+import { ROLES, DEFAULT_TIMEZONE, type Role } from "./constants";
+import { yerevanLocalToUtc } from "./excel-deadlines";
 
 const COOKIE_NAME = "wc_session";
-const SESSION_DAYS = 30;
+
+/** Session ends at the next midnight in the league timezone (daily re-login). */
+function sessionExpiresAt(from: Date = new Date()): Date {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: DEFAULT_TIMEZONE,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(from);
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  return yerevanLocalToUtc(get("year"), get("month"), get("day") + 1, 0, 0);
+}
 
 function getSecret(): Uint8Array {
   const secret = process.env.AUTH_SECRET;
@@ -31,10 +43,13 @@ export interface SessionPayload {
 }
 
 export async function createSession(payload: SessionPayload): Promise<void> {
+  const expiresAt = sessionExpiresAt();
+  const maxAgeSeconds = Math.max(60, Math.floor((expiresAt.getTime() - Date.now()) / 1000));
+
   const token = await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(`${SESSION_DAYS}d`)
+    .setExpirationTime(expiresAt)
     .sign(getSecret());
 
   const store = await cookies();
@@ -43,7 +58,7 @@ export async function createSession(payload: SessionPayload): Promise<void> {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: SESSION_DAYS * 24 * 60 * 60,
+    maxAge: maxAgeSeconds,
   });
 }
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function RegisterPage() {
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+    <main className="relative flex flex-1 items-center justify-center overflow-hidden p-4">
       <div className="pitch-lines pointer-events-none absolute inset-0 opacity-40" />
       <div className="relative z-10 w-full max-w-md animate-fade-in">
         <div className="mb-8 text-center">

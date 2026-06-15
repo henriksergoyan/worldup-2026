@@ -16,7 +16,7 @@ export function LoginForm() {
     <>
       <form action={formAction} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="username">Մուտքանուն (Username)</Label>
+          <Label htmlFor="username">Մուտքանուն</Label>
           <Input
             id="username"
             name="username"
@@ -28,7 +28,7 @@ export function LoginForm() {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Գաղտնաբառ (Password)</Label>
+          <Label htmlFor="password">Գաղտնաբառ</Label>
           <Input
             id="password"
             name="password"

@@ -7,8 +7,6 @@ export function splitDisplayName(full: string): { firstName: string; lastName: s
   return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
 }
 
-export const BLANK_SURNAME = "[blank]";
-
 function slugPart(value: string): string {
   return value
     .trim()
@@ -18,11 +16,11 @@ function slugPart(value: string): string {
     .replace(/[^a-z0-9]+/g, "");
 }
 
-/** Login username as firstname.lastname, or firstname.[blank] when surname is missing. */
+/** Login username as firstname.lastname, or firstname alone when surname is missing. */
 export function buildUsername(firstName: string, lastName: string): string {
   const first = slugPart(firstName) || "player";
-  const last = lastName.trim() ? slugPart(lastName) : BLANK_SURNAME;
-  return `${first}.${last}`;
+  const last = slugPart(lastName);
+  return last ? `${first}.${last}` : first;
 }
 
 /** Pick a unique username by appending a numeric suffix when needed. */

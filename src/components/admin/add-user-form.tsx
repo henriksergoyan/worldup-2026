@@ -15,7 +15,7 @@ export function AddUserForm() {
 
   const previewUsername = firstName.trim()
     ? buildUsername(firstName.trim(), lastName.trim())
-    : "firstname.lastname";
+    : "anun.azganun";
 
   function submit() {
     start(async () => {

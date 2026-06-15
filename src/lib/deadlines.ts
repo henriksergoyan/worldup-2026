@@ -75,16 +75,35 @@ export function isMatchLocked(
   return deadlines.get(phase)?.locked ?? false;
 }
 
+/** When others' predictions become visible (phase deadline or kickoff lock, whichever is earlier). */
+export function predictionsRevealAt(
+  match: { stage: string; round: string | null; matchNumber: number; scheduledAt: Date },
+  deadlines: Map<Phase, DeadlineState>,
+  kickoffLockMinutes: number = DEFAULT_KICKOFF_LOCK_MINUTES,
+): Date {
+  const kickoffLock = matchEditLockAt(match.scheduledAt, kickoffLockMinutes);
+  const phaseDeadline = deadlines.get(phaseForMatch(match));
+  if (!phaseDeadline?.lockAt) return kickoffLock;
+  return new Date(Math.min(phaseDeadline.lockAt.getTime(), kickoffLock.getTime()));
+}
+
 /**
- * Others' predictions become visible once editing locks (1hr before kickoff),
- * after kickoff, or when admin views. Aggregate teasers can show earlier.
+ * Others' predictions become visible once the phase deadline passes or match editing
+ * locks (1hr before kickoff), whichever comes first. Admins always see all.
  */
 export function canRevealPredictions(
-  match: { scheduledAt: Date },
-  options: { isAdmin: boolean; kickoffLockMinutes?: number },
+  match: { stage: string; round: string | null; matchNumber: number; scheduledAt: Date },
+  options: {
+    isAdmin: boolean;
+    kickoffLockMinutes?: number;
+    deadlines: Map<Phase, DeadlineState>;
+  },
 ): boolean {
   if (options.isAdmin) return true;
-  return isMatchPredictionLocked(match, options.kickoffLockMinutes ?? DEFAULT_KICKOFF_LOCK_MINUTES);
+  const kickoffLockMinutes = options.kickoffLockMinutes ?? DEFAULT_KICKOFF_LOCK_MINUTES;
+  if (isMatchPredictionLocked(match, kickoffLockMinutes)) return true;
+  const phase = phaseForMatch(match);
+  return isPhaseLocked(options.deadlines.get(phase));
 }
 
 export function upcomingDeadlines(

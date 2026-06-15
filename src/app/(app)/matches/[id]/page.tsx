@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getActiveTournament } from "@/lib/standings";
 import {
   canRevealPredictions,
-  matchEditLockAt,
+  getDeadlineMap,
+  predictionsRevealAt,
 } from "@/lib/deadlines";
 import { scoreNormalPrediction, scoreKnockoutMatch } from "@/lib/scoring";
 import { MatchArena, type ArenaPrediction } from "@/components/match-arena";
@@ -47,14 +48,21 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
     predictions,
   } = match;
 
-  const totalPlayers = await prisma.user.count({ where: { role: "PLAYER", active: true } });
+  const [totalPlayers, deadlines] = await Promise.all([
+    prisma.user.count({ where: { role: "PLAYER", active: true } }),
+    getDeadlineMap(tournament.id),
+  ]);
 
   const isAdmin = user.role === "ADMIN";
-  const canReveal = canRevealPredictions({ scheduledAt }, {
-    isAdmin,
-    kickoffLockMinutes: tournament.kickoffLockMinutes,
-  });
-  const lockAt = matchEditLockAt(scheduledAt, tournament.kickoffLockMinutes);
+  const canReveal = canRevealPredictions(
+    { stage, round, matchNumber, scheduledAt },
+    { isAdmin, kickoffLockMinutes: tournament.kickoffLockMinutes, deadlines },
+  );
+  const revealAt = predictionsRevealAt(
+    { stage, round, matchNumber, scheduledAt },
+    deadlines,
+    tournament.kickoffLockMinutes,
+  );
 
   const finalized = actualResult?.finalized ?? false;
   const actual = actualResult;
@@ -118,7 +126,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         }
         finalized={finalized}
         canReveal={canReveal || isAdmin}
-        lockAt={lockAt.toISOString()}
+        lockAt={revealAt.toISOString()}
         myUserId={user.id}
         predictions={visiblePreds}
         predictionsCount={arenaPreds.length}

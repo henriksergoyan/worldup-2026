@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 
 export default function LoginPage() {
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+    <main className="relative flex flex-1 items-center justify-center overflow-hidden p-4">
       {/* Custom Keyframes for the Wisest Marquee */}
       <style>{`
         @keyframes wiseMarquee {
