@@ -12,6 +12,7 @@
 
 import path from "node:path";
 import * as XLSX from "xlsx";
+import { applyOfficialKickoffs } from "../src/lib/wc-fixtures";
 
 export interface ParsedFixture {
   matchNumber: number;
@@ -216,7 +217,16 @@ export function parseMainWorkbook(filePath: string): ParsedWorkbook {
 
   const { championPicks, qualifierPicks } = parsePlayoffWinnerSheet(wb);
 
-  return { players, teams, fixtures, predictions, championPicks, qualifierPicks, entryFee, prizeSplit };
+  return {
+    players,
+    teams,
+    fixtures: applyOfficialKickoffs(fixtures),
+    predictions,
+    championPicks,
+    qualifierPicks,
+    entryFee,
+    prizeSplit,
+  };
 }
 
 export function defaultWorkbookPath(): string {

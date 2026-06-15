@@ -10,6 +10,7 @@ import { KNOCKOUT_FIXTURES, knockoutScheduledAt } from "../src/lib/knockout-brac
 import { EXCEL_DEADLINES } from "../src/lib/excel-deadlines";
 import { refreshBracketFromResults } from "../src/lib/bracket-engine";
 import { lookupResult } from "../src/lib/wc-results";
+import { applyOfficialKickoffs } from "../src/lib/wc-fixtures";
 import { splitDisplayName, buildUsername, uniqueUsername } from "../src/lib/user-utils";
 
 const prisma = new PrismaClient();
@@ -66,7 +67,7 @@ function buildFallback(): ParsedWorkbook {
   return {
     players: FALLBACK_PLAYERS,
     teams,
-    fixtures,
+    fixtures: applyOfficialKickoffs(fixtures),
     predictions: [],
     championPicks: [],
     qualifierPicks: [],
