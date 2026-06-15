@@ -10,7 +10,7 @@ export function RecalcButton() {
   const [pending, start] = useTransition();
   return (
     <Button
-      variant="secondary"
+      className="bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.35)] font-bold px-5 border-none"
       loading={pending}
       onClick={() =>
         start(async () => {

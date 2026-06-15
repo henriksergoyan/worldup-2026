@@ -33,18 +33,18 @@ export function JoinLeagueModal({ open, onClose }: { open: boolean; onClose: () 
         aria-label="Close"
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-sm animate-fade-in rounded-2xl border border-white/10 bg-navy-900 p-6 shadow-2xl">
+      <div className="relative z-10 max-h-[90dvh] w-full max-w-sm animate-fade-in overflow-y-auto rounded-2xl border border-white/10 bg-navy-900 p-6 shadow-2xl">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg px-2 py-1 text-navy-400 transition hover:bg-white/5 hover:text-white"
+          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-lg text-navy-400 transition hover:bg-white/5 hover:text-white"
           aria-label="Close dialog"
         >
           ✕
         </button>
 
         <div className="flex flex-col items-center text-center">
-          <div className="relative h-36 w-36 overflow-hidden rounded-full ring-4 ring-pitch-500/30 ring-offset-4 ring-offset-navy-900">
+          <div className="relative h-28 w-28 overflow-hidden rounded-full ring-4 ring-pitch-500/30 ring-offset-4 ring-offset-navy-900 sm:h-36 sm:w-36">
             <Image
               src="/contact/tigran-tshorokhyan.png"
               alt="Tigran Tshorokhyan"

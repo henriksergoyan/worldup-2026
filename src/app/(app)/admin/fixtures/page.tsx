@@ -30,8 +30,23 @@ export default async function AdminFixturesPage() {
     }),
   ]);
 
-  const knockout = matches.filter((m) => m.stage === STAGES.KNOCKOUT);
-  const group = matches.filter((m) => m.stage === STAGES.GROUP);
+  const knockout = matches
+    .filter((m) => m.stage === STAGES.KNOCKOUT)
+    .sort((a, b) => {
+      const aFinished = a.status === "FINISHED" ? 1 : 0;
+      const bFinished = b.status === "FINISHED" ? 1 : 0;
+      if (aFinished !== bFinished) return aFinished - bFinished;
+      return a.matchNumber - b.matchNumber;
+    });
+
+  const group = matches
+    .filter((m) => m.stage === STAGES.GROUP)
+    .sort((a, b) => {
+      const aFinished = a.status === "FINISHED" ? 1 : 0;
+      const bFinished = b.status === "FINISHED" ? 1 : 0;
+      if (aFinished !== bFinished) return aFinished - bFinished;
+      return a.matchNumber - b.matchNumber;
+    });
 
   return (
     <div className="space-y-6">
@@ -56,16 +71,19 @@ export default async function AdminFixturesPage() {
             knockout.map((m) => (
               <div key={m.id} className="flex items-center gap-3 rounded-xl bg-white/[0.02] border border-white/5 p-3 hover:border-gold-500/20 hover:bg-white/[0.04] transition group relative">
                 <Link href={`/matches/${m.id}`} className="absolute inset-0 z-0 cursor-pointer" title="Դիտել կանխատեսումները" />
-                <div className="relative z-10 flex flex-wrap items-center gap-3 w-full">
+                <div className="relative z-10 flex flex-wrap items-center gap-x-3 gap-y-2 w-full">
                   <Badge variant="info">{ROUND_LABELS[(m.round as Round) ?? "R32"]}</Badge>
-                  <div className="grid flex-1 grid-cols-[1fr_auto_1fr] items-center gap-2">
+                  <div className="grid min-w-0 flex-1 basis-full grid-cols-[1fr_auto_1fr] items-center gap-2 sm:basis-0">
                     <TeamChip name={m.homeTeam?.name} seedLabel={m.homeSeedLabel} align="right" />
                     <span className="text-xs text-navy-500">vs</span>
                     <TeamChip name={m.awayTeam?.name} seedLabel={m.awaySeedLabel} />
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={m.status === "FINISHED" ? "success" : "warning"} className="text-xs">
+                      {m.status === "FINISHED" ? "Ավարտված" : "Սպասվող"}
+                    </Badge>
                     <Badge variant="success" className="bg-navy-900 border-navy-800 text-gold-400">
-                      🔮 {m._count.predictions} կանխատեսում
+                      🔮 {m._count.predictions}
                     </Badge>
                     <span className="hidden text-xs text-navy-400 sm:block">{formatDateTime(m.scheduledAt)}</span>
                     <div className="relative z-20">
@@ -97,7 +115,10 @@ export default async function AdminFixturesPage() {
                     <TeamChip name={m.awayTeam?.name} />
                   </div>
                 </div>
-                <div className="flex items-center gap-2 pl-2">
+                <div className="flex shrink-0 items-center gap-1.5 pl-2">
+                  <Badge variant={m.status === "FINISHED" ? "success" : "warning"} className="text-[11px] py-0.5">
+                    {m.status === "FINISHED" ? "Ավարտ." : "Սպաս."}
+                  </Badge>
                   <span className="text-xs text-navy-400 tabular-nums bg-navy-950/80 px-2 py-1 rounded border border-white/5">
                     🔮 {m._count.predictions}
                   </span>

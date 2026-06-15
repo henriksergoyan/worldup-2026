@@ -107,15 +107,15 @@ export function MatchArena(props: MatchArenaProps) {
             )}
             {props.finalized && <Badge variant="success">Ավարտված է</Badge>}
           </div>
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
-            <TeamChip name={props.homeName} seedLabel={props.homeSeedLabel} align="right" className="text-lg" />
-            <div className="rounded-2xl bg-navy-900 px-5 py-3 text-center shadow-glow">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-6">
+            <TeamChip name={props.homeName} seedLabel={props.homeSeedLabel} align="right" className="text-base sm:text-lg" />
+            <div className="rounded-2xl bg-navy-900 px-3 py-2.5 text-center shadow-glow sm:px-5 sm:py-3">
               {props.actual ? (
-                <div className="text-4xl font-black tabular-nums text-white">
+                <div className="text-2xl font-black tabular-nums text-white sm:text-4xl">
                   {props.actual.home}–{props.actual.away}
                 </div>
               ) : (
-                <div className="text-3xl font-black text-navy-500">vs</div>
+                <div className="text-2xl font-black text-navy-500 sm:text-3xl">vs</div>
               )}
               {me && (
                 <div className="mt-1 text-xs text-pitch-300">
@@ -124,7 +124,7 @@ export function MatchArena(props: MatchArenaProps) {
                 </div>
               )}
             </div>
-            <TeamChip name={props.awayName} seedLabel={props.awaySeedLabel} className="text-lg" />
+            <TeamChip name={props.awayName} seedLabel={props.awaySeedLabel} className="text-base sm:text-lg" />
           </div>
         </CardContent>
       </Card>
@@ -132,8 +132,8 @@ export function MatchArena(props: MatchArenaProps) {
       {/* Teaser before reveal */}
       {!revealed && !props.canReveal && (
         <Card className="border-amber-500/25 bg-gradient-to-br from-amber-500/10 to-transparent">
-          <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-            <div className="text-5xl">🎭</div>
+          <CardContent className="flex flex-col items-center gap-4 py-6 text-center sm:py-10">
+            <div className="text-4xl sm:text-5xl">🎭</div>
             <div>
               <h3 className="font-display text-xl font-bold text-white">Կանխատեսումները դեռ գաղտնի են</h3>
               <p className="mt-1 max-w-md text-sm text-navy-300">
@@ -222,7 +222,7 @@ export function MatchArena(props: MatchArenaProps) {
                 key={id}
                 onClick={() => setTab(id)}
                 className={cn(
-                  "whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-semibold transition",
+                  "whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-semibold transition",
                   tab === id ? "bg-pitch-500/20 text-pitch-100" : "text-navy-300 hover:bg-white/5",
                 )}
               >

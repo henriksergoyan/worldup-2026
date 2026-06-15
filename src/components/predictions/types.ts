@@ -22,6 +22,7 @@ export interface MatchDTO {
   } | null;
   actual: { normalHome: number | null; normalAway: number | null } | null;
   points: number | null;
+  averagePoints?: number | null;
 }
 
 export interface TeamDTO {

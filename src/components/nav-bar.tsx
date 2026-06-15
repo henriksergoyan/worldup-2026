@@ -79,12 +79,12 @@ export function NavBar({
             </div>
           </div>
           <form action={signOut}>
-            <button className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-navy-300 transition hover:bg-white/5 hover:text-white">
+            <button className="rounded-lg border border-white/10 px-3 py-2.5 text-xs font-semibold text-navy-300 transition hover:bg-white/5 hover:text-white">
               Դուրս գալ
             </button>
           </form>
           <button
-            className="rounded-lg border border-white/10 p-2 text-navy-200 md:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 text-navy-200 md:hidden"
             onClick={() => setOpen((o) => !o)}
             aria-label="Menu"
           >
@@ -99,6 +99,19 @@ export function NavBar({
 
       {open && (
         <nav className="flex flex-col gap-1 border-t border-white/10 px-4 py-3 md:hidden">
+          <div className="mb-1 flex items-center gap-2.5 px-1 pb-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-pitch-500/20 text-sm font-bold text-pitch-200">
+              {initials(user.name)}
+            </div>
+            <div className="leading-tight">
+              <div className="text-sm font-semibold text-white">{user.name}</div>
+              {isAdmin && (
+                <Badge variant="gold" className="px-1.5 py-0 text-[10px]">
+                  Ադմին
+                </Badge>
+              )}
+            </div>
+          </div>
           {links.map((l) => {
             const active = pathname === l.href || pathname.startsWith(l.href + "/");
             return (

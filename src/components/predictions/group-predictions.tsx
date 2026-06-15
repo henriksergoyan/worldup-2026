@@ -24,6 +24,7 @@ export function GroupPredictions({ matches }: { matches: MatchDTO[] }) {
     return init;
   });
   const [dirty, setDirty] = useState<Set<string>>(new Set());
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   const groups = useMemo(() => {
     const map = new Map<string, MatchDTO[]>();
@@ -59,25 +60,61 @@ export function GroupPredictions({ matches }: { matches: MatchDTO[] }) {
   }
 
   return (
-    <div className="space-y-6 pb-24">
-      {groups.map(([code, list]) => (
-        <div key={code}>
-          <div className="mb-2 flex items-center gap-2">
-            <h3 className="font-display text-lg font-bold text-white">Խումբ {code}</h3>
-            <span className="text-xs text-navy-400">{list.length} խաղ</span>
+    <div className="space-y-4 pb-savebar">
+      {groups.map(([code, list]) => {
+        const isCollapsed = collapsedGroups[code] ?? false;
+        const completedCount = list.filter((m) => m.actual !== null).length;
+        const totalPoints = list.reduce((sum, m) => sum + (m.points ?? 0), 0);
+        const avgPoints = Number(list.reduce((sum, m) => sum + (m.averagePoints ?? 0), 0).toFixed(1));
+
+        return (
+          <div key={code} className="rounded-2xl border border-white/5 bg-navy-950/20 overflow-hidden">
+            {/* Clickable Collapsible Header */}
+            <div
+              onClick={() => setCollapsedGroups((prev) => ({ ...prev, [code]: !isCollapsed }))}
+              className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white/[0.02] hover:bg-white/[0.05] transition cursor-pointer select-none border-b border-white/5"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl transition-transform duration-200">{isCollapsed ? "📁" : "📂"}</span>
+                <div>
+                  <h3 className="font-display text-base font-bold text-white sm:text-lg">Խումբ {code}</h3>
+                  <p className="text-xs text-navy-400">{list.length} խաղ</p>
+                </div>
+              </div>
+
+              {/* Stats Bar */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="muted" className="bg-navy-900 border-white/5 text-navy-300">
+                  ⚽ Ավարտված՝ {completedCount}/{list.length}
+                </Badge>
+                <Badge variant="success" className="bg-pitch-900/40 border-pitch-500/20 text-pitch-300">
+                  🏆 +{totalPoints} միավոր
+                </Badge>
+                <Badge variant="info" className="bg-sky-900/40 border-sky-500/20 text-sky-300">
+                  📊 Միջինը՝ {avgPoints} մվ
+                </Badge>
+                <span className="text-xs text-navy-400 font-bold ml-1 hidden sm:inline">
+                  {isCollapsed ? "Բացել ➔" : "Փակել ➔"}
+                </span>
+              </div>
+            </div>
+
+            {/* Collapsible Content */}
+            {!isCollapsed && (
+              <div className="p-4 space-y-3 bg-navy-900/10">
+                {list.map((m) => (
+                  <MatchRow
+                    key={m.id}
+                    m={m}
+                    value={local[m.id]}
+                    onChange={(side, v) => update(m.id, side, v)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-          <div className="space-y-2">
-            {list.map((m) => (
-              <MatchRow
-                key={m.id}
-                m={m}
-                value={local[m.id]}
-                onChange={(side, v) => update(m.id, side, v)}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
+        );
+      })}
 
       <SaveBar count={dirty.size} pending={pending} onSave={save} />
     </div>
@@ -95,13 +132,18 @@ function MatchRow({
 }) {
   const disabled = m.locked || m.actual !== null;
   return (
-    <div className="glass overflow-hidden sm:p-4 p-3">
+    <div className="glass sm:p-4 p-3">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-400">
-        <span>
+        <span className="truncate">
           #{m.matchNumber} · {formatDateTime(m.scheduledAt)}
         </span>
         <div className="flex flex-wrap items-center gap-1.5">
           {m.points !== null && <Badge variant="success">+{m.points} միավոր</Badge>}
+          {m.averagePoints !== null && (
+            <Badge variant="info" className="bg-sky-950/80 border-sky-900/50 text-sky-400">
+              📊 Միջինը՝ {m.averagePoints} մվ
+            </Badge>
+          )}
           {m.locked && !m.actual && <Badge variant="muted">🔒 Կողպված է</Badge>}
         </div>
       </div>
@@ -165,18 +207,18 @@ export function SaveBar({
   onSave: () => void;
 }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-navy-950/90 backdrop-blur-xl">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-navy-950/90 backdrop-blur-xl bottom-bar-pad">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-        <span className="text-sm text-navy-300">
+        <span className="min-w-0 flex-1 truncate text-xs text-navy-300 sm:text-sm">
           {count > 0 ? (
             <>
-              Ունեք <span className="font-bold text-white">{count}</span> չպահպանված կանխատեսում ✍️
+              Ունեք <span className="font-bold text-white">{count}</span> չպահպանված ✍️
             </>
           ) : (
-            "Բոլոր կանխատեսումները պահպանված են"
+            "Բոլորը պահպանված է"
           )}
         </span>
-        <Button onClick={onSave} loading={pending} disabled={count === 0}>
+        <Button onClick={onSave} loading={pending} disabled={count === 0} className="shrink-0">
           Պահպանել
         </Button>
       </div>

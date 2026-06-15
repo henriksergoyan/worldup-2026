@@ -27,10 +27,10 @@ function Stat({
   accent?: string;
 }) {
   return (
-    <Card className="p-5">
-      <div className="text-xs font-semibold uppercase tracking-wider text-navy-400">{label}</div>
-      <div className={`mt-2 text-3xl font-black tabular-nums ${accent ?? "text-white"}`}>{value}</div>
-      {sub && <div className="mt-1 text-sm text-navy-300">{sub}</div>}
+    <Card className="p-4 sm:p-5">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-navy-400 sm:text-xs">{label}</div>
+      <div className={`mt-2 text-2xl font-black tabular-nums sm:text-3xl ${accent ?? "text-white"}`}>{value}</div>
+      {sub && <div className="mt-1 text-xs text-navy-300 sm:text-sm">{sub}</div>}
     </Card>
   );
 }
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
           label="Հաջորդ վերջնաժամկետը"
           value={
             next?.lockAt ? (
-              <Countdown target={next.lockAt} mode="days" prefix="— " className="text-3xl text-white" />
+              <Countdown target={next.lockAt} mode="days" className="text-2xl text-white sm:text-3xl" />
             ) : (
               "—"
             )

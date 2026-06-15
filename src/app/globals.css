@@ -52,6 +52,26 @@
   }
 }
 
+@layer utilities {
+  /* Respect iOS home-indicator / notch for fixed bottom bars */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .bottom-bar-pad {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+  /* Bottom padding for scroll areas that sit under a fixed SaveBar */
+  .pb-savebar {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Prevent accidental horizontal scroll on small screens */
+html,
+body {
+  overflow-x: hidden;
+}
+
 /* Thin scrollbars */
 * {
   scrollbar-width: thin;

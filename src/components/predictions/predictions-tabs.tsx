@@ -13,7 +13,7 @@ type Tab = "group" | "knockout" | "champion";
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "group", label: "Խմբային փուլ", icon: "🏟️" },
   { id: "knockout", label: "Փլեյ-օֆֆ", icon: "🥅" },
-  { id: "champion", label: "Չեմպիոն 🏆", icon: "🏆" },
+  { id: "champion", label: "Չեմպիոն", icon: "🏆" },
 ];
 
 export function PredictionsTabs({
@@ -49,12 +49,12 @@ export function PredictionsTabs({
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
-              "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-semibold transition",
+              "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-xs font-semibold transition sm:text-sm",
               tab === t.id ? "bg-pitch-500/20 text-pitch-100" : "text-navy-300 hover:bg-white/5",
             )}
           >
-            <span>{t.icon}</span>
-            <span className="hidden sm:inline">{t.label}</span>
+            <span className="text-base">{t.icon}</span>
+            <span>{t.label}</span>
           </button>
         ))}
       </div>

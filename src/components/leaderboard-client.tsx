@@ -58,7 +58,7 @@ export function LeaderboardClient({ rows }: { rows: Row[]; prizePool: number }) 
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
-              "whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-semibold transition",
+              "whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-semibold transition",
               tab === t.id ? "bg-pitch-500/20 text-pitch-100" : "text-navy-300 hover:bg-white/5",
             )}
           >

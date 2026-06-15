@@ -37,12 +37,24 @@ export default async function PredictionsPage({
   ]);
 
   const matchPoints = standings.breakdownByUser[user.id]?.matchPoints ?? {};
+  const activePlayers = Object.keys(standings.breakdownByUser);
+  const activePlayersCount = activePlayers.length || 1;
 
   const toDTO = (m: (typeof matches)[number]) => {
     const pred = m.predictions[0] ?? null;
     const locked = isMatchLocked(m, deadlines, tournament.kickoffLockMinutes);
     const actual = m.actualResult;
     const finalized = actual?.finalized ?? false;
+
+    let averagePoints: number | null = null;
+    if (finalized) {
+      let sum = 0;
+      for (const uId of activePlayers) {
+        sum += standings.breakdownByUser[uId]?.matchPoints[m.id] ?? 0;
+      }
+      averagePoints = Number((sum / activePlayersCount).toFixed(2));
+    }
+
     return {
       id: m.id,
       matchNumber: m.matchNumber,
@@ -79,6 +91,7 @@ export default async function PredictionsPage({
           }
         : null,
       points: finalized ? (matchPoints[m.id] ?? 0) : null,
+      averagePoints,
     };
   };
 

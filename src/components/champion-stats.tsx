@@ -81,14 +81,14 @@ export function ChampionStats({
                       : "border-white/10 bg-white/[0.02]",
                 )}
               >
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 font-semibold text-white">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2 font-semibold text-white">
                     <span>{flagFor(row.teamName)}</span>
                     {row.teamName}
                     {isMine && <Badge variant="info">Դուք</Badge>}
                     {isActual && <Badge variant="gold">Չեմպիոն 🏆</Badge>}
                   </div>
-                  <span className="text-sm font-bold tabular-nums text-pitch-300">
+                  <span className="shrink-0 text-sm font-bold tabular-nums text-pitch-300">
                     {row.count} մասնակից · {pct}%
                   </span>
                 </div>
@@ -98,7 +98,7 @@ export function ChampionStats({
                     style={{ width: `${(row.count / max) * 100}%` }}
                   />
                 </div>
-                <p className="text-xs text-navy-400">{row.players.join(" · ")}</p>
+                <p className="break-words text-xs text-navy-400">{row.players.join(" · ")}</p>
               </div>
             );
           })}

@@ -56,7 +56,7 @@ export function TeamPicker({
   }
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="space-y-4 pb-savebar">
       <div className="glass flex flex-wrap items-center justify-between gap-3 p-4">
         <div>
           <h3 className="font-display text-lg font-bold text-white">Փլեյ-օֆֆի 16 թիմերդ 🎯</h3>

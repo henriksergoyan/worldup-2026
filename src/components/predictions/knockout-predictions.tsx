@@ -44,6 +44,7 @@ export function KnockoutPredictions({ matches }: { matches: MatchDTO[] }) {
     return init;
   });
   const [dirty, setDirty] = useState<Set<string>>(new Set());
+  const [collapsedRounds, setCollapsedRounds] = useState<Record<string, boolean>>({});
 
   const rounds = useMemo(() => {
     const map = new Map<string, MatchDTO[]>();
@@ -87,17 +88,56 @@ export function KnockoutPredictions({ matches }: { matches: MatchDTO[] }) {
   }
 
   return (
-    <div className="space-y-6 pb-24">
-      {rounds.map(([round, list]) => (
-        <div key={round}>
-          <h3 className="mb-2 font-display text-lg font-bold text-white">{ROUND_LABELS[round]}</h3>
-          <div className="space-y-2">
-            {list.map((m) => (
-              <KnockoutRow key={m.id} m={m} value={local[m.id]} onChange={(p) => patch(m.id, p)} />
-            ))}
+    <div className="space-y-4 pb-savebar">
+      {rounds.map(([round, list]) => {
+        const isCollapsed = collapsedRounds[round] ?? false;
+        const completedCount = list.filter((m) => m.actual !== null).length;
+        const totalPoints = list.reduce((sum, m) => sum + (m.points ?? 0), 0);
+        const avgPoints = Number(list.reduce((sum, m) => sum + (m.averagePoints ?? 0), 0).toFixed(1));
+
+        return (
+          <div key={round} className="rounded-2xl border border-white/5 bg-navy-950/20 overflow-hidden">
+            {/* Clickable Collapsible Header */}
+            <div
+              onClick={() => setCollapsedRounds((prev) => ({ ...prev, [round]: !isCollapsed }))}
+              className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white/[0.02] hover:bg-white/[0.05] transition cursor-pointer select-none border-b border-white/5"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">{isCollapsed ? "📁" : "📂"}</span>
+                <div>
+                  <h3 className="font-display text-base font-bold text-white sm:text-lg">{ROUND_LABELS[round]}</h3>
+                  <p className="text-xs text-navy-400">{list.length} խաղ</p>
+                </div>
+              </div>
+
+              {/* Stats Bar */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="muted" className="bg-navy-900 border-white/5 text-navy-300">
+                  ⚽ Ավարտված՝ {completedCount}/{list.length}
+                </Badge>
+                <Badge variant="success" className="bg-pitch-900/40 border-pitch-500/20 text-pitch-300">
+                  🏆 +{totalPoints} միավոր
+                </Badge>
+                <Badge variant="info" className="bg-sky-900/40 border-sky-500/20 text-sky-300">
+                  📊 Միջինը՝ {avgPoints} մվ
+                </Badge>
+                <span className="text-xs text-navy-400 font-bold ml-1 hidden sm:inline">
+                  {isCollapsed ? "Բացել ➔" : "Փակել ➔"}
+                </span>
+              </div>
+            </div>
+
+            {/* Collapsible Content */}
+            {!isCollapsed && (
+              <div className="p-4 space-y-3 bg-navy-900/10">
+                {list.map((m) => (
+                  <KnockoutRow key={m.id} m={m} value={local[m.id]} onChange={(p) => patch(m.id, p)} />
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
       <SaveBar count={dirty.size} pending={pending} onSave={save} />
     </div>
   );
@@ -123,13 +163,18 @@ function KnockoutRow({
   const ambiguous = hasScores && derivedWinner === null;
 
   return (
-    <div className="glass overflow-hidden p-3 sm:p-4">
+    <div className="glass p-3 sm:p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-400">
-        <span>
+        <span className="truncate">
           #{m.matchNumber} · {formatDateTime(m.scheduledAt)}
         </span>
         <div className="flex flex-wrap items-center gap-1.5">
           {m.points !== null && <Badge variant="success">+{m.points} միավոր</Badge>}
+          {m.averagePoints !== null && (
+            <Badge variant="info" className="bg-sky-950/80 border-sky-900/50 text-sky-400">
+              📊 Միջինը՝ {m.averagePoints} մվ
+            </Badge>
+          )}
           {m.locked && <Badge variant="muted">🔒 Կողպված</Badge>}
         </div>
       </div>
@@ -242,7 +287,7 @@ function SmallScorePair({
           value={home ?? ""}
           disabled={disabled}
           onChange={(e) => onHome(e.target.value === "" ? null : Math.max(0, Math.floor(Number(e.target.value))))}
-          className="h-9 w-9 rounded-lg border border-white/10 bg-navy-900/80 text-center text-sm font-bold text-white outline-none focus:border-pitch-400 disabled:opacity-40"
+          className="h-11 w-11 rounded-lg border border-white/10 bg-navy-900/80 text-center text-base font-bold text-white outline-none focus:border-pitch-400 disabled:opacity-40"
         />
         <span className="text-navy-500">:</span>
         <input
@@ -252,7 +297,7 @@ function SmallScorePair({
           value={away ?? ""}
           disabled={disabled}
           onChange={(e) => onAway(e.target.value === "" ? null : Math.max(0, Math.floor(Number(e.target.value))))}
-          className="h-9 w-9 rounded-lg border border-white/10 bg-navy-900/80 text-center text-sm font-bold text-white outline-none focus:border-pitch-400 disabled:opacity-40"
+          className="h-11 w-11 rounded-lg border border-white/10 bg-navy-900/80 text-center text-base font-bold text-white outline-none focus:border-pitch-400 disabled:opacity-40"
         />
       </div>
     </div>
@@ -276,7 +321,7 @@ function WinnerPill({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "rounded-full border px-3 py-1 text-xs font-semibold transition",
+        "rounded-full border px-3.5 py-2 text-xs font-semibold transition",
         active
           ? "border-pitch-500/50 bg-pitch-500/20 text-pitch-100"
           : "border-white/10 bg-white/[0.02] text-navy-300 hover:bg-white/5",

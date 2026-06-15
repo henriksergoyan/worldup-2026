@@ -45,14 +45,13 @@ function DeadlineRow({
             <Countdown
               target={d.lockAt}
               mode="days"
-              prefix="— "
               className={cn(
                 "text-base font-bold",
                 variant === "active" ? "text-amber-200" : "text-pitch-300",
               )}
             />
             {variant === "active" && (
-              <div className="text-[10px] font-semibold uppercase text-amber-400/90">Շուտով կփակվի</div>
+              <div className="text-xs font-semibold uppercase text-amber-400/90">Շուտով կփակվի</div>
             )}
           </>
         )}
@@ -117,7 +116,7 @@ export function DeadlineNotifications({ deadlines }: { deadlines: DeadlineItem[]
           {next && (
             <Badge variant={actNext.length > 0 ? "warning" : "info"}>
               Հաջորդը՝{" "}
-              <Countdown target={next.lockAt} prefix="— " className="inline text-inherit" />
+              <Countdown target={next.lockAt} mode="days" className="inline text-inherit" />
             </Badge>
           )}
         </div>

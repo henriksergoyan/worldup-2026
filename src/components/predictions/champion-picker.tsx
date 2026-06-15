@@ -66,10 +66,10 @@ export function SaveBarSimple({
   label: string;
 }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-navy-950/90 backdrop-blur-xl">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-navy-950/90 backdrop-blur-xl bottom-bar-pad">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-        <span className="truncate text-sm text-navy-300">{label}</span>
-        <Button onClick={onSave} loading={pending} disabled={disabled}>
+        <span className="min-w-0 flex-1 truncate text-xs text-navy-300 sm:text-sm">{label}</span>
+        <Button onClick={onSave} loading={pending} disabled={disabled} className="shrink-0">
           Save
         </Button>
       </div>

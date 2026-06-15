@@ -55,43 +55,22 @@ export default async function AdminPage() {
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         {stats.map((s) => (
-          <Card key={s.label} className="p-5">
-            <div className="text-xs font-semibold uppercase tracking-wider text-navy-400">{s.label}</div>
-            <div className={`mt-2 text-2xl font-black ${s.accent ?? "text-white"}`}>{s.value}</div>
+          <Card key={s.label} className="p-4 sm:p-5">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-navy-400 sm:text-xs">{s.label}</div>
+            <div className={`mt-2 text-xl font-black sm:text-2xl ${s.accent ?? "text-white"}`}>{s.value}</div>
             {s.sub && <div className="mt-1 text-xs text-navy-400">{s.sub}</div>}
           </Card>
         ))}
       </div>
 
       {/* Explanation of Recalculate button */}
-      <Card className="border-amber-500/20 bg-amber-500/[0.02]">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-base font-bold text-amber-400">
-            💡 Ինչու՞ է կարևոր սեղմել «Վերահաշվարկ» կոճակը
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-navy-200">
+      <Card className="border-emerald-500/20 bg-emerald-500/[0.02] p-4 text-sm text-navy-200">
+        <div className="flex items-start gap-2.5">
+          <span className="text-base">💡</span>
           <p>
-            «Վերահաշվարկ» կոճակը հանդիսանում է համակարգի գլխավոր շարժիչը, որը կատարում է հետևյալ կարևորագույն գործողությունները.
+            <strong className="text-white">Կարևոր է.</strong> Խաղերի արդյունքներ կամ փոփոխություններ մուտքագրելուց հետո սեղմեք <strong className="text-emerald-400 font-bold">«Վերահաշվարկ»</strong> կոճակը՝ մասնակիցների միավորները, փլեյ-օֆֆի զույգերը և աղյուսակը ավտոմատ թարմացնելու համար։
           </p>
-          <ul className="list-inside list-disc space-y-1.5 pl-1 text-navy-300">
-            <li>
-              <strong className="text-white">Ժամկետների համաժամեցում (Sync Deadlines)</strong>. Թարմացնում և ճշգրտում է բոլոր խաղափուլերի կողպման ժամկետները:
-            </li>
-            <li>
-              <strong className="text-white">Փլեյ-օֆֆի թիմերի ավտոմատ որոշում</strong>. Ավտոմատ կերպով հաշվարկում է, թե որ թիմերն են անցնում հաջորդ փուլ (ըստ խմբերում նրանց ցուցադրած արդյունքների և FIFA կանոնների) և մասնակիցներին շնորհում <strong className="text-pitch-300 font-bold">+2 միավոր</strong> յուրաքանչյուր ճիշտ թիմի համար (փլեյ-օֆֆի թիմերի ընտրությունը կատարվում է ավտոմատ, առանց ձեռքով վերջնաժամկետ սահմանելու)։
-            </li>
-            <li>
-              <strong className="text-white">Փլեյ-օֆֆի զանգվածային համալրում (Bracket Propagation)</strong>. Երբ խմբային փուլի խաղերն ավարտվում և վերջնականացվում են, ավտոմատ որոշվում են 1/16 եզրափակչի (Round of 32) զույգերը, և մասնակիցների միավորները վերահաշվարկվում են։
-            </li>
-            <li>
-              <strong className="text-white">Մրցաշարային աղյուսակի թարմացում (Leaderboard)</strong>. Վերահաշվարկում է բոլոր մասնակիցների ընդհանուր միավորները, ճշգրիտ հաշիվների քանակը և տեղերը մրցաշարային աղյուսակում։
-            </li>
-          </ul>
-          <p className="pt-1 text-xs text-navy-400 italic">
-            * Խորհուրդ է տրվում սեղմել «Վերահաշվարկ» ցանկացած կարևոր արդյունք մուտքագրելուց կամ փոփոխություն կատարելուց հետո։
-          </p>
-        </CardContent>
+        </div>
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
