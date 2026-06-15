@@ -39,7 +39,7 @@ export default async function ChampionPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-black text-white md:text-3xl">Չեմպիոնի ընտրությունները 🏆</h1>
-          <p className="text-sm text-navy-300">Ու՞մ վրա են հույս դրել (ում են չեմպիոն տեսնում) մեր տղերքը:</p>
+          <p className="text-sm text-navy-300">Ո՞ւմ հաղթանակի վրա են հույս դրել (ում են չեմպիոն տեսնում) մեր մասնակիցները։</p>
         </div>
         <Link href="/dashboard">
           <Button variant="ghost" size="sm">
