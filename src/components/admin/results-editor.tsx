@@ -85,7 +85,8 @@ export function ResultsEditor({ matches }: { matches: ResultDTO[] }) {
   }, [matches, filter, state]);
 
   function save() {
-    const items = [...dirty].map((id) => ({ matchId: id, ...state[id] }));
+    const dirtyIds = [...dirty];
+    const items = dirtyIds.map((id) => ({ matchId: id, ...state[id] }));
     if (items.length === 0) {
       toast("Պահպանելու փոփոխություններ չկան։", "info");
       return;
@@ -93,7 +94,28 @@ export function ResultsEditor({ matches }: { matches: ResultDTO[] }) {
     start(async () => {
       const res = await bulkSaveResults(items);
       toast(res.message, res.ok ? "success" : "error");
-      if (res.ok) setDirty(new Set());
+      if (res.ok) {
+        setDirty(new Set());
+        setState((prev) => {
+          const next = { ...prev };
+          for (const id of dirtyIds) {
+            const s = next[id];
+            const m = matches.find((x) => x.id === id);
+            const isKO = m?.stage === STAGES.KNOCKOUT;
+            const complete =
+              s.normalHome !== null &&
+              s.normalAway !== null &&
+              (!isKO || s.winner !== null || resolveKnockoutWinner({
+                normal: { home: s.normalHome, away: s.normalAway },
+                extra: { home: s.extraHome, away: s.extraAway },
+                penalty: { home: s.penaltyHome, away: s.penaltyAway },
+                winner: s.winner,
+              }) !== null);
+            if (complete) next[id] = { ...s, finalized: true };
+          }
+          return next;
+        });
+      }
     });
   }
 
@@ -195,7 +217,7 @@ function ResultRow({
           #{m.matchNumber} · {isKO ? ROUND_LABELS[(m.round as Round) ?? "R32"] : `Խումբ ${m.groupCode}`} ·{" "}
           {formatDateTime(m.scheduledAt)}
         </span>
-        {value.finalized && <Badge variant="success">Վերջնական</Badge>}
+        {value.finalized && <Badge variant="success">Ավարտված</Badge>}
       </div>
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
@@ -245,18 +267,6 @@ function ResultRow({
           </div>
         </div>
       )}
-
-      <div className="mt-3 flex items-center justify-end">
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-navy-200">
-          <input
-            type="checkbox"
-            checked={value.finalized}
-            onChange={(e) => onChange({ finalized: e.target.checked })}
-            className="h-4 w-4 accent-pitch-500"
-          />
-          Վերջնական (հաշվի է առնվում միավորների համար)
-        </label>
-      </div>
     </div>
   );
 }

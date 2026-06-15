@@ -87,7 +87,7 @@ export default async function AdminPage() {
           href="/admin/results"
           icon="⚽"
           title="Արդյունքների մուտք"
-          desc="Մուտքագրեք արդյունական հաշիվները և վերջնականացրեք խաղերը։"
+          desc="Մուտքագրեք արդյունական հաշիվները — պահպանելիս միավորները վերահաշվարկվում են ավտոմատ։"
         />
         <QuickLink
           href="/admin/users"

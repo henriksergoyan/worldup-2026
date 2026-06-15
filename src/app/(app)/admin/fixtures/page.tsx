@@ -20,6 +20,7 @@ export default async function AdminFixturesPage() {
     include: {
       homeTeam: true,
       awayTeam: true,
+      actualResult: true,
       _count: { select: { predictions: true } },
     },
     orderBy: [{ scheduledAt: "asc" }, { matchNumber: "asc" }],
@@ -59,6 +60,11 @@ export default async function AdminFixturesPage() {
           ) : (
             matches.map((m) => {
               const isKO = m.stage === STAGES.KNOCKOUT;
+              const result = m.actualResult;
+              const hasScore =
+                result?.finalized &&
+                result.normalHomeGoals !== null &&
+                result.normalAwayGoals !== null;
               return (
                 <Link
                   key={m.id}
@@ -72,13 +78,19 @@ export default async function AdminFixturesPage() {
                   </Badge>
                   <div className="grid min-w-0 flex-1 basis-full grid-cols-[1fr_auto_1fr] items-center gap-2 sm:basis-0">
                     <TeamChip name={m.homeTeam?.name} seedLabel={m.homeSeedLabel} align="right" />
-                    <span className="text-xs text-navy-500">vs</span>
+                    {hasScore ? (
+                      <span className="rounded-lg bg-navy-900 px-2.5 py-1 text-sm font-black tabular-nums text-white sm:text-base">
+                        {result!.normalHomeGoals}–{result!.normalAwayGoals}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-navy-500">vs</span>
+                    )}
                     <TeamChip name={m.awayTeam?.name} seedLabel={m.awaySeedLabel} />
                   </div>
                   <div className="flex flex-wrap items-center justify-end gap-2">
                     <span className="text-xs text-navy-400 tabular-nums">{formatDateTime(m.scheduledAt)}</span>
-                    <Badge variant={m.status === "FINISHED" ? "success" : "warning"} className="text-xs">
-                      {m.status === "FINISHED" ? "Ավարտված" : "Սպասվող"}
+                    <Badge variant={hasScore ? "success" : "warning"} className="text-xs">
+                      {hasScore ? "Ավարտված" : "Սպասվող"}
                     </Badge>
                     <Badge variant="success" className="border-navy-800 bg-navy-900 text-gold-400">
                       🔮 {m._count.predictions}

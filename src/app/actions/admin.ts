@@ -34,6 +34,7 @@ async function audit(
 function revalidateAll() {
   revalidatePath("/admin");
   revalidatePath("/admin/results");
+  revalidatePath("/admin/fixtures");
   revalidatePath("/leaderboard");
   revalidatePath("/dashboard");
   revalidatePath("/predictions");
@@ -53,7 +54,50 @@ const resultSchema = z.object({
   finalized: z.boolean().optional(),
 });
 
-export async function saveResult(input: z.input<typeof resultSchema>): Promise<AdminResult> {
+function deriveFinalized(
+  stage: string,
+  normalHome: number | null,
+  normalAway: number | null,
+  winnerTeamId: string | null,
+): boolean {
+  if (normalHome === null || normalAway === null) return false;
+  if (stage === STAGES.KNOCKOUT) return winnerTeamId !== null;
+  return true;
+}
+
+async function performRecalculate(adminId: string, tournamentId: string) {
+  for (const d of EXCEL_DEADLINES) {
+    await prisma.deadline.upsert({
+      where: { tournamentId_phase: { tournamentId, phase: d.phase } },
+      create: {
+        tournamentId,
+        phase: d.phase,
+        lockAt: d.lockAt,
+        isOpen: true,
+      },
+      update: { lockAt: d.lockAt },
+    });
+  }
+  await prisma.deadline.deleteMany({
+    where: { tournamentId, phase: PHASES.KNOCKOUT_TEAMS },
+  });
+
+  const picks = await syncTeamPicksFromWorkbook(tournamentId);
+  const result = await refreshBracketFromResults(tournamentId);
+  await audit(adminId, "RECALCULATE", "Tournament", tournamentId, undefined, {
+    resultsApplied: result.resultsApplied,
+    r32Filled: result.r32Filled,
+    winnersPropagated: result.winnersPropagated,
+    qualifiersMarked: result.qualifiersMarked,
+    championPicks: picks.champions,
+  });
+  return { picks, result };
+}
+
+export async function saveResult(
+  input: z.input<typeof resultSchema>,
+  options?: { deferRecalc?: boolean },
+): Promise<AdminResult> {
   const admin = await requireAdmin();
   const tournament = await getActiveTournament();
   const parsed = resultSchema.safeParse(input);
@@ -79,16 +123,10 @@ export async function saveResult(input: z.input<typeof resultSchema>): Promise<A
         extra: { home: data.extraHome ?? null, away: data.extraAway ?? null },
         penalty: { home: data.penaltyHome ?? null, away: data.penaltyAway ?? null },
       });
-    if (data.finalized && side === null) {
-      return {
-        ok: false,
-        message: `Խաղ №${match.matchNumber}՝ փլեյ-օֆ խաղում հավասար հաշիվը չի կարող վերջնականացվել առանց հաղթողի։`,
-      };
-    }
     winnerTeamId = side === "HOME" ? match.homeTeamId : side === "AWAY" ? match.awayTeamId : null;
   }
 
-  const finalized = data.finalized ?? match.actualResult?.finalized ?? false;
+  const finalized = deriveFinalized(match.stage, nh, na, winnerTeamId);
   const payload = {
     normalHomeGoals: nh,
     normalAwayGoals: na,
@@ -111,7 +149,7 @@ export async function saveResult(input: z.input<typeof resultSchema>): Promise<A
   });
   await audit(admin.id, finalized ? "FINALIZE_RESULT" : "SAVE_RESULT", "Match", match.id, undefined, payload);
 
-  if (finalized) {
+  if (finalized && !options?.deferRecalc) {
     await refreshBracketFromResults(tournament.id);
   }
 
@@ -120,13 +158,20 @@ export async function saveResult(input: z.input<typeof resultSchema>): Promise<A
 }
 
 export async function bulkSaveResults(inputs: z.input<typeof resultSchema>[]): Promise<AdminResult> {
+  const admin = await requireAdmin();
+  const tournament = await getActiveTournament();
   let ok = 0;
   for (const input of inputs) {
-    const res = await saveResult(input);
+    const res = await saveResult(input, { deferRecalc: true });
     if (res.ok) ok++;
-    else return res; // surface first error
+    else return res;
   }
-  return { ok: true, message: `Պահպանվեց ${ok} արդյունք։` };
+  if (ok > 0) {
+    await performRecalculate(admin.id, tournament.id);
+    revalidateAll();
+    return { ok: true, message: `Պահպանվեց ${ok} արդյունք և վերահաշվարկվեց։` };
+  }
+  return { ok: true, message: "Պահպանելու փոփոխություններ չկան։" };
 }
 
 export async function setMatchFinalized(matchId: string, finalized: boolean): Promise<AdminResult> {
@@ -332,32 +377,7 @@ export async function deleteMatch(matchId: string): Promise<AdminResult> {
 export async function recalculate(): Promise<AdminResult> {
   const admin = await requireAdmin();
   const tournament = await getActiveTournament();
-
-  for (const d of EXCEL_DEADLINES) {
-    await prisma.deadline.upsert({
-      where: { tournamentId_phase: { tournamentId: tournament.id, phase: d.phase } },
-      create: {
-        tournamentId: tournament.id,
-        phase: d.phase,
-        lockAt: d.lockAt,
-        isOpen: true,
-      },
-      update: { lockAt: d.lockAt },
-    });
-  }
-  await prisma.deadline.deleteMany({
-    where: { tournamentId: tournament.id, phase: PHASES.KNOCKOUT_TEAMS },
-  });
-
-  const picks = await syncTeamPicksFromWorkbook(tournament.id);
-  const result = await refreshBracketFromResults(tournament.id);
-  await audit(admin.id, "RECALCULATE", "Tournament", tournament.id, undefined, {
-    resultsApplied: result.resultsApplied,
-    r32Filled: result.r32Filled,
-    winnersPropagated: result.winnersPropagated,
-    qualifiersMarked: result.qualifiersMarked,
-    championPicks: picks.champions,
-  });
+  const { picks, result } = await performRecalculate(admin.id, tournament.id);
   revalidateAll();
   return {
     ok: true,
