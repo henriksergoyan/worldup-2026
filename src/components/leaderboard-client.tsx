@@ -88,7 +88,7 @@ export function LeaderboardClient({ rows, prizePool }: { rows: Row[]; prizePool:
                     <th className="px-3 py-3 text-right">16 Թիմ</th>
                     <th className="px-3 py-3 text-right">Փլեյ-օֆֆ</th>
                     <th className="px-3 py-3 text-right">Չեմպ</th>
-                    <th className="px-3 py-3 text-right">Տոչնի</th>
+                    <th className="px-3 py-3 text-right">Ճշգրիտ</th>
                     <th className="px-3 py-3 text-right">Բարդ ճիշտ</th>
                     <th className="px-3 py-3 text-right">Ելքեր</th>
                     <th className="px-4 py-3 text-right">Մրցանակ</th>
@@ -154,7 +154,7 @@ export function LeaderboardClient({ rows, prizePool }: { rows: Row[]; prizePool:
                   <Badge variant="muted">Խումբ՝ {r.groupStagePoints}</Badge>
                   <Badge variant="muted">Փլեյ-օֆֆ՝ {r.knockoutStagePoints + r.knockoutTeamPoints}</Badge>
                   <Badge variant="muted">Չեմպ՝ {r.championPoints}</Badge>
-                  <Badge variant="muted">{r.exactScoreHits} տոչնի</Badge>
+                  <Badge variant="muted">{r.exactScoreHits} ճշգրիտ հաշիվ</Badge>
                   {r.prizeAmount > 0 && <Badge variant="gold">{formatAMD(r.prizeAmount)}</Badge>}
                 </div>
               </Card>

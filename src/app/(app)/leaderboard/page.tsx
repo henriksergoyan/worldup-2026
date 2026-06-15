@@ -35,7 +35,7 @@ export default async function LeaderboardPage() {
       <div>
         <h1 className="font-display text-2xl font-black text-white md:text-3xl">Մրցաշարային Աղյուսակ 🏆</h1>
         <p className="text-sm text-navy-300">
-          {rows.length} խաղացող · Մրցանակային ֆոնդ՝ {prizePool.toLocaleString()} AMD · {paidCount} հոգի վճարած 💸 · Հավասար միավորների դեպքում առաջնայինը տոչնի (ճիշտ) հաշիվների քանակն է:
+          {rows.length} խաղացող · Մրցանակային ֆոնդ՝ {prizePool.toLocaleString()} AMD · {paidCount} հոգի վճարած 💸 · Միավորների հավասարության դեպքում առաջնահերթությունը տրվում է ճշգրիտ հաշվով գուշակումների քանակին։
         </p>
       </div>
       <LeaderboardClient rows={rows} prizePool={prizePool} />
