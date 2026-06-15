@@ -5,24 +5,24 @@ const COPA_URL = "https://copa.global/";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-white/10 bg-navy-950/60 py-6 pb-safe">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 text-center">
+    <footer className="border-t border-white/10 bg-navy-950/60 py-3 pb-safe">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-2.5 gap-y-1 px-4 text-center text-xs leading-snug text-navy-300">
         <Link
           href={COPA_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="opacity-90 transition hover:opacity-100"
+          className="shrink-0 opacity-90 transition hover:opacity-100"
           aria-label="COPA — copa.global"
         >
           <Image
             src="/copa-logo.png"
             alt="COPA"
-            width={72}
-            height={28}
-            className="h-7 w-auto"
+            width={56}
+            height={20}
+            className="h-5 w-auto"
           />
         </Link>
-        <p className="max-w-md text-xs leading-relaxed text-navy-300">
+        <span>
           Կայքը պատրաստվել է{" "}
           <Link
             href={COPA_URL}
@@ -33,8 +33,11 @@ export function SiteFooter() {
             COPA
           </Link>{" "}
           ընկերության կողմից։
-        </p>
-        <p className="text-[11px] tracking-wide text-navy-500">օլ ռայթս ռեզերվըդ 2026</p>
+        </span>
+        <span className="hidden text-navy-600 sm:inline" aria-hidden>
+          ·
+        </span>
+        <span className="text-[11px] tracking-wide text-navy-500">օլ ռայթս ռեզերվըդ 2026</span>
       </div>
     </footer>
   );
