@@ -26,27 +26,27 @@ export default async function AdminPage() {
     ]);
 
   const stats = [
-    { label: "Players", value: playerCount, sub: `${paidCount} paid` },
-    { label: "Teams", value: teamCount },
-    { label: "Matches", value: matchCount, sub: `${finalizedCount} finalized` },
-    { label: "Predictions", value: predictionCount },
-    { label: "Prize pool", value: formatAMD(standings.prizePool), accent: "text-gold-400" },
+    { label: "Մասնակիցներ", value: playerCount, sub: `${paidCount} վճարած` },
+    { label: "Թիմեր", value: teamCount },
+    { label: "Խաղեր", value: matchCount, sub: `${finalizedCount} վերջնական` },
+    { label: "Կանխատեսումներ", value: predictionCount },
+    { label: "Մրցանակային ֆոնդ", value: formatAMD(standings.prizePool), accent: "text-gold-400" },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-black text-white md:text-3xl">Admin Console</h1>
+          <h1 className="font-display text-2xl font-black text-white md:text-3xl">Ադմինիստրացիայի վահանակ</h1>
           <p className="text-sm text-navy-300">
-            {tournament.name} · manage players, results, and settings. To play in the league, create a separate player
-            profile under Players.
+            {tournament.name} · մասնակիցների, արդյունքների և կարգավորումների կառավարում։ Լիգայում խաղալու համար «Մասնակիցներ»
+            բաժնում ստեղծեք առանձին խաղացողի պրոֆիլ։
           </p>
         </div>
         <div className="flex gap-2">
           <RecalcButton />
           <a href="/api/admin/export" target="_blank" rel="noreferrer">
-            <Button variant="outline">⬇︎ Export JSON</Button>
+            <Button variant="outline">JSON արտահանում</Button>
           </a>
         </div>
       </div>
@@ -64,17 +64,47 @@ export default async function AdminPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <QuickLink href="/admin/results" icon="⚽" title="Enter results" desc="Set actual scores and finalize matches." />
-        <QuickLink href="/admin/users" icon="👥" title="Manage players" desc="Mark paid status and toggle access." />
-        <QuickLink href="/admin/teams" icon="🏳️" title="Teams & qualifiers" desc="Edit teams, set qualifiers and champion." />
-        <QuickLink href="/admin/fixtures" icon="📅" title="Fixtures" desc="Create knockout matches as teams are known." />
-        <QuickLink href="/admin/deadlines" icon="⏰" title="Deadlines" desc="Lock or reopen prediction phases." />
-        <QuickLink href="/admin/settings" icon="⚙️" title="Settings" desc="Entry fee, prize split and pick count." />
+        <QuickLink
+          href="/admin/results"
+          icon="⚽"
+          title="Արդյունքների մուտք"
+          desc="Մուտքագրեք արդյունական հաշիվները և վերջնականացրեք խաղերը։"
+        />
+        <QuickLink
+          href="/admin/users"
+          icon="👥"
+          title="Մասնակիցների կառավարում"
+          desc="Նշեք վճարման կարգավիճակը և մուտքի իրավասությունը։"
+        />
+        <QuickLink
+          href="/admin/teams"
+          icon="🏳️"
+          title="Թիմեր և փլեյ-օֆ"
+          desc="Խմբագրեք թիմերը, նշեք փլեյ-օֆ անցած և չեմպիոն թիմը։"
+        />
+        <QuickLink
+          href="/admin/fixtures"
+          icon="📅"
+          title="Խաղացուցակ"
+          desc="Ավելացրեք փլեյ-օֆ խաղերը, երբ թիմերը հայտնի դառնան։"
+        />
+        <QuickLink
+          href="/admin/deadlines"
+          icon="⏰"
+          title="Ժամկետներ"
+          desc="Փակեք կամ վերաբացեք կանխատեսման փուլերը։"
+        />
+        <QuickLink
+          href="/admin/settings"
+          icon="⚙️"
+          title="Կարգավորումներ"
+          desc="Մասնակցության վարձ, մրցանակների բաշխում և ընտրությունների թիվ։"
+        />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Top of the table</CardTitle>
+          <CardTitle>Աղյուսակի առաջատարներ</CardTitle>
         </CardHeader>
         <CardContent className="space-y-1.5">
           {standings.leaderboard.slice(0, 5).map((e) => (
@@ -83,7 +113,7 @@ export default async function AdminPage() {
                 <span className="mr-2 font-bold text-navy-400">{e.rank}</span>
                 {e.name}
               </span>
-              <span className="font-bold text-pitch-300">{e.totalPoints} pts</span>
+              <span className="font-bold text-pitch-300">{e.totalPoints} միավոր</span>
             </div>
           ))}
         </CardContent>

@@ -11,13 +11,13 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md animate-fade-in">
         <div className="mb-8 text-center">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-pitch-300">
-            <span className="text-base">⚽</span> Պրոգնոզների Լիգա
+            <span className="text-base">⚽</span> Էքսպերտների լիգա
           </div>
           <h1 className="font-display text-4xl font-black tracking-tight text-white">
             World Cup <span className="text-pitch-400">2026</span>
           </h1>
           <p className="mt-2 text-sm text-navy-300">
-            Մուտք գործիր՝ քո պրոգնոզները լրացնելու և աղյուսակը գրավելու համար 🚀
+            Մուտք գործեք՝ կանխատեսումները լրացնելու և աղյուսակում բարձրանալու համար։
           </p>
         </div>
 

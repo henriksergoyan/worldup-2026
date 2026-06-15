@@ -34,9 +34,9 @@ export default async function AdminTeamsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-black text-white md:text-3xl">Teams</h1>
+          <h1 className="font-display text-2xl font-black text-white md:text-3xl">Թիմեր</h1>
           <p className="text-sm text-navy-300">
-            Edit names/groups, mark knockout qualifiers ({qualifiedCount}) and the champion.
+            Խմբագրեք անուններն ու խմբերը, նշեք փլեյ-օֆ անցած թիմերը ({qualifiedCount}) և չեմպիոնին։
           </p>
         </div>
         <ClearChampion />

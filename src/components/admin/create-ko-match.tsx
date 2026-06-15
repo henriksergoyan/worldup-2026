@@ -39,11 +39,11 @@ export function CreateKoMatch({ teams }: { teams: { id: string; name: string }[]
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add knockout match</CardTitle>
+        <CardTitle>Փլեյ-օֆ խաղ ավելացնել</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <Label>Round</Label>
+          <Label>Փուլ</Label>
           <Select value={round} onChange={(e) => setRound(e.target.value as Round)}>
             {ROUNDS.map((r) => (
               <option key={r} value={r}>
@@ -53,7 +53,7 @@ export function CreateKoMatch({ teams }: { teams: { id: string; name: string }[]
           </Select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label>Kickoff</Label>
+          <Label>Խաղի սկիզբ</Label>
           <input
             type="datetime-local"
             value={scheduledAt}
@@ -62,9 +62,9 @@ export function CreateKoMatch({ teams }: { teams: { id: string; name: string }[]
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label>Home team</Label>
+          <Label>Տան թիմ</Label>
           <Select value={homeTeamId} onChange={(e) => setHomeTeamId(e.target.value)}>
-            <option value="">— Placeholder —</option>
+            <option value="">— Դեռ չի որոշվել —</option>
             {teams.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -72,15 +72,15 @@ export function CreateKoMatch({ teams }: { teams: { id: string; name: string }[]
             ))}
           </Select>
           <Input
-            placeholder="Home seed label (e.g. 1A)"
+            placeholder="Տան թիմի նշան (օր.՝ 1A)"
             value={homeSeedLabel}
             onChange={(e) => setHomeSeedLabel(e.target.value)}
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label>Away team</Label>
+          <Label>Հյուր թիմ</Label>
           <Select value={awayTeamId} onChange={(e) => setAwayTeamId(e.target.value)}>
-            <option value="">— Placeholder —</option>
+            <option value="">— Դեռ չի որոշվել —</option>
             {teams.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -88,14 +88,14 @@ export function CreateKoMatch({ teams }: { teams: { id: string; name: string }[]
             ))}
           </Select>
           <Input
-            placeholder="Away seed label (e.g. 2B)"
+            placeholder="Հյուր թիմի նշան (օր.՝ 2B)"
             value={awaySeedLabel}
             onChange={(e) => setAwaySeedLabel(e.target.value)}
           />
         </div>
         <div className="sm:col-span-2">
           <Button onClick={submit} loading={pending}>
-            Create match
+            Ստեղծել
           </Button>
         </div>
       </CardContent>

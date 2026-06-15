@@ -60,21 +60,23 @@ export function SettingsEditor({
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Tournament settings</CardTitle>
+          <CardTitle>Մրցաշարի կարգավորումներ</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-1.5">
-            <Label>Participation fee (AMD)</Label>
+            <Label>Մասնակցության վարձ (դրամ)</Label>
             <Input type="number" value={fee} onChange={(e) => setFee(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Knockout team picks per player</Label>
+            <Label>Փլեյ-օֆ թիմերի ընտրություններ մեկ խաղացողի համար</Label>
             <Input type="number" value={pickCount} onChange={(e) => setPickCount(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Prediction lock (minutes before kickoff)</Label>
+            <Label>Կանխատեսման փակում (րոպե մինչև խաղի սկիզբը)</Label>
             <Input type="number" value={lockMins} onChange={(e) => setLockMins(e.target.value)} />
-            <p className="text-xs text-navy-400">Players can edit match predictions until this many minutes before kickoff (default 60).</p>
+            <p className="text-xs text-navy-400">
+              Խաղացողները կարող են խմբագրել կանխատեսումները մինչև խաղի սկիզբից այսքան րոպե առաջ (լռելյայն՝ 60)։
+            </p>
           </div>
           <label className="flex cursor-pointer items-center gap-2 text-sm text-navy-200">
             <input
@@ -83,26 +85,28 @@ export function SettingsEditor({
               onChange={(e) => setRegOpen(e.target.checked)}
               className="h-4 w-4 accent-pitch-500"
             />
-            Allow self-registration at /register
+            Թույլատրել ինքնուրույն գրանցումը /register էջում
           </label>
           <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
-            <div className="text-xs uppercase tracking-wide text-navy-400">Projected prize pool</div>
+            <div className="text-xs uppercase tracking-wide text-navy-400">Կանխատեսվող մրցանակային ֆոնդ</div>
             <div className="mt-1 text-2xl font-black text-gold-400">{formatAMD(pool)}</div>
-            <div className="text-xs text-navy-400">{paidCount} paid × {formatAMD(Number(fee || 0))}</div>
+            <div className="text-xs text-navy-400">
+              {paidCount} վճարած × {formatAMD(Number(fee || 0))}
+            </div>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Prize split (%)</CardTitle>
+          <CardTitle>Մրցանակների բաշխում (%)</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {[1, 2, 3, 4, 5, 6, 7].map((r) => {
             const pct = Number(splits[String(r)] || 0);
             return (
               <div key={r} className="flex items-center gap-3">
-                <span className="w-16 text-sm font-semibold text-navy-200">{r} place</span>
+                <span className="w-16 text-sm font-semibold text-navy-200">{r}-ին տեղ</span>
                 <Input
                   type="number"
                   value={splits[String(r)]}
@@ -114,14 +118,14 @@ export function SettingsEditor({
             );
           })}
           <div className={`text-sm font-semibold ${totalPct === 100 ? "text-pitch-300" : "text-amber-300"}`}>
-            Total: {totalPct}% {totalPct !== 100 && "(should be 100%)"}
+            Ընդամենը՝ {totalPct}% {totalPct !== 100 && "(պետք է լինի 100%)"}
           </div>
         </CardContent>
       </Card>
 
       <div className="lg:col-span-2">
         <Button onClick={save} loading={pending}>
-          Save settings
+          Պահպանել
         </Button>
       </div>
     </div>

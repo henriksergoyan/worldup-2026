@@ -25,10 +25,10 @@ export default async function AdminDeadlinesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Deadlines</h1>
+        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Ժամկետներ</h1>
         <p className="text-sm text-navy-300">
-          Set lock times (your local time) per phase. Uncheck "Open" to force a lock; set a future
-          time and keep it open to reopen a phase.
+          Սահմանեք փակման ժամը (տեղական ժամանակ) յուրաքանչյուր փուլի համար։ «Բաց» նշումը հանեք՝ փուլը փակելու համար,
+          կամ սահմանեք ապագա ժամ և թողեք բաց՝ փուլը վերաբացելու համար։
         </p>
       </div>
       <AdminNav />

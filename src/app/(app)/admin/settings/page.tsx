@@ -15,8 +15,8 @@ export default async function AdminSettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Settings</h1>
-        <p className="text-sm text-navy-300">Entry fee, knockout pick count and prize distribution.</p>
+        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Կարգավորումներ</h1>
+        <p className="text-sm text-navy-300">Մասնակցության վարձ, փլեյ-օֆ ընտրությունների թիվ և մրցանակների բաշխում։</p>
       </div>
       <AdminNav />
       <SettingsEditor

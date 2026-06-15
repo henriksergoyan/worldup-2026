@@ -94,7 +94,7 @@ export default async function DashboardPage() {
           <h1 className="font-display text-2xl font-black text-white md:text-3xl">
             Բարի վերադարձ, {user.name.split(" ")[0]} 👋
           </h1>
-          <p className="text-sm text-navy-300">{tournament.name} · Կանխատեսումների լիգա</p>
+          <p className="text-sm text-navy-300">{tournament.name} · Էքսպերտների լիգա</p>
         </div>
         <Link href="/predictions">
           <Button>Կատարել կանխատեսումներ ✍️ →</Button>

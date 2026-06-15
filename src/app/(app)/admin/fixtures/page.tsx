@@ -31,10 +31,9 @@ export default async function AdminFixturesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Fixtures</h1>
+        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Խաղացուցակ</h1>
         <p className="text-sm text-navy-300">
-          {group.length} group matches · {knockout.length} knockout matches. Add knockout matches as
-          teams become known.
+          {group.length} խմբային խաղ · {knockout.length} փլեյ-օֆ խաղ։ Ավելացրեք փլեյ-օֆ խաղերը, երբ թիմերը հայտնի դառնան։
         </p>
       </div>
       <AdminNav />
@@ -43,11 +42,11 @@ export default async function AdminFixturesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Knockout matches</CardTitle>
+          <CardTitle>Փլեյ-օֆ խաղեր</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {knockout.length === 0 ? (
-            <p className="py-4 text-center text-sm text-navy-300">No knockout matches yet.</p>
+            <p className="py-4 text-center text-sm text-navy-300">Դեռ փլեյ-օֆ խաղեր չկան։</p>
           ) : (
             knockout.map((m) => (
               <div key={m.id} className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-3">
@@ -67,7 +66,7 @@ export default async function AdminFixturesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Group matches</CardTitle>
+          <CardTitle>Խմբային խաղեր</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-2 sm:grid-cols-2">
           {group.map((m) => (

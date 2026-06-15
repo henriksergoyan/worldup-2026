@@ -25,10 +25,11 @@ export default async function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Players</h1>
+        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Մասնակիցներ</h1>
         <p className="text-sm text-navy-300">
-          Add players, edit names (username updates to firstname.lastname or firstname.[blank]), reset passwords, or
-          remove members. Admin accounts manage the league only — create a separate player profile to compete.
+          Ավելացրեք մասնակիցներ, խմբագրեք անունները (օգտանունը թարմացվում է՝ firstname.lastname կամ firstname.[blank]),
+          վերակայեք գաղտնաբառերը կամ հեռացրեք անդամներին։ Ադմինիստրատորի հաշիվները միայն լիգան են կառավարում — խաղալու համար
+          ստեղծեք առանձին խաղացողի պրոֆիլ։
         </p>
       </div>
       <AdminNav />

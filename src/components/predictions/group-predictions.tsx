@@ -101,11 +101,6 @@ function MatchRow({
           #{m.matchNumber} · {formatDateTime(m.scheduledAt)}
         </span>
         <div className="flex flex-wrap items-center gap-1.5">
-          {m.actual && (
-            <Badge variant="info">
-              Արդյունք՝ {m.actual.normalHome}–{m.actual.normalAway}
-            </Badge>
-          )}
           {m.points !== null && <Badge variant="success">+{m.points} միավոր</Badge>}
           {m.locked && !m.actual && <Badge variant="muted">🔒 Կողպված է</Badge>}
         </div>

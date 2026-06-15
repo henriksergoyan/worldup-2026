@@ -38,14 +38,14 @@ export function TeamEditorRow({ team }: { team: TeamRow }) {
         value={group}
         onChange={(e) => setGroup(e.target.value.toUpperCase())}
         className="h-9 w-16 text-center"
-        placeholder="Grp"
+        placeholder="Խումբ"
         maxLength={3}
       />
       <div className="ml-auto flex items-center gap-2">
         <QualifiedToggle teamId={team.id} qualified={team.qualified} />
         <ChampionButton teamId={team.id} isChampion={team.champion} />
         <Button size="sm" variant="secondary" onClick={save} loading={pending} disabled={!dirty}>
-          Save
+          Պահպանել
         </Button>
       </div>
     </div>

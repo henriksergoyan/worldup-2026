@@ -1,5 +1,5 @@
-// Actual World Cup 2026 group-stage results (as of June 14, 2026).
-// Sources: FIFA.com, ESPN, FootballTransfers — opening matchday Jun 11–13.
+// Actual World Cup 2026 group-stage results (as of June 15, 2026).
+// Sources: FIFA.com, Sky Sports, worldcuplocaltime.com — through Jun 14 matchday.
 // Keyed by normalized home|away team names from our seed data.
 
 export interface ActualScore {
@@ -34,7 +34,7 @@ function key(home: string, away: string): string {
   return `${normalizeTeam(home)}|${normalizeTeam(away)}`;
 }
 
-/** Played fixtures through June 13, 2026. */
+/** Played fixtures through June 14, 2026. */
 export const WC_2026_RESULTS: Record<string, ActualScore> = {
   [key("Mexico", "South Africa")]: { home: 2, away: 0, finalized: true },
   [key("South Korea", "Czech Republic")]: { home: 2, away: 1, finalized: true },
@@ -49,6 +49,9 @@ export const WC_2026_RESULTS: Record<string, ActualScore> = {
   [key("Australia", "Türkiye")]: { home: 2, away: 0, finalized: true },
   [key("Germany", "Curaçao")]: { home: 7, away: 1, finalized: true },
   [key("Germany", "Curacao")]: { home: 7, away: 1, finalized: true },
+  [key("Ivory Coast", "Ecuador")]: { home: 1, away: 0, finalized: true },
+  [key("Côte d'Ivoire", "Ecuador")]: { home: 1, away: 0, finalized: true },
+  [key("Netherlands", "Japan")]: { home: 2, away: 2, finalized: true },
 };
 
 export function lookupResult(homeTeam: string, awayTeam: string): ActualScore | null {

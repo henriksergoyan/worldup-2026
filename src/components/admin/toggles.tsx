@@ -14,8 +14,8 @@ function Switch({
   checked,
   onToggle,
   pending,
-  labelOn = "On",
-  labelOff = "Off",
+  labelOn = "Միացված",
+  labelOff = "Անջատված",
 }: {
   checked: boolean;
   onToggle: () => void;
@@ -48,8 +48,8 @@ export function PaidToggle({ userId, paid }: { userId: string; paid: boolean }) 
     <Switch
       checked={paid}
       pending={pending}
-      labelOn="Paid"
-      labelOff="Unpaid"
+      labelOn="Վճարած"
+      labelOff="Չվճարած"
       onToggle={() =>
         start(async () => {
           const res = await setUserPaid(userId, !paid);
@@ -67,8 +67,8 @@ export function ActiveToggle({ userId, active }: { userId: string; active: boole
     <Switch
       checked={active}
       pending={pending}
-      labelOn="Active"
-      labelOff="Disabled"
+      labelOn="Ակտիվ"
+      labelOff="Անջատված"
       onToggle={() =>
         start(async () => {
           const res = await setUserActive(userId, !active);
@@ -86,8 +86,8 @@ export function QualifiedToggle({ teamId, qualified }: { teamId: string; qualifi
     <Switch
       checked={qualified}
       pending={pending}
-      labelOn="Qualified"
-      labelOff="Out"
+      labelOn="Փլեյ-օֆ"
+      labelOff="Դուրս"
       onToggle={() =>
         start(async () => {
           const res = await setTeamQualified(teamId, !qualified);
@@ -118,7 +118,7 @@ export function ChampionButton({ teamId, isChampion }: { teamId: string; isChamp
           : "border-white/10 bg-white/[0.03] text-navy-300 hover:bg-white/5",
       )}
     >
-      {isChampion ? "★ Champion" : "Set champion"}
+      {isChampion ? "★ Չեմպիոն" : "Չեմպիոն նշել"}
     </button>
   );
 }

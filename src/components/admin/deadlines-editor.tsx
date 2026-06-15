@@ -52,9 +52,9 @@ function DeadlineRowEditor({ row }: { row: DeadlineRow }) {
         <div className="font-semibold text-white">{PHASE_LABELS[row.phase]}</div>
         <div className="mt-0.5">
           {row.locked ? (
-            <Badge variant="muted">🔒 Locked</Badge>
+            <Badge variant="muted">Փակ է</Badge>
           ) : (
-            <Badge variant="success">Open</Badge>
+            <Badge variant="success">Բաց է</Badge>
           )}
         </div>
       </div>
@@ -71,10 +71,10 @@ function DeadlineRowEditor({ row }: { row: DeadlineRow }) {
           onChange={(e) => setIsOpen(e.target.checked)}
           className="h-4 w-4 accent-pitch-500"
         />
-        Open
+        Բաց
       </label>
       <Button size="sm" variant="secondary" onClick={save} loading={pending}>
-        Save
+        Պահպանել
       </Button>
     </div>
   );

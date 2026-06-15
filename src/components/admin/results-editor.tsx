@@ -87,7 +87,7 @@ export function ResultsEditor({ matches }: { matches: ResultDTO[] }) {
   function save() {
     const items = [...dirty].map((id) => ({ matchId: id, ...state[id] }));
     if (items.length === 0) {
-      toast("No changes to save.", "info");
+      toast("Պահպանելու փոփոխություններ չկան։", "info");
       return;
     }
     start(async () => {
@@ -98,10 +98,10 @@ export function ResultsEditor({ matches }: { matches: ResultDTO[] }) {
   }
 
   const filters = [
-    { id: "all", label: "All" },
-    { id: "group", label: "Group" },
-    { id: "knockout", label: "Knockout" },
-    { id: "pending", label: "Pending" },
+    { id: "all", label: "Բոլորը" },
+    { id: "group", label: "Խմբային" },
+    { id: "knockout", label: "Փլեյ-օֆ" },
+    { id: "pending", label: "Չավարտված" },
   ] as const;
 
   return (
@@ -132,14 +132,14 @@ export function ResultsEditor({ matches }: { matches: ResultDTO[] }) {
           <span className="text-sm text-navy-300">
             {dirty.size > 0 ? (
               <>
-                <span className="font-bold text-white">{dirty.size}</span> unsaved
+                <span className="font-bold text-white">{dirty.size}</span> չպահպանված
               </>
             ) : (
-              "All changes saved"
+              "Բոլոր փոփոխությունները պահպանված են"
             )}
           </span>
           <Button onClick={save} loading={pending} disabled={dirty.size === 0}>
-            Save & recalculate
+            Պահպանել և վերահաշվարկել
           </Button>
         </div>
       </div>
@@ -192,10 +192,10 @@ function ResultRow({
     <div className={cn("glass p-3 sm:p-4", value.finalized && "border-pitch-500/30 bg-pitch-500/[0.04]")}>
       <div className="mb-2 flex items-center justify-between text-xs text-navy-400">
         <span>
-          #{m.matchNumber} · {isKO ? ROUND_LABELS[(m.round as Round) ?? "R32"] : `Group ${m.groupCode}`} ·{" "}
+          #{m.matchNumber} · {isKO ? ROUND_LABELS[(m.round as Round) ?? "R32"] : `Խումբ ${m.groupCode}`} ·{" "}
           {formatDateTime(m.scheduledAt)}
         </span>
-        {value.finalized && <Badge variant="success">Finalized</Badge>}
+        {value.finalized && <Badge variant="success">Վերջնական</Badge>}
       </div>
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
@@ -211,17 +211,17 @@ function ResultRow({
       {isKO && (
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-navy-400">ET</span>
+            <span className="text-xs text-navy-400">ԼՀ</span>
             <NumBox value={value.extraHome} onChange={(v) => onChange({ extraHome: v })} small />
             <NumBox value={value.extraAway} onChange={(v) => onChange({ extraAway: v })} small />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-navy-400">Pens</span>
+            <span className="text-xs text-navy-400">ՏՀ</span>
             <NumBox value={value.penaltyHome} onChange={(v) => onChange({ penaltyHome: v })} small />
             <NumBox value={value.penaltyAway} onChange={(v) => onChange({ penaltyAway: v })} small />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-navy-400">Advances</span>
+            <span className="text-xs text-navy-400">Անցնում է</span>
             <button
               type="button"
               onClick={() => onChange({ winner: "HOME" })}
@@ -230,7 +230,7 @@ function ResultRow({
                 derived === "HOME" ? "border-pitch-500/50 bg-pitch-500/20 text-pitch-100" : "border-white/10 text-navy-300",
               )}
             >
-              {m.homeName ?? m.homeSeedLabel ?? "Home"}
+              {m.homeName ?? m.homeSeedLabel ?? "Տան"}
             </button>
             <button
               type="button"
@@ -240,7 +240,7 @@ function ResultRow({
                 derived === "AWAY" ? "border-pitch-500/50 bg-pitch-500/20 text-pitch-100" : "border-white/10 text-navy-300",
               )}
             >
-              {m.awayName ?? m.awaySeedLabel ?? "Away"}
+              {m.awayName ?? m.awaySeedLabel ?? "Հյուր"}
             </button>
           </div>
         </div>
@@ -254,7 +254,7 @@ function ResultRow({
             onChange={(e) => onChange({ finalized: e.target.checked })}
             className="h-4 w-4 accent-pitch-500"
           />
-          Finalized (counts for points)
+          Վերջնական (հաշվի է առնվում միավորների համար)
         </label>
       </div>
     </div>

@@ -20,7 +20,7 @@ export function ClearChampion() {
         })
       }
     >
-      Clear champion
+      Չեմպիոնը մաքրել
     </Button>
   );
 }

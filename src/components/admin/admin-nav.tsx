@@ -5,13 +5,13 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/results", label: "Results" },
-  { href: "/admin/users", label: "Players" },
-  { href: "/admin/teams", label: "Teams" },
-  { href: "/admin/fixtures", label: "Fixtures" },
-  { href: "/admin/deadlines", label: "Deadlines" },
-  { href: "/admin/settings", label: "Settings" },
+  { href: "/admin", label: "Ակնարկ" },
+  { href: "/admin/results", label: "Արդյունքներ" },
+  { href: "/admin/users", label: "Մասնակիցներ" },
+  { href: "/admin/teams", label: "Թիմեր" },
+  { href: "/admin/fixtures", label: "Խաղացուցակ" },
+  { href: "/admin/deadlines", label: "Ժամկետներ" },
+  { href: "/admin/settings", label: "Կարգավորումներ" },
 ];
 
 export function AdminNav() {

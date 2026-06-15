@@ -9,7 +9,7 @@ export default function RegisterPage() {
       <div className="relative z-10 w-full max-w-md animate-fade-in">
         <div className="mb-8 text-center">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-pitch-300">
-            <span className="text-base">⚽</span> Միացի՛ր լիգային
+            <span className="text-base">⚽</span> Էքսպերտների լիգա
           </div>
           <h1 className="font-display text-3xl font-black tracking-tight text-white">
             Ստեղծի՛ր քո <span className="text-pitch-400">ակաունտը</span>

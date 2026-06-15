@@ -51,9 +51,9 @@ export default async function AdminResultsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Enter Results</h1>
+        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Արդյունքների մուտք</h1>
         <p className="text-sm text-navy-300">
-          Set actual scores and finalize matches. Finalizing recalculates points instantly.
+          Մուտքագրեք արդյունական հաշիվները և վերջնականացրեք խաղերը։ Վերջնականացումից հետո միավորները վերահաշվարկվում են ավտոմատ։
         </p>
       </div>
       <AdminNav />

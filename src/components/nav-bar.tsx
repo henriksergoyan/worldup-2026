@@ -28,7 +28,7 @@ export function NavBar({
       ]
     : [
         { href: "/dashboard", label: "Իմ էջը" },
-        { href: "/predictions", label: "Իմ կանխատեսումները ⚽" },
+        { href: "/predictions", label: "Իմ կանխատեսումները" },
         { href: "/leaderboard", label: "Մրցաշարային աղյուսակ" },
       ];
 

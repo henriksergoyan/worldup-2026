@@ -19,7 +19,7 @@ export function RecalcButton() {
         })
       }
     >
-      ♻︎ Recalculate
+      ♻︎ Վերահաշվարկ
     </Button>
   );
 }

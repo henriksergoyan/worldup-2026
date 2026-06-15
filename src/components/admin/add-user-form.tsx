@@ -21,7 +21,7 @@ export function AddUserForm() {
     start(async () => {
       const res = await createUser({ firstName, lastName });
       if (res.ok && res.username && res.password) {
-        toast(`${res.message} Password: ${res.password}`, "success");
+        toast(`${res.message} Գաղտնաբառ՝ ${res.password}`, "success");
         setFirstName("");
         setLastName("");
       } else {
@@ -32,23 +32,23 @@ export function AddUserForm() {
 
   return (
     <div className="glass space-y-3 p-4">
-      <h3 className="font-display text-lg font-bold text-white">Add player</h3>
+      <h3 className="font-display text-lg font-bold text-white">Մասնակից ավելացնել</h3>
       <p className="text-xs text-navy-400">
-        Creates login <span className="font-mono text-pitch-300">{previewUsername}</span> with an auto-generated
-        password. To play yourself, add a separate player profile here.
+        Ստեղծվում է մուտք <span className="font-mono text-pitch-300">{previewUsername}</span> ավտոմատ գեներացված
+        գաղտնաբառով։ Ինքներդ խաղալու համար ավելացրեք առանձին խաղացողի պրոֆիլ։
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-xs font-medium text-navy-400">First name</label>
+          <label className="mb-1 block text-xs font-medium text-navy-400">Անուն</label>
           <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="h-9" />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-navy-400">Last name</label>
+          <label className="mb-1 block text-xs font-medium text-navy-400">Ազգանուն</label>
           <Input value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-9" />
         </div>
       </div>
       <Button onClick={submit} loading={pending} disabled={!firstName.trim()}>
-        Create player
+        Ստեղծել
       </Button>
     </div>
   );
