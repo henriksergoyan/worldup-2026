@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { computeStandings, getActiveTournament } from "@/lib/standings";
-import { getDeadlineMap, nextDeadline } from "@/lib/deadlines";
+import { getDeadlineMap, isMatchLocked, matchEditLockAt, nextDeadline } from "@/lib/deadlines";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { formatDateTime, formatAMD } from "@/lib/utils";
 import { DeadlineNotifications } from "@/components/deadline-notifications";
 import { Countdown } from "@/components/countdown";
 import { ChampionHero } from "@/components/champion-hero";
-import { PHASE_LABELS, PLAYER_DEADLINE_PHASES, TEAM_PICK_TYPES } from "@/lib/constants";
+import { MATCH_STATUS, PHASE_LABELS, PLAYER_DEADLINE_PHASES, ROUND_LABELS, STAGES, TEAM_PICK_TYPES, type Round } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +39,7 @@ export default async function DashboardPage() {
   const user = await requireUser();
   const tournament = await getActiveTournament();
 
-  const [{ leaderboard, breakdownByUser }, deadlines, totalMatches, championPick, qualifierCount, recentResults, actualChampion] =
+  const [{ leaderboard, breakdownByUser }, deadlines, totalMatches, championPick, qualifierCount, recentResults, actualChampion, upcomingMatches] =
     await Promise.all([
       computeStandings(tournament.id),
       getDeadlineMap(tournament.id),
@@ -65,6 +65,20 @@ export default async function DashboardPage() {
       prisma.actualTeamStatus.findFirst({
         where: { tournamentId: tournament.id, champion: true },
         select: { teamId: true },
+      }),
+      prisma.match.findMany({
+        where: {
+          tournamentId: tournament.id,
+          status: { not: MATCH_STATUS.FINISHED },
+          scheduledAt: { gte: new Date() },
+        },
+        include: {
+          homeTeam: true,
+          awayTeam: true,
+          predictions: { where: { userId: user.id } },
+        },
+        orderBy: { scheduledAt: "asc" },
+        take: 3,
       }),
     ]);
 
@@ -139,6 +153,98 @@ export default async function DashboardPage() {
           sub={myRank && myRank.prizeAmount > 0 ? "եթե դիրքերը պահպանվեն" : "դեռ մրցանակային տեղերում չեք"}
         />
       </div>
+
+      <Card className="overflow-hidden border-pitch-500/30 bg-gradient-to-br from-pitch-500/[0.08] via-transparent to-transparent">
+        <CardHeader className="pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <span>📅</span> Գալիք սպասվող խաղեր
+              </CardTitle>
+              <p className="mt-1 text-xs text-navy-300 sm:text-sm">
+                Հաջորդ 3 խաղերը և ձեր կանխատեսումները
+              </p>
+            </div>
+            <Link href="/predictions">
+              <Button variant="outline" size="sm">
+                Բոլոր կանխատեսումները →
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {upcomingMatches.length === 0 ? (
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-8 text-center">
+              <div className="text-3xl">✅</div>
+              <p className="mt-2 text-sm font-semibold text-white">Այս պահին գալիք սպասվող խաղեր չկան</p>
+              <p className="mt-1 text-xs text-navy-400">Բոլոր մոտակա խաղերը արդեն ավարտվել են կամ կանխատեսումները փակված են։</p>
+            </div>
+          ) : (
+            upcomingMatches.map((m) => {
+              const pred = m.predictions[0] ?? null;
+              const hasPred = pred?.normalHomeGoals !== null && pred?.normalAwayGoals !== null;
+              const locked = isMatchLocked(m, deadlines, tournament.kickoffLockMinutes);
+              const lockAt = matchEditLockAt(m.scheduledAt, tournament.kickoffLockMinutes);
+              const stageLabel =
+                m.stage === STAGES.KNOCKOUT
+                  ? ROUND_LABELS[(m.round as Round) ?? "R32"]
+                  : `Խումբ ${m.groupCode}`;
+
+              return (
+                <Link
+                  key={m.id}
+                  href={hasPred ? `/matches/${m.id}` : "/predictions"}
+                  className="block rounded-xl border border-white/10 bg-navy-950/40 p-3 transition hover:border-pitch-500/40 hover:bg-white/[0.04] sm:p-4"
+                >
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-400">
+                    <span>
+                      #{m.matchNumber} · {stageLabel}
+                    </span>
+                    <span className="tabular-nums">{formatDateTime(m.scheduledAt)}</span>
+                  </div>
+
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
+                    <TeamChip name={m.homeTeam?.name} seedLabel={m.homeSeedLabel} align="right" />
+                    <div className="flex flex-col items-center gap-1">
+                      {hasPred ? (
+                        <span className="rounded-lg bg-pitch-500/15 px-2.5 py-1 text-lg font-black tabular-nums text-pitch-200 ring-1 ring-pitch-500/30">
+                          {pred!.normalHomeGoals}–{pred!.normalAwayGoals}
+                        </span>
+                      ) : (
+                        <span className="rounded-lg bg-amber-500/10 px-2.5 py-1 text-sm font-bold text-amber-200 ring-1 ring-amber-500/30">
+                          ?
+                        </span>
+                      )}
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-navy-400">vs</span>
+                    </div>
+                    <TeamChip name={m.awayTeam?.name} seedLabel={m.awaySeedLabel} />
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    {hasPred ? (
+                      <span className="text-xs font-semibold text-pitch-300">✓ Կանխատեսումը լրացված է</span>
+                    ) : locked ? (
+                      <span className="text-xs font-semibold text-navy-400">Կանխատեսում չկա</span>
+                    ) : (
+                      <span className="text-xs font-semibold text-amber-300">⚠️ Դեռ կանխատեսում չեք արել</span>
+                    )}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {locked ? (
+                        <Badge variant="muted">🔒 Փակված է</Badge>
+                      ) : (
+                        <Badge variant="warning">
+                          Փակվում է՝ <Countdown target={lockAt} mode="days" className="inline text-inherit" />
+                        </Badge>
+                      )}
+                      {!hasPred && !locked && <Badge variant="info">Լրացնել →</Badge>}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })
+          )}
+        </CardContent>
+      </Card>
 
       <DeadlineNotifications deadlines={deadlineItems} />
 

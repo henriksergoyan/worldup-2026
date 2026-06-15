@@ -7,6 +7,7 @@ import { RecalcButton } from "@/components/admin/recalc-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatAMD } from "@/lib/utils";
+import { MATCH_STATUS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -14,21 +15,29 @@ export default async function AdminPage() {
   await requireAdmin();
   const tournament = await getActiveTournament();
 
-  const [playerCount, paidCount, teamCount, matchCount, finalizedCount, predictionCount, standings] =
+  const [playerCount, paidCount, teamCount, matchCount, finishedCount, predictionCount, standings] =
     await Promise.all([
       prisma.user.count({ where: { role: "PLAYER" } }),
       prisma.user.count({ where: { role: "PLAYER", paid: true } }),
       prisma.team.count({ where: { tournamentId: tournament.id } }),
       prisma.match.count({ where: { tournamentId: tournament.id } }),
-      prisma.actualResult.count({ where: { finalized: true } }),
+      prisma.match.count({
+        where: { tournamentId: tournament.id, status: MATCH_STATUS.FINISHED },
+      }),
       prisma.prediction.count(),
       computeStandings(tournament.id),
     ]);
 
+  const pendingCount = matchCount - finishedCount;
+
   const stats = [
     { label: "Մասնակիցներ", value: playerCount, sub: `${paidCount} վճարած` },
     { label: "Թիմեր", value: teamCount },
-    { label: "Խաղեր", value: matchCount, sub: `${finalizedCount} վերջնական` },
+    {
+      label: "Խաղեր",
+      value: matchCount,
+      sub: `${finishedCount} ավարտված · ${pendingCount} սպասվող`,
+    },
     { label: "Կանխատեսումներ", value: predictionCount },
     { label: "Մրցանակային ֆոնդ", value: formatAMD(standings.prizePool), accent: "text-gold-400" },
   ];
