@@ -37,6 +37,7 @@ export interface MatchArenaProps {
   lockAt: string;
   myUserId: string;
   predictions: ArenaPrediction[];
+  predictionsCount: number;
   totalPlayers: number;
 }
 
@@ -98,7 +99,7 @@ export function MatchArena(props: MatchArenaProps) {
             </span>
             {!props.canReveal && (
               <Badge variant="warning">
-                Կանխատեսումները կողպվում են <Countdown target={props.lockAt} mode="days" className="inline text-inherit" />
+                Կանխատեսումների փակմանը մնացել է՝ <Countdown target={props.lockAt} mode="days" className="inline text-inherit" />
               </Badge>
             )}
             {props.canReveal && !props.finalized && (
@@ -134,15 +135,15 @@ export function MatchArena(props: MatchArenaProps) {
           <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
             <div className="text-5xl">🎭</div>
             <div>
-              <h3 className="font-display text-xl font-bold text-white">Կանխատեսումները դեռ թաքնված են</h3>
+              <h3 className="font-display text-xl font-bold text-white">Կանխատեսումները դեռ գաղտնի են</h3>
               <p className="mt-1 max-w-md text-sm text-navy-300">
-                <span className="font-bold text-white">{preds.length}</span> մասնակից <span className="font-bold text-white">{props.totalPlayers}</span>-ից արդեն լրացրել է: Բոլորի գուշակումները կբացվեն{" "}
-                <Countdown target={props.lockAt} mode="days" className="inline font-semibold text-amber-200" /> (խաղից 1 ժամ առաջ):
+                <span className="font-bold text-white">{props.predictionsCount}</span> մասնակից <span className="font-bold text-white">{props.totalPlayers}</span>-ից արդեն կանխատեսել է։ Բոլորի կանխատեսումները կբացվեն{" "}
+                <Countdown target={props.lockAt} mode="days" className="inline font-semibold text-amber-200" /> հետո (խաղից 1 ժամ առաջ)։
               </p>
             </div>
             <div className="flex gap-6 text-center">
-              <TeaserStat label="Լրացրել են" value={String(preds.length)} />
-              <TeaserStat label="Դեռ չեն լրացրել" value={String(Math.max(0, props.totalPlayers - preds.length))} />
+              <TeaserStat label="Կանխատեսել են" value={String(props.predictionsCount)} />
+              <TeaserStat label="Դեռ չեն կանխատեսել" value={String(Math.max(0, props.totalPlayers - props.predictionsCount))} />
             </div>
             {me && (
               <div className="rounded-xl border border-pitch-500/30 bg-pitch-500/10 px-4 py-2 text-sm text-pitch-100">

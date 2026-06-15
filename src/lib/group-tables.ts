@@ -102,11 +102,41 @@ export function buildGroupTables(
   const tables = new Map<string, GroupTable>();
   for (const [groupCode, rows] of byGroup) {
     for (const r of rows) r.gd = r.gf - r.ga;
-    rows.sort(compareRows);
+    const groupMatches = matches.filter((m) => m.groupCode === groupCode);
+
+    rows.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.gd !== a.gd) return b.gd - a.gd;
+      if (b.gf !== a.gf) return b.gf - a.gf;
+
+      // FIFA Tiebreaker 4: Head-to-head points in the group matches between the teams concerned
+      const h2hMatches = groupMatches.filter(
+        (m) =>
+          m.result?.finalized &&
+          ((m.homeTeamId === a.teamId && m.awayTeamId === b.teamId) ||
+            (m.homeTeamId === b.teamId && m.awayTeamId === a.teamId))
+      );
+      if (h2hMatches.length > 0) {
+        const m = h2hMatches[0];
+        const hg = m.result?.normalHomeGoals;
+        const ag = m.result?.normalAwayGoals;
+        if (hg !== null && ag !== null && hg !== undefined && ag !== undefined) {
+          if (m.homeTeamId === a.teamId) {
+            if (hg > ag) return -1;
+            if (ag > hg) return 1;
+          } else {
+            if (ag > hg) return -1;
+            if (hg > ag) return 1;
+          }
+        }
+      }
+
+      return a.teamName.localeCompare(b.teamName);
+    });
+
     rows.forEach((r, i) => {
       r.rank = i + 1;
     });
-    const groupMatches = matches.filter((m) => m.groupCode === groupCode);
     const finalizedCount = groupMatches.filter((m) => m.result?.finalized).length;
     tables.set(groupCode, {
       groupCode,

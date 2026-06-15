@@ -65,7 +65,6 @@ export const PHASE_LABELS: Record<Phase, string> = {
 
 export const PHASE_ORDER: Phase[] = [
   PHASES.CHAMPION,
-  PHASES.KNOCKOUT_TEAMS,
   PHASES.GROUP_R1_R2,
   PHASES.GROUP_R3,
   PHASES.KO_R32,
@@ -76,9 +75,7 @@ export const PHASE_ORDER: Phase[] = [
 ];
 
 /** Phases shown on the player deadline timeline (knockout-team picks have no lock). */
-export const PLAYER_DEADLINE_PHASES: Phase[] = PHASE_ORDER.filter(
-  (p) => p !== PHASES.KNOCKOUT_TEAMS,
-);
+export const PLAYER_DEADLINE_PHASES: Phase[] = PHASE_ORDER;
 
 // Map a knockout round to its deadline phase.
 export const ROUND_TO_PHASE: Record<Round, Phase> = {

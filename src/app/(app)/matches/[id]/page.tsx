@@ -121,6 +121,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         lockAt={lockAt.toISOString()}
         myUserId={user.id}
         predictions={visiblePreds}
+        predictionsCount={arenaPreds.length}
         totalPlayers={totalPlayers}
       />
     </div>
