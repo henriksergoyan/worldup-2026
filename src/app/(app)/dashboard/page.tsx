@@ -399,8 +399,7 @@ export default async function DashboardPage() {
                     <div className="grid flex-1 grid-cols-[1fr_auto_1fr] items-center gap-2">
                       <TeamChip name={m.homeTeam?.name} seedLabel={m.homeSeedLabel} align="right" />
                       <div className="flex flex-col items-center gap-1">
-                        <span className="flex items-center gap-1.5 rounded-lg bg-navy-900 px-2.5 py-1 text-sm font-bold tabular-nums text-white">
-                          <span className="text-[8px] font-bold uppercase tracking-wide text-navy-500">Հաշիվ</span>
+                        <span className="rounded-lg bg-navy-900 px-2.5 py-1 text-sm font-bold tabular-nums text-white">
                           {m.actualResult?.normalHomeGoals}–{m.actualResult?.normalAwayGoals}
                         </span>
                         {hasPred ? (

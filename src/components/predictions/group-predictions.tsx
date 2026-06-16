@@ -73,6 +73,9 @@ export function GroupPredictions({
         const isExpanded = expandedGroups[code] ?? false;
         const completedCount = list.filter((m) => m.actual !== null).length;
         const totalPoints = list.reduce((sum, m) => sum + (m.points ?? 0), 0);
+        const groupAvgPoints = Number(
+          list.reduce((sum, m) => sum + (m.averagePoints ?? 0), 0).toFixed(1),
+        );
 
         // Most recent finalized games in this group (up to 4).
         const recent = [...list]
@@ -102,6 +105,11 @@ export function GroupPredictions({
                   <Badge variant="success" className="bg-pitch-900/40 border-pitch-500/20 text-pitch-300">
                     🏆 +{totalPoints} միավոր
                   </Badge>
+                  {completedCount > 0 && (
+                    <Badge variant="info" className="bg-sky-900/40 border-sky-500/20 text-sky-300">
+                      📊 Միջինը՝ {groupAvgPoints} մվ
+                    </Badge>
+                  )}
                   <span className="text-xs text-navy-400 font-bold ml-1 hidden sm:inline">
                     {isExpanded ? "Փակել ➔" : "Բացել ➔"}
                   </span>
@@ -299,7 +307,6 @@ function MatchRow({
           {m.actual ? (
             <div className="flex flex-col items-center gap-1.5">
               <div className="flex items-center gap-2">
-                <span className="text-[9px] font-bold uppercase tracking-wide text-navy-500">Հաշիվ</span>
                 <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalHome}</span>
                 <span className="text-navy-500 font-bold text-lg">:</span>
                 <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalAway}</span>
