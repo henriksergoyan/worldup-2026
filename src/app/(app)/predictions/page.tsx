@@ -48,6 +48,14 @@ export default async function PredictionsPage({
   const activePlayers = Object.keys(standings.breakdownByUser);
   const activePlayersCount = activePlayers.length || 1;
 
+  const newMatchIds = new Set(
+    matches
+      .filter((m) => m.actualResult?.finalized)
+      .sort((a, b) => b.scheduledAt.getTime() - a.scheduledAt.getTime())
+      .slice(0, 4)
+      .map((m) => m.id),
+  );
+
   const toDTO = (m: (typeof matches)[number]) => {
     const pred = m.predictions[0] ?? null;
     const locked = isMatchLocked(m, deadlines, tournament.kickoffLockMinutes);
@@ -106,6 +114,7 @@ export default async function PredictionsPage({
       points: finalized ? (matchPoints[m.id] ?? 0) : null,
       averagePoints,
       revealed,
+      isNew: newMatchIds.has(m.id),
     };
   };
 
@@ -137,6 +146,8 @@ export default async function PredictionsPage({
       won: r.won,
       drawn: r.drawn,
       lost: r.lost,
+      gf: r.gf,
+      ga: r.ga,
       gd: r.gd,
       points: r.points,
       rank: r.rank,

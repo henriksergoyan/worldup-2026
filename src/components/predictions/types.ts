@@ -25,6 +25,8 @@ export interface MatchDTO {
   averagePoints?: number | null;
   /** Others' predictions are visible (reveal window passed). */
   revealed: boolean;
+  /** Among the 4 most recently completed games globally. */
+  isNew?: boolean;
 }
 
 export interface GroupStandingRowDTO {
@@ -34,6 +36,8 @@ export interface GroupStandingRowDTO {
   won: number;
   drawn: number;
   lost: number;
+  gf: number;
+  ga: number;
   gd: number;
   points: number;
   rank: number;

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { saveGroupPredictions } from "@/app/actions/predictions";
 import { cn, formatDateTime } from "@/lib/utils";
+import { flagFor } from "@/lib/flags";
 
 type Local = Record<string, { home: number | null; away: number | null }>;
 
@@ -73,11 +74,11 @@ export function GroupPredictions({
         const completedCount = list.filter((m) => m.actual !== null).length;
         const totalPoints = list.reduce((sum, m) => sum + (m.points ?? 0), 0);
 
-        // Most recent finalized games (newest first) for the collapsed summary.
+        // Most recent finalized games in this group (up to 4).
         const recent = [...list]
           .filter((m) => m.actual !== null)
           .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
-          .slice(0, 3);
+          .slice(0, 4);
 
         const standings = standingsByGroup[code] ?? [];
 
@@ -110,8 +111,8 @@ export function GroupPredictions({
               {/* Recent results strip (newest labeled "նոր") */}
               {recent.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  {recent.map((m, i) => (
-                    <RecentChip key={m.id} m={m} isNewest={i === 0} />
+                  {recent.map((m) => (
+                    <RecentChip key={m.id} m={m} isNew={m.isNew ?? false} />
                   ))}
                 </div>
               )}
@@ -141,17 +142,17 @@ export function GroupPredictions({
 }
 
 /** Compact recent-result chip shown in the collapsed group header. */
-function RecentChip({ m, isNewest }: { m: MatchDTO; isNewest: boolean }) {
+function RecentChip({ m, isNew }: { m: MatchDTO; isNew: boolean }) {
   const won = (m.points ?? 0) > 0;
   const hasPred = m.pred != null && m.pred.normalHome !== null && m.pred.normalAway !== null;
   return (
     <div
       className={cn(
         "flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[11px]",
-        isNewest ? "border-gold-500/40 bg-gold-500/10" : "border-white/10 bg-white/[0.02]",
+        isNew ? "border-gold-500/40 bg-gold-500/10" : "border-white/10 bg-white/[0.02]",
       )}
     >
-      {isNewest && (
+      {isNew && (
         <span className="rounded bg-gold-500/30 px-1 text-[9px] font-bold uppercase tracking-wide text-gold-200">
           նոր
         </span>
@@ -189,6 +190,8 @@ function GroupStandingsTable({ rows }: { rows: GroupStandingRowDTO[] }) {
             <th className="px-3 py-1.5 font-semibold">#</th>
             <th className="px-1 py-1.5 font-semibold">Թիմ</th>
             <th className="px-1.5 py-1.5 text-center font-semibold">Խ</th>
+            <th className="px-1.5 py-1.5 text-center font-semibold">+</th>
+            <th className="px-1.5 py-1.5 text-center font-semibold">−</th>
             <th className="px-1.5 py-1.5 text-center font-semibold">Տ</th>
             <th className="px-1.5 py-1.5 text-center font-semibold">Մ</th>
             <th className="px-2 py-1.5 text-center font-bold text-navy-300">Մվ</th>
@@ -215,8 +218,13 @@ function GroupStandingsTable({ rows }: { rows: GroupStandingRowDTO[] }) {
                     {r.rank}
                   </span>
                 </td>
-                <td className="px-1 py-1.5 font-semibold text-white">{r.teamName}</td>
+                <td className="px-1 py-1.5 font-semibold text-white">
+                  <span className="mr-1">{flagFor(r.teamName)}</span>
+                  {r.teamName}
+                </td>
                 <td className="px-1.5 py-1.5 text-center tabular-nums text-navy-300">{r.played}</td>
+                <td className="px-1.5 py-1.5 text-center tabular-nums text-navy-300">{r.gf}</td>
+                <td className="px-1.5 py-1.5 text-center tabular-nums text-navy-400">{r.ga}</td>
                 <td className="px-1.5 py-1.5 text-center tabular-nums text-navy-300">{r.gd > 0 ? `+${r.gd}` : r.gd}</td>
                 <td className="px-1.5 py-1.5 text-center tabular-nums text-navy-400">{r.won}-{r.drawn}-{r.lost}</td>
                 <td className="px-2 py-1.5 text-center font-black tabular-nums text-white">{r.points}</td>
@@ -226,7 +234,7 @@ function GroupStandingsTable({ rows }: { rows: GroupStandingRowDTO[] }) {
         </tbody>
       </table>
       <p className="px-3 py-1.5 text-[10px] text-navy-500">
-        Առաջին 2 թիմն ուղիղ անցնում են փլեյ-օֆֆ։ Խ՝ խաղ, Տ՝ տարբերություն, Մ՝ Հ-Ո-Պ, Մվ՝ միավոր։
+        Առաջին 2 թիմն ուղիղ անցնում են փլեյ-օֆֆ։ +՝ խփած, −՝ բռնած, Տ՝ տարբերություն, Մ՝ Հ-Ո-Պ, Մվ՝ միավոր։
       </p>
     </div>
   );
@@ -259,6 +267,11 @@ function MatchRow({
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-400">
         <span className="truncate">
           #{m.matchNumber} · {formatDateTime(m.scheduledAt)}
+          {m.isNew && (
+            <span className="ml-1.5 rounded bg-gold-500/25 px-1 py-0.5 text-[9px] font-bold uppercase text-gold-200">
+              նոր
+            </span>
+          )}
         </span>
         <div className="flex flex-wrap items-center gap-1.5">
           {won && <Badge variant="success">✓ +{m.points} միավոր</Badge>}
