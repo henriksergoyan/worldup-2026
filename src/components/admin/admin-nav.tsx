@@ -8,10 +8,8 @@ const LINKS = [
   { href: "/admin", label: "Ակնարկ" },
   { href: "/admin/results", label: "Արդյունքներ" },
   { href: "/admin/users", label: "Մասնակիցներ" },
-  { href: "/admin/teams", label: "Թիմեր" },
   { href: "/admin/fixtures", label: "Խաղացուցակ" },
   { href: "/admin/deadlines", label: "Ժամկետներ" },
-  { href: "/admin/settings", label: "Կարգավորումներ" },
 ];
 
 export function AdminNav() {

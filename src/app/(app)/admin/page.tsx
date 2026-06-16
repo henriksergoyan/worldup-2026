@@ -6,33 +6,43 @@ import { AdminNav } from "@/components/admin/admin-nav";
 import { RecalcButton } from "@/components/admin/recalc-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatAMD } from "@/lib/utils";
-import { MATCH_STATUS } from "@/lib/constants";
+import { Badge } from "@/components/ui/badge";
+import { TeamChip } from "@/components/team-chip";
+import { formatAMD, formatDateTime } from "@/lib/utils";
+import { MATCH_STATUS, ROUND_LABELS, STAGES, type Round } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   await requireAdmin();
   const tournament = await getActiveTournament();
+  const now = new Date();
 
-  const [playerCount, paidCount, teamCount, matchCount, finishedCount, predictionCount, standings] =
+  const [playerCount, paidCount, matchCount, finishedCount, predictionCount, standings, awaitingMatches] =
     await Promise.all([
       prisma.user.count({ where: { role: "PLAYER" } }),
       prisma.user.count({ where: { role: "PLAYER", paid: true } }),
-      prisma.team.count({ where: { tournamentId: tournament.id } }),
       prisma.match.count({ where: { tournamentId: tournament.id } }),
       prisma.match.count({
         where: { tournamentId: tournament.id, status: MATCH_STATUS.FINISHED },
       }),
       prisma.prediction.count(),
       computeStandings(tournament.id),
+      prisma.match.findMany({
+        where: {
+          tournamentId: tournament.id,
+          scheduledAt: { lte: now },
+          NOT: { actualResult: { finalized: true } },
+        },
+        include: { homeTeam: true, awayTeam: true },
+        orderBy: { scheduledAt: "desc" },
+      }),
     ]);
 
   const pendingCount = matchCount - finishedCount;
 
   const stats = [
     { label: "Մասնակիցներ", value: playerCount, sub: `${paidCount} վճարած` },
-    { label: "Թիմեր", value: teamCount },
     {
       label: "Խաղեր",
       value: matchCount,
@@ -62,7 +72,7 @@ export default async function AdminPage() {
 
       <AdminNav />
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {stats.map((s) => (
           <Card key={s.label} className="p-4 sm:p-5">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-navy-400 sm:text-xs">{s.label}</div>
@@ -71,6 +81,64 @@ export default async function AdminPage() {
           </Card>
         ))}
       </div>
+
+      {/* Matches that already kicked off and still need results */}
+      <Card className="overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-500/[0.08] via-transparent to-transparent">
+        <CardHeader className="pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <span>⏱️</span> Սպասում են արդյունքի
+              </CardTitle>
+              <p className="mt-1 text-xs text-navy-300 sm:text-sm">
+                Մեկնարկած, բայց դեռ չլրացված խաղերը — ամենավերջին մեկնարկածը վերևում։
+              </p>
+            </div>
+            <Link href="/admin/results">
+              <Button variant="outline" size="sm">
+                Արդյունքների մուտք →
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {awaitingMatches.length === 0 ? (
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-8 text-center">
+              <div className="text-3xl">✅</div>
+              <p className="mt-2 text-sm font-semibold text-white">Բոլոր մեկնարկած խաղերը լրացված են</p>
+              <p className="mt-1 text-xs text-navy-400">Նոր խաղ մեկնարկելուն պես այն կհայտնվի այստեղ։</p>
+            </div>
+          ) : (
+            awaitingMatches.map((m) => {
+              const isKO = m.stage === STAGES.KNOCKOUT;
+              const stageLabel = isKO
+                ? ROUND_LABELS[(m.round as Round) ?? "R32"]
+                : `Խումբ ${m.groupCode}`;
+              return (
+                <Link
+                  key={m.id}
+                  href="/admin/results"
+                  className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-amber-500/15 bg-amber-500/[0.04] p-3 transition hover:border-amber-500/40 hover:bg-amber-500/[0.08]"
+                >
+                  <span className="w-9 shrink-0 text-xs font-bold text-navy-500">#{m.matchNumber}</span>
+                  <Badge variant={isKO ? "info" : "muted"} className="shrink-0">
+                    {stageLabel}
+                  </Badge>
+                  <div className="grid min-w-0 flex-1 basis-full grid-cols-[1fr_auto_1fr] items-center gap-2 sm:basis-0">
+                    <TeamChip name={m.homeTeam?.name} seedLabel={m.homeSeedLabel} align="right" />
+                    <span className="text-xs text-navy-500">vs</span>
+                    <TeamChip name={m.awayTeam?.name} seedLabel={m.awaySeedLabel} />
+                  </div>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <span className="text-xs text-navy-400 tabular-nums">{formatDateTime(m.scheduledAt)}</span>
+                    <Badge variant="warning" className="text-xs">Լրացնել →</Badge>
+                  </div>
+                </Link>
+              );
+            })
+          )}
+        </CardContent>
+      </Card>
 
       {/* Explanation of Recalculate button */}
       <Card className="border-emerald-500/20 bg-emerald-500/[0.02] p-4 text-sm text-navy-200">
@@ -96,28 +164,16 @@ export default async function AdminPage() {
           desc="Նշեք վճարման կարգավիճակը և մուտքի իրավասությունը։"
         />
         <QuickLink
-          href="/admin/teams"
-          icon="🏳️"
-          title="Թիմեր և փլեյ-օֆ"
-          desc="Խմբագրեք թիմերը, նշեք փլեյ-օֆ անցած և չեմպիոն թիմը։"
-        />
-        <QuickLink
           href="/admin/fixtures"
           icon="📅"
           title="Խաղացուցակ"
-          desc="Ավելացրեք փլեյ-օֆ խաղերը, երբ թիմերը հայտնի դառնան։"
+          desc="Դիտեք խաղերը և բոլոր մասնակիցների կանխատեսումները։"
         />
         <QuickLink
           href="/admin/deadlines"
           icon="⏰"
           title="Ժամկետներ"
           desc="Փակեք կամ վերաբացեք կանխատեսման փուլերը։"
-        />
-        <QuickLink
-          href="/admin/settings"
-          icon="⚙️"
-          title="Կարգավորումներ"
-          desc="Մասնակցության վարձ, մրցանակների բաշխում և ընտրությունների թիվ։"
         />
       </div>
 

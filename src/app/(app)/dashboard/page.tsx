@@ -379,27 +379,56 @@ export default async function DashboardPage() {
             <div className="space-y-2">
               {recentResults.map((m) => {
                 const pred = m.predictions[0] ?? null;
+                const hasPred = pred?.normalHomeGoals !== null && pred?.normalHomeGoals !== undefined;
+                const pts = me?.matchPoints[m.id] ?? 0;
+                const won = pts > 0;
+                const lost = hasPred && !won;
                 return (
                   <Link
                     key={m.id}
                     href={`/matches/${m.id}`}
-                    className="flex items-center gap-3 rounded-lg bg-white/[0.02] px-3 py-2.5 transition hover:bg-white/[0.05]"
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg border px-3 py-2.5 transition",
+                      won
+                        ? "border-pitch-500/30 bg-pitch-500/[0.05] hover:bg-pitch-500/[0.09]"
+                        : lost
+                          ? "border-red-500/25 bg-red-500/[0.04] hover:bg-red-500/[0.08]"
+                          : "border-white/5 bg-white/[0.02] hover:bg-white/[0.05]",
+                    )}
                   >
                     <div className="grid flex-1 grid-cols-[1fr_auto_1fr] items-center gap-2">
                       <TeamChip name={m.homeTeam?.name} seedLabel={m.homeSeedLabel} align="right" />
-                      <div className="flex flex-col items-center">
-                        <span className="rounded-lg bg-navy-900 px-2.5 py-1 text-sm font-bold tabular-nums text-white">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="flex items-center gap-1.5 rounded-lg bg-navy-900 px-2.5 py-1 text-sm font-bold tabular-nums text-white">
+                          <span className="text-[8px] font-bold uppercase tracking-wide text-navy-500">Հաշիվ</span>
                           {m.actualResult?.normalHomeGoals}–{m.actualResult?.normalAwayGoals}
                         </span>
-                        {pred && (
-                          <span className="mt-1 text-[10px] font-semibold text-pitch-300">
-                            Կանխատեսումը՝ {pred.normalHomeGoals}–{pred.normalAwayGoals}
+                        {hasPred ? (
+                          <span
+                            className={cn(
+                              "rounded px-1.5 text-[10px] font-semibold tabular-nums",
+                              won ? "text-pitch-300" : "text-red-300",
+                            )}
+                          >
+                            Ձերը՝ {pred!.normalHomeGoals}–{pred!.normalAwayGoals}
                           </span>
+                        ) : (
+                          <span className="text-[10px] font-medium text-navy-500">Չեք կանխատեսել</span>
                         )}
                       </div>
                       <TeamChip name={m.awayTeam?.name} seedLabel={m.awaySeedLabel} />
                     </div>
-                    <Badge variant="success">+{me?.matchPoints[m.id] ?? 0} միավոր</Badge>
+                    {won ? (
+                      <Badge variant="success">✓ +{pts}</Badge>
+                    ) : lost ? (
+                      <Badge variant="muted" className="border-red-500/30 bg-red-500/10 text-red-300">
+                        ✗ 0
+                      </Badge>
+                    ) : (
+                      <Badge variant="muted" className="border-white/10 bg-white/5 text-navy-400">
+                        —
+                      </Badge>
+                    )}
                   </Link>
                 );
               })}

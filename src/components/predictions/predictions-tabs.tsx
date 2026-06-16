@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MatchDTO, TeamDTO, LockInfo } from "./types";
+import { MatchDTO, TeamDTO, LockInfo, GroupStandingRowDTO } from "./types";
 import { GroupPredictions } from "./group-predictions";
 import { KnockoutPredictions } from "./knockout-predictions";
 import { ChampionPicker } from "./champion-picker";
@@ -20,6 +20,7 @@ export function PredictionsTabs({
   initialTab,
   groupMatches,
   knockoutMatches,
+  standingsByGroup,
   teams,
   championPick,
   qualifierPicks,
@@ -30,6 +31,7 @@ export function PredictionsTabs({
   initialTab?: string;
   groupMatches: MatchDTO[];
   knockoutMatches: MatchDTO[];
+  standingsByGroup: Record<string, GroupStandingRowDTO[]>;
   teams: TeamDTO[];
   championPick: string | null;
   qualifierPicks: string[];
@@ -59,7 +61,9 @@ export function PredictionsTabs({
         ))}
       </div>
 
-      {tab === "group" && <GroupPredictions matches={groupMatches} />}
+      {tab === "group" && (
+        <GroupPredictions matches={groupMatches} standingsByGroup={standingsByGroup} />
+      )}
       {tab === "knockout" && <KnockoutPredictions matches={knockoutMatches} />}
       {tab === "champion" && (
         <ChampionPicker teams={teams} current={championPick} lock={championLock} />

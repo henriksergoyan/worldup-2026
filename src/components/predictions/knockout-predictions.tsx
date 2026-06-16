@@ -44,7 +44,8 @@ export function KnockoutPredictions({ matches }: { matches: MatchDTO[] }) {
     return init;
   });
   const [dirty, setDirty] = useState<Set<string>>(new Set());
-  const [collapsedRounds, setCollapsedRounds] = useState<Record<string, boolean>>({});
+  // Rounds start collapsed for a cleaner overview.
+  const [expandedRounds, setExpandedRounds] = useState<Record<string, boolean>>({});
 
   const rounds = useMemo(() => {
     const map = new Map<string, MatchDTO[]>();
@@ -90,45 +91,38 @@ export function KnockoutPredictions({ matches }: { matches: MatchDTO[] }) {
   return (
     <div className="space-y-4 pb-savebar">
       {rounds.map(([round, list]) => {
-        const isCollapsed = collapsedRounds[round] ?? false;
+        const isExpanded = expandedRounds[round] ?? false;
         const completedCount = list.filter((m) => m.actual !== null).length;
         const totalPoints = list.reduce((sum, m) => sum + (m.points ?? 0), 0);
-        const avgPoints = Number(list.reduce((sum, m) => sum + (m.averagePoints ?? 0), 0).toFixed(1));
 
         return (
           <div key={round} className="rounded-2xl border border-white/5 bg-navy-950/20 overflow-hidden">
             {/* Clickable Collapsible Header */}
             <div
-              onClick={() => setCollapsedRounds((prev) => ({ ...prev, [round]: !isCollapsed }))}
+              onClick={() => setExpandedRounds((prev) => ({ ...prev, [round]: !isExpanded }))}
               className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white/[0.02] hover:bg-white/[0.05] transition cursor-pointer select-none border-b border-white/5"
             >
               <div className="flex items-center gap-3">
-                <span className="text-xl">{isCollapsed ? "📁" : "📂"}</span>
+                <span className="text-xl">{isExpanded ? "📂" : "📁"}</span>
                 <div>
                   <h3 className="font-display text-base font-bold text-white sm:text-lg">{ROUND_LABELS[round]}</h3>
-                  <p className="text-xs text-navy-400">{list.length} խաղ</p>
+                  <p className="text-xs text-navy-400">{list.length} խաղ · Ավարտված՝ {completedCount}/{list.length}</p>
                 </div>
               </div>
 
               {/* Stats Bar */}
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="muted" className="bg-navy-900 border-white/5 text-navy-300">
-                  ⚽ Ավարտված՝ {completedCount}/{list.length}
-                </Badge>
                 <Badge variant="success" className="bg-pitch-900/40 border-pitch-500/20 text-pitch-300">
                   🏆 +{totalPoints} միավոր
                 </Badge>
-                <Badge variant="info" className="bg-sky-900/40 border-sky-500/20 text-sky-300">
-                  📊 Միջինը՝ {avgPoints} մվ
-                </Badge>
                 <span className="text-xs text-navy-400 font-bold ml-1 hidden sm:inline">
-                  {isCollapsed ? "Բացել ➔" : "Փակել ➔"}
+                  {isExpanded ? "Փակել ➔" : "Բացել ➔"}
                 </span>
               </div>
             </div>
 
             {/* Collapsible Content */}
-            {!isCollapsed && (
+            {isExpanded && (
               <div className="p-4 space-y-3 bg-navy-900/10">
                 {list.map((m) => (
                   <KnockoutRow key={m.id} m={m} value={local[m.id]} onChange={(p) => patch(m.id, p)} />
@@ -161,21 +155,41 @@ function KnockoutRow({
   });
   const hasScores = value.normalHome !== null && value.normalAway !== null;
   const ambiguous = hasScores && derivedWinner === null;
+  const finalized = m.actual !== null;
+  const won = (m.points ?? 0) > 0;
+  const lost = finalized && hasScores && !won;
+  const missed = finalized && !hasScores;
 
   return (
-    <div className="glass p-3 sm:p-4">
+    <div
+      className={cn(
+        "glass p-3 sm:p-4",
+        won && "border-pitch-500/40 bg-pitch-500/[0.05]",
+        lost && "border-red-500/30 bg-red-500/[0.04]",
+      )}
+    >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-400">
         <span className="truncate">
           #{m.matchNumber} · {formatDateTime(m.scheduledAt)}
         </span>
         <div className="flex flex-wrap items-center gap-1.5">
-          {m.points !== null && <Badge variant="success">+{m.points} միավոր</Badge>}
+          {won && <Badge variant="success">✓ +{m.points} միավոր</Badge>}
+          {lost && (
+            <Badge variant="muted" className="border-red-500/30 bg-red-500/10 text-red-300">
+              ✗ 0 միավոր
+            </Badge>
+          )}
+          {missed && (
+            <Badge variant="muted" className="border-white/10 bg-white/5 text-navy-400">
+              Բաց թողնված
+            </Badge>
+          )}
           {m.averagePoints !== null && (
             <Badge variant="info" className="bg-sky-950/80 border-sky-900/50 text-sky-400">
               📊 Միջինը՝ {m.averagePoints} մվ
             </Badge>
           )}
-          {m.locked && <Badge variant="muted">🔒 Կողպված</Badge>}
+          {m.locked && !finalized && <Badge variant="muted">🔒 Կողպված</Badge>}
         </div>
       </div>
 
@@ -215,7 +229,7 @@ function KnockoutRow({
             <TeamChip name={m.awayName} seedLabel={m.awaySeedLabel} />
           </div>
         </div>
-        <CrowdArenaLink matchId={m.id} />
+        <CrowdArenaLink matchId={m.id} disabled={!m.revealed} />
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">

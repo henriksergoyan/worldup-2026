@@ -1,8 +1,15 @@
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getActiveTournament, computeStandings } from "@/lib/standings";
-import { getDeadlineMap, isMatchLocked, phaseForMatch } from "@/lib/deadlines";
+import {
+  getDeadlineMap,
+  isMatchLocked,
+  phaseForMatch,
+  canRevealPredictions,
+} from "@/lib/deadlines";
+import { buildGroupTables } from "@/lib/group-tables";
 import { PredictionsTabs } from "@/components/predictions/predictions-tabs";
+import type { GroupStandingRowDTO } from "@/components/predictions/types";
 import { PHASES, STAGES, TEAM_PICK_TYPES, type Phase } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +22,7 @@ export default async function PredictionsPage({
   const user = await requireUser();
   const tournament = await getActiveTournament();
   const { tab } = await searchParams;
+  const isAdmin = user.role === "ADMIN";
 
   const [matches, teams, picks, deadlines, standings] = await Promise.all([
     prisma.match.findMany({
@@ -45,6 +53,11 @@ export default async function PredictionsPage({
     const locked = isMatchLocked(m, deadlines, tournament.kickoffLockMinutes);
     const actual = m.actualResult;
     const finalized = actual?.finalized ?? false;
+    const revealed = canRevealPredictions(m, {
+      isAdmin,
+      kickoffLockMinutes: tournament.kickoffLockMinutes,
+      deadlines,
+    });
 
     let averagePoints: number | null = null;
     if (finalized) {
@@ -92,11 +105,43 @@ export default async function PredictionsPage({
         : null,
       points: finalized ? (matchPoints[m.id] ?? 0) : null,
       averagePoints,
+      revealed,
     };
   };
 
   const groupMatches = matches.filter((m) => m.stage === STAGES.GROUP).map(toDTO);
   const knockoutMatches = matches.filter((m) => m.stage === STAGES.KNOCKOUT).map(toDTO);
+
+  // Current group standings from finalized results (for round-3 context).
+  const groupTables = buildGroupTables(
+    teams.map((t) => ({ id: t.id, name: t.name, groupCode: t.groupCode })),
+    matches.map((m) => ({
+      groupCode: m.groupCode,
+      homeTeamId: m.homeTeamId,
+      awayTeamId: m.awayTeamId,
+      result: m.actualResult
+        ? {
+            normalHomeGoals: m.actualResult.normalHomeGoals,
+            normalAwayGoals: m.actualResult.normalAwayGoals,
+            finalized: m.actualResult.finalized,
+          }
+        : null,
+    })),
+  );
+  const standingsByGroup: Record<string, GroupStandingRowDTO[]> = {};
+  for (const [code, table] of groupTables) {
+    standingsByGroup[code] = table.rows.map((r) => ({
+      teamId: r.teamId,
+      teamName: r.teamName,
+      played: r.played,
+      won: r.won,
+      drawn: r.drawn,
+      lost: r.lost,
+      gd: r.gd,
+      points: r.points,
+      rank: r.rank,
+    }));
+  }
 
   const championPick = picks.find((p) => p.type === TEAM_PICK_TYPES.CHAMPION)?.teamId ?? null;
   const qualifierPicks = picks
@@ -121,6 +166,7 @@ export default async function PredictionsPage({
         initialTab={tab}
         groupMatches={groupMatches}
         knockoutMatches={knockoutMatches}
+        standingsByGroup={standingsByGroup}
         teams={teams.map((t) => ({ id: t.id, name: t.name, groupCode: t.groupCode }))}
         championPick={championPick}
         qualifierPicks={qualifierPicks}

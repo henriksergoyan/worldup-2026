@@ -23,6 +23,20 @@ export interface MatchDTO {
   actual: { normalHome: number | null; normalAway: number | null } | null;
   points: number | null;
   averagePoints?: number | null;
+  /** Others' predictions are visible (reveal window passed). */
+  revealed: boolean;
+}
+
+export interface GroupStandingRowDTO {
+  teamId: string;
+  teamName: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  gd: number;
+  points: number;
+  rank: number;
 }
 
 export interface TeamDTO {
