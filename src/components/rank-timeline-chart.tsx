@@ -84,7 +84,7 @@ export function RankTimelineChart({
     points: timeline.map((pt, i) => {
       const rank = pt.ranksByUser[userId];
       if (rank == null) return null;
-      return { x: xForIndex(i), y: yForRank(rank), pt, rank };
+      return { x: xForIndex(i), y: yForRank(rank), pt, rank, gameIndex: i + 1 };
     }),
   }));
 
@@ -215,7 +215,7 @@ export function RankTimelineChart({
                             textAnchor="middle"
                             className="fill-navy-400 text-[9px]"
                           >
-                            {p.pt.label}
+                            Խաղ {p.gameIndex} · {p.pt.label}
                           </text>
                         </g>
                       )}
@@ -244,7 +244,7 @@ export function RankTimelineChart({
                   textAnchor="middle"
                   className="fill-navy-400 text-[10px] font-semibold tabular-nums"
                 >
-                  {pt.matchNumber}
+                  {pt.gameIndex}
                 </text>
               </g>
             );
@@ -256,7 +256,7 @@ export function RankTimelineChart({
             textAnchor="middle"
             className="fill-navy-400 text-[11px] font-semibold"
           >
-            Ավարտված խաղ ({timeline.length})
+            Ավարտված խաղերի հերթականությունը (1–{timeline.length})
           </text>
         </svg>
       </div>

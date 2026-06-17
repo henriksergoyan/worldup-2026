@@ -12,6 +12,8 @@ import { STAGES, TEAM_PICK_TYPES } from "./constants";
 export interface RankTimelinePoint {
   matchId: string;
   matchNumber: number;
+  /** 1-based index among finalized games in chronological order. */
+  gameIndex: number;
   label: string;
   ranksByUser: Record<string, number>;
 }
@@ -158,6 +160,7 @@ export async function computeRankTimeline(tournamentId: string): Promise<RankTim
     timeline.push({
       matchId: match.id,
       matchNumber: match.matchNumber,
+      gameIndex: timeline.length + 1,
       label: `#${match.matchNumber} · ${home}–${away}`,
       ranksByUser: ranksFromAccumulators(accs, tournament, paidCount),
     });
