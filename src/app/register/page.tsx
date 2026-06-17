@@ -12,16 +12,16 @@ export default function RegisterPage() {
             <span className="text-base">⚽</span> Էքսպերտների լիգա
           </div>
           <h1 className="font-display text-3xl font-black tracking-tight text-white">
-            Ստեղծի՛ր քո <span className="text-pitch-400">ակաունտը</span>
+            Ստեղծել <span className="text-pitch-400">հաշիվ</span>
           </h1>
-          <p className="mt-2 text-sm text-navy-300">Գուշակի՛ր հաշիվները, բարձրացի՛ր աղյուսակով ու հաղթի՛ր ընկերներիդ (ցույց տուր ով ա շեֆը 😉):</p>
+          <p className="mt-2 text-sm text-navy-300">Կատարեք ճշգրիտ կանխատեսումներ, բարձրացեք մրցաշարային աղյուսակով և հաղթեք ձեր ընկերներին:</p>
         </div>
         <Card className="p-7">
           <RegisterForm />
         </Card>
         <p className="mt-4 text-center text-xs text-navy-500">
           <Link href="/login" className="text-navy-400 hover:text-navy-200">
-            ← Հետ դեպի մուտքի էջ
+            ← Մուտքի էջ
           </Link>
         </p>
       </div>

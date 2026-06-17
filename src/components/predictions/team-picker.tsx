@@ -42,7 +42,7 @@ export function TeamPicker({
       if (next.has(id)) next.delete(id);
       else if (next.size < limit) next.add(id);
       else {
-        toast(`Դու կարող ես ընտրել առավելագույնը ${limit} թիմ:`, "error");
+        toast(`Կարող եք ընտրել առավելագույնը ${limit} թիմ:`, "error");
       }
       return next;
     });
@@ -59,13 +59,13 @@ export function TeamPicker({
     <div className="space-y-4 pb-savebar">
       <div className="glass flex flex-wrap items-center justify-between gap-3 p-4">
         <div>
-          <h3 className="font-display text-lg font-bold text-white">Փլեյ-օֆֆի 16 թիմերդ 🎯</h3>
+          <h3 className="font-display text-lg font-bold text-white">Փլեյ-օֆֆի մասնակիցներ 🎯</h3>
           <p className="text-sm text-navy-300">
-            Ընտրի՛ր այն թիմերին, որոնք քո կարծիքով կանցնեն խմբից (փլեյ-օֆֆ) — ամեն ճիշտ թիմի համար 2 միավոր:{" "}
+            Ընտրեք այն թիմերին, որոնք կանցնեն խմբային փուլից: Յուրաքանչյուր ճիշտ գուշակման համար տրվում է 2 միավոր:{" "}
             {lock.locked ? (
-              <Badge variant="muted">🔒 Կողպված ա</Badge>
+              <Badge variant="muted">🔒 Կողպված է</Badge>
             ) : lock.lockAt ? (
-              <span className="text-navy-400">Կողպվում է {formatDateTime(lock.lockAt)}</span>
+              <span className="text-navy-400">Փակվում է՝ {formatDateTime(lock.lockAt)}</span>
             ) : null}
           </p>
         </div>

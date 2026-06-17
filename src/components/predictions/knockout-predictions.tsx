@@ -74,7 +74,7 @@ export function KnockoutPredictions({
   function save() {
     const items = [...dirty].map((id) => ({ matchId: id, ...local[id] }));
     if (items.length === 0) {
-      toast("Պահպանելու փոփոխություններ չկան:", "info");
+      toast("Պահպանելու փոփոխություն չկա:", "info");
       return;
     }
     start(async () => {
@@ -238,7 +238,7 @@ function KnockoutRow({
                   <span className="text-2xl font-black text-white/60 tabular-nums">{value.normalAway ?? "—"}</span>
                 </div>
                 <div className="text-[10px] font-bold uppercase tracking-wider text-navy-400">
-                  🔒 Կանխատեսումը (Կողպված)
+                  🔒 Կանխատեսումը կողպված է
                 </div>
               </div>
             ) : (
@@ -289,7 +289,7 @@ function KnockoutRow({
         />
         {ambiguous && (
           <span className="text-xs font-medium text-amber-300">
-            Ոչ-ոքի է — ընտրի՛ր անցնող թիմին կամ պենալտիներ նշանակի՛ր:
+            Ոչ-ոքի է: Ընտրի՛ր անցնող թիմին կամ նշանակի՛ր պենալտիներ:
           </span>
         )}
       </div>

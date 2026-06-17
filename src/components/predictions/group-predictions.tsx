@@ -61,7 +61,7 @@ export function GroupPredictions({
       away: local[id].away,
     }));
     if (items.length === 0) {
-      toast("Պահպանելու փոփոխություններ չկան:", "info");
+      toast("Պահպանելու փոփոխություն չկա:", "info");
       return;
     }
     start(async () => {
@@ -248,7 +248,7 @@ function GroupStandingsTable({ rows }: { rows: GroupStandingRowDTO[] }) {
         </tbody>
       </table>
       <p className="px-3 py-1.5 text-[10px] text-navy-500">
-        Առաջին 2 թիմն ուղիղ անցնում են փլեյ-օֆֆ։ +՝ խփած, −՝ բռնած, Տ՝ տարբերություն, Մ՝ Հ-Ո-Պ, Մվ՝ միավոր։
+        Խմբից անցնում է 2 թիմ: +՝ խփած, −՝ բաց թողած, Տ՝ տարբերություն, Մ՝ Հ-Ո-Պ, Մվ՝ միավոր:
       </p>
     </div>
   );
@@ -341,7 +341,7 @@ function MatchRow({
                 <span className="text-2xl font-black text-white/60 tabular-nums">{value.away ?? "—"}</span>
               </div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-navy-400">
-                🔒 Կանխատեսումը (Կողպված)
+                🔒 Կանխատեսումը կողպված է
               </div>
             </div>
           ) : (

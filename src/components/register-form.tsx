@@ -23,7 +23,7 @@ export function RegisterForm() {
     <form action={formAction} className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="firstName">Անուն (First name)</Label>
+          <Label htmlFor="firstName">Անուն</Label>
           <Input
             id="firstName"
             name="firstName"
@@ -34,7 +34,7 @@ export function RegisterForm() {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="lastName">Ազգանուն (Last name)</Label>
+          <Label htmlFor="lastName">Ազգանուն</Label>
           <Input
             id="lastName"
             name="lastName"
@@ -45,10 +45,10 @@ export function RegisterForm() {
         </div>
       </div>
       <p className="text-xs text-navy-400">
-        Քո մուտքանունը (username) կլինի՝ <span className="font-mono text-pitch-300">{previewUsername}</span>
+        Ձեր մուտքանունը կլինի՝ <span className="font-mono text-pitch-300">{previewUsername}</span>
       </p>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="password">Գաղտնաբառ (Password)</Label>
+        <Label htmlFor="password">Գաղտնաբառ</Label>
         <Input id="password" name="password" type="password" autoComplete="new-password" minLength={6} required />
       </div>
 
@@ -61,9 +61,9 @@ export function RegisterForm() {
       </Button>
 
       <p className="text-center text-sm text-navy-400">
-        Արդեն ունե՞ս ակաունտ:{" "}
+        Արդեն գրանցվա՞ծ եք:{" "}
         <Link href="/login" className="font-semibold text-pitch-300 hover:text-pitch-200">
-          Մուտք գործիր
+          Մուտք գործել
         </Link>
       </p>
     </form>

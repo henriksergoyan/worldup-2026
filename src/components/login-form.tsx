@@ -46,7 +46,7 @@ export function LoginForm() {
         )}
 
         <Button type="submit" size="lg" loading={pending} className="mt-2 w-full">
-          {pending ? "Մուտք ենք գործում..." : "Մուտք գործել"}
+          {pending ? "Մուտք..." : "Մուտք գործել"}
         </Button>
 
         <Button
@@ -55,7 +55,7 @@ export function LoginForm() {
           className="w-full text-sm text-navy-300 hover:text-pitch-200"
           onClick={() => setContactOpen(true)}
         >
-          Ուզու՞մ ես միանալ մեր լիգային կամ հարցեր ունե՞ս: 🤔
+          Ցանկանու՞մ եք միանալ լիգային կամ ունեք հարցեր: 🤔
         </Button>
       </form>
 

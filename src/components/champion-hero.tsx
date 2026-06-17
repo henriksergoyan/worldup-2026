@@ -35,7 +35,7 @@ export function ChampionHero({
                   {groupCode && (
                     <span className="text-sm text-navy-300">Խումբ {groupCode}</span>
                   )}
-                  <Badge variant="muted">🔒 Կողպված է (փոփոխման ենթակա չէ)</Badge>
+                  <Badge variant="muted">🔒 Կողպված է</Badge>
                   {isActualChampion && <Badge variant="success">Աշխարհի չեմպիոն ★</Badge>}
                   {championPoints > 0 && (
                     <Badge variant="gold">+{championPoints} միավոր</Badge>
@@ -44,15 +44,15 @@ export function ChampionHero({
               </>
             ) : (
               <>
-                <div className="mt-0.5 font-display text-xl font-bold text-navy-200">Դեռ ընտրված չէ</div>
-                <p className="mt-1 text-sm text-navy-400">Ձեր ընտրած չեմպիոնը կհայտնվի այստեղ:</p>
+                <div className="mt-0.5 font-display text-xl font-bold text-navy-200">Ընտրված չէ</div>
+                <p className="mt-1 text-sm text-navy-400">Չեմպիոնի ընտրությունը կցուցադրվի այստեղ:</p>
               </>
             )}
           </div>
         </div>
         <Link href="/champion" className="shrink-0">
           <Button variant="outline" className="w-full border-gold-500/30 sm:w-auto">
-            Տեսնել մասնակիցների չեմպիոններին 🏆 →
+            Տեսնել բոլորի ընտրությունները 🏆 →
           </Button>
         </Link>
       </div>

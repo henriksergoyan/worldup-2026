@@ -58,7 +58,7 @@ export function JoinLeagueModal({ open, onClose }: { open: boolean; onClose: () 
             Tigran Tshorokhyan
           </h2>
           <p className="mt-2 text-sm text-navy-300">
-            Ուզու՞մ ես միանալ մեր լիգային կամ հարցեր ունես: Կապվի՛ր Տիգրանի հետ.
+            Ցանկանու՞մ եք միանալ լիգային կամ ունեք հարցեր: Կապվե՛ք Տիգրանի հետ.
           </p>
           <a
             href="tel:+37477454075"
@@ -67,7 +67,7 @@ export function JoinLeagueModal({ open, onClose }: { open: boolean; onClose: () 
             <span aria-hidden>📞</span>
             +374 77 454075
           </a>
-          <p className="mt-3 text-xs text-navy-500">Սեղմի՛ր զանգելու համար</p>
+          <p className="mt-3 text-xs text-navy-500">Զանգահարելու համար սեղմեք</p>
         </div>
 
         <Button variant="ghost" className="mt-6 w-full" onClick={onClose}>

@@ -51,18 +51,18 @@ export function ChampionStats({
                   {actualChampionId === myPick.teamId && <Badge variant="success">Իրական չեմպիոն ★</Badge>}
                 </div>
               ) : (
-                <p className="mt-1 text-navy-300">Դու դեռ չեմպիոն չես ընտրել:</p>
+                <p className="mt-1 text-navy-300">Չեմպիոնի ընտրություն չի կատարվել:</p>
               )}
             </div>
-            {myPick && <Badge variant="muted">🔒 Կողպված ա</Badge>}
+            {myPick && <Badge variant="muted">🔒 Կողպված է</Badge>}
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">🏆 Չեմպիոնների ընտրությունը</CardTitle>
-          <p className="text-xs text-navy-400">{picks.length} մասնակից կատարել է ընտրություն</p>
+          <CardTitle className="text-base">🏆 Չեմպիոնի գուշակումներ</CardTitle>
+          <p className="text-xs text-navy-400">{picks.length} մասնակից ընտրել է չեմպիոն</p>
         </CardHeader>
         <CardContent className="space-y-3">
           {byTeam.map(([teamId, row]) => {
@@ -107,13 +107,13 @@ export function ChampionStats({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">📋 Բոլորի ընտրությունները</CardTitle>
+          <CardTitle className="text-base">📋 Բոլոր մասնակիցների ընտրությունները</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
           <table className="w-full min-w-[400px] text-sm">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.03] text-left text-xs uppercase text-navy-400">
-                <th className="px-4 py-2.5">Խաղացող</th>
+                <th className="px-4 py-2.5">Մասնակից</th>
                 <th className="px-4 py-2.5">Չեմպիոն</th>
               </tr>
             </thead>

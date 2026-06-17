@@ -165,12 +165,12 @@ export default async function DashboardPage() {
           sub={`${me?.exactScoreHits ?? 0} ճիշտ հաշիվ · ${me?.correctOutcomes ?? 0} ելք`}
         />
         <Stat
-          label="Դիրքը մրցաշարային աղյուսակում"
+          label="Դիրքն աղյուսակում"
           value={myRank ? `#${myRank.rank}` : "—"}
           sub={`${leaderboard.length} մասնակցից`}
         />
         <Stat
-          label="Հաջորդ վերջնաժամկետը"
+          label="Հաջորդ վերջնաժամկետ"
           variant="deadline"
           value={
             next?.lockAt ? (
@@ -190,7 +190,7 @@ export default async function DashboardPage() {
           label="Հնարավոր մրցանակ"
           value={myRank && myRank.prizeAmount > 0 ? formatAMD(myRank.prizeAmount) : "—"}
           accent="text-gold-400"
-          sub={myRank && myRank.prizeAmount > 0 ? "եթե դիրքերը պահպանվեն" : "դեռ մրցանակային տեղերում չեք"}
+          sub={myRank && myRank.prizeAmount > 0 ? "եթե դիրքը պահպանվի" : "դեռ մրցանակային տեղում չեք"}
         />
       </div>
 
@@ -199,10 +199,10 @@ export default async function DashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <span>📅</span> Գալիք սպասվող խաղեր
+                <span>📅</span> Սպասվող խաղեր
               </CardTitle>
               <p className="mt-1 text-xs text-navy-300 sm:text-sm">
-                Հաջորդ 3 խաղերը, որոնց համար դեռ կարող եք կանխատեսում անել
+                Մոտակա 3 խաղերը, որոնց կանխատեսումը դեռ բաց է
               </p>
             </div>
             <Link href="/predictions">
@@ -216,8 +216,8 @@ export default async function DashboardPage() {
           {upcomingMatches.length === 0 ? (
             <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-8 text-center">
               <div className="text-3xl">✅</div>
-              <p className="mt-2 text-sm font-semibold text-white">Այս պահին գալիք սպասվող խաղեր չկան</p>
-              <p className="mt-1 text-xs text-navy-400">Բոլոր մոտակա խաղերը արդեն ավարտվել են կամ կանխատեսումները փակված են։</p>
+              <p className="mt-2 text-sm font-semibold text-white">Այս պահին սպասվող խաղեր չկան</p>
+              <p className="mt-1 text-xs text-navy-400">Մոտակա բոլոր խաղերն ավարտվել են կամ կանխատեսումներն արդեն փակ են:</p>
             </div>
           ) : (
             upcomingMatches.map((m) => {
@@ -262,18 +262,18 @@ export default async function DashboardPage() {
 
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                     {hasPred ? (
-                      <span className="text-xs font-semibold text-pitch-300">✓ Կանխատեսումը լրացված է</span>
+                      <span className="text-xs font-semibold text-pitch-300">✓ Կանխատեսված է</span>
                     ) : locked ? (
-                      <span className="text-xs font-semibold text-navy-400">Կանխատեսումների փակման ժամանակը անցել է</span>
+                      <span className="text-xs font-semibold text-navy-400">Կանխատեսումներն արդեն փակ են</span>
                     ) : (
-                      <span className="text-xs font-semibold text-amber-300">⚠️ Դեռ կանխատեսում չեք արել</span>
+                      <span className="text-xs font-semibold text-amber-300">⚠️ Կանխատեսումը լրացված չէ</span>
                     )}
                     <div className="flex flex-wrap items-center gap-1.5">
                       {locked ? (
-                        <Badge variant="muted">🔒 Փակված է</Badge>
+                        <Badge variant="muted">🔒 Փակ է</Badge>
                       ) : (
                         <Badge variant="warning">
-                          Փակվում է՝ <Countdown target={lockAt} mode="days" className="inline text-inherit" />
+                          Մնացել է՝ <Countdown target={lockAt} mode="days" className="inline text-inherit" />
                         </Badge>
                       )}
                       {!hasPred && !locked && <Badge variant="info">Լրացնել →</Badge>}
@@ -364,17 +364,17 @@ export default async function DashboardPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Վերջին խաղերի արդյունքները ⚽</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {recentResults.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="text-4xl">⏳</div>
-              <p className="mt-2 text-sm text-navy-300">
-                Արդյունքներ դեռ չկան: Միավորները կհաշվարկվեն, երբ ադմինիստրատորը մուտքագրի խաղերի վերջնական արդյունքները:
-              </p>
-            </div>
+          <CardHeader>
+            <CardTitle>Վերջին արդյունքները ⚽</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recentResults.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <div className="text-4xl">⏳</div>
+                <p className="mt-2 text-sm text-navy-300">
+                  Արդյունքներ դեռ չկան: Միավորները կհաշվարկվեն, երբ ադմինիստրատորը հաստատի խաղերի արդյունքները:
+                </p>
+              </div>
           ) : (
             <div className="space-y-2">
               {recentResults.map((m) => {

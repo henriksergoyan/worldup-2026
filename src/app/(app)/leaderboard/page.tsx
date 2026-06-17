@@ -46,9 +46,9 @@ export default async function LeaderboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Մրցաշարային Աղյուսակ 🏆</h1>
+        <h1 className="font-display text-2xl font-black text-white md:text-3xl">Մրցաշարային աղյուսակ 🏆</h1>
         <p className="text-sm text-navy-300">
-          {rows.length} խաղացող · Մրցանակային ֆոնդ՝ {prizePool.toLocaleString()} AMD · {paidCount} հոգի վճարած 💸 · Միավորների հավասարության դեպքում առաջնահերթությունը տրվում է ճշգրիտ հաշվով գուշակումների քանակին։
+          {rows.length} մասնակից · Մրցանակային ֆոնդ՝ {prizePool.toLocaleString()} ֏ · {paidCount} վճարած 💸 · Միավորների հավասարության դեպքում հաշվի է առնվում ճշգրիտ հաշիվների քանակը:
         </p>
       </div>
 
@@ -58,7 +58,7 @@ export default async function LeaderboardPage() {
         <CardHeader>
           <CardTitle className="text-base">📉 Դիրքի պատմություն</CardTitle>
           <p className="text-xs text-navy-400">
-            Ընդհանուր դիրքը յուրաքանչյուր ավարտված խաղից հետո · ընտրեք մինչև 5 խաղացող համեմատության համար
+            Դիրքերի փոփոխությունը խաղերի ընթացքում: Կարող եք համեմատել մինչև 5 մասնակցի:
           </p>
         </CardHeader>
         <CardContent>

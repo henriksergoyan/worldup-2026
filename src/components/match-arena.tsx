@@ -99,11 +99,11 @@ export function MatchArena(props: MatchArenaProps) {
             </span>
             {!props.canReveal && (
               <Badge variant="warning">
-                Կանխատեսումների փակմանը մնացել է՝ <Countdown target={props.lockAt} mode="days" className="inline text-inherit" />
+                Մնացել է՝ <Countdown target={props.lockAt} mode="days" className="inline text-inherit" />
               </Badge>
             )}
             {props.canReveal && !props.finalized && (
-              <Badge variant="info">Կանխատեսումները բացված են — սպասում ենք խաղին</Badge>
+              <Badge variant="info">Կանխատեսումները բաց են</Badge>
             )}
             {props.finalized && <Badge variant="success">Ավարտված է</Badge>}
           </div>
@@ -135,10 +135,9 @@ export function MatchArena(props: MatchArenaProps) {
           <CardContent className="flex flex-col items-center gap-4 py-6 text-center sm:py-10">
             <div className="text-4xl sm:text-5xl">🎭</div>
             <div>
-              <h3 className="font-display text-xl font-bold text-white">Կանխատեսումները դեռ գաղտնի են</h3>
+              <h3 className="font-display text-xl font-bold text-white">Կանխատեսումները դեռ փակ են</h3>
               <p className="mt-1 max-w-md text-sm text-navy-300">
-                <span className="font-bold text-white">{props.predictionsCount}</span> մասնակից <span className="font-bold text-white">{props.totalPlayers}</span>-ից արդեն կանխատեսել է։ Բոլորի կանխատեսումները կբացվեն{" "}
-                <Countdown target={props.lockAt} mode="days" className="inline font-semibold text-amber-200" /> հետո (վերջնաժամկետից կամ խաղից 1 ժամ առաջ, ըստ որն ավելի շուտ է)։
+                Կանխատեսել է <span className="font-bold text-white">{props.predictionsCount}</span> մասնակից (<span className="font-bold text-white">{props.totalPlayers}</span>-ից)։ Բոլոր կանխատեսումները կբացվեն <Countdown target={props.lockAt} mode="days" className="inline font-semibold text-amber-200" /> հետո (խաղից 1 ժամ առաջ):
               </p>
             </div>
             <div className="flex gap-6 text-center">
@@ -353,7 +352,7 @@ export function MatchArena(props: MatchArenaProps) {
               <CardContent>
                 <ScoreHeatmap predictions={preds} me={me} actual={props.actual} />
                 <p className="mt-3 text-xs text-navy-400">
-                  Ինչքան վառ է վանդակը, այնքան շատ մասնակից է այդ հաշիվը նշել: ★ = քո կանխատեսումն է:
+                  Որքան վառ է վանդակը, այնքան շատ մասնակից է նշել այդ հաշիվը: ★ = ձեր կանխատեսումն է:
                 </p>
               </CardContent>
             </Card>
@@ -400,7 +399,7 @@ export function MatchArena(props: MatchArenaProps) {
         </Link>
         <Link href="/leaderboard">
           <Button variant="ghost" size="sm">
-            Աղյուսակը
+            Մրցաշարային աղյուսակ
           </Button>
         </Link>
       </div>
@@ -556,7 +555,7 @@ function RivalList({
       </CardHeader>
       <CardContent className="space-y-2">
         {items.length === 0 ? (
-          <p className="py-4 text-center text-sm text-navy-500">Դեռ ոչ մեկը չկա 🤷‍♂️</p>
+          <p className="py-4 text-center text-sm text-navy-500">Այս պահին մասնակիցներ չկան 🤷‍♂️</p>
         ) : (
           items.map((p) => (
             <div key={p.userId} className="flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-2">

@@ -33,7 +33,7 @@ export default function LoginPage() {
                 World Cup <span className="text-pitch-400">2026</span>
               </h1>
               <p className="mt-2 text-sm text-navy-300">
-                Մուտք գործեք՝ կանխատեսումները լրացնելու և աղյուսակում բարձրանալու համար։
+                Մուտք գործեք՝ կանխատեսումները լրացնելու և մրցաշարային աղյուսակը գլխավորելու համար:
               </p>
             </div>
 

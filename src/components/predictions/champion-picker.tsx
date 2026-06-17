@@ -27,13 +27,13 @@ export function ChampionPicker({
               {readOnly ? "Չեմպիոնի կանխատեսում 🏆" : "Քո չեմպիոնը 🏆"}
             </h3>
             <p className="mt-1 text-sm text-navy-300">
-              8 միավոր, եթե ձեր ընտրած թիմը դառնա չեմպիոն: Չեմպիոնի ընտրությունը կողպված է և փոփոխման ենթակա չէ:
+              8 միավոր, եթե ձեր ընտրած թիմը դառնա չեմպիոն: Չեմպիոնի ընտրությունն արդեն կողպված է:
             </p>
             <Link
               href="/champion"
               className="mt-2 inline-block text-sm font-semibold text-gold-400 hover:text-gold-300"
             >
-              Տեսնել մասնակիցների չեմպիոններին 🏆 →
+              Տեսնել բոլորի ընտրությունները 🏆 →
             </Link>
           </div>
           <Badge variant="muted">🔒 Կողպված է</Badge>
@@ -51,7 +51,7 @@ export function ChampionPicker({
       ) : (
         <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center">
           <div className="text-4xl">🏆</div>
-          <p className="mt-2 text-sm text-navy-300">Ձեր պրոֆիլում դեռ չեմպիոնի ընտրություն չկա:</p>
+          <p className="mt-2 text-sm text-navy-300">Չեմպիոնի ընտրություն չի կատարվել:</p>
         </div>
       )}
     </div>
@@ -74,7 +74,7 @@ export function SaveBarSimple({
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
         <span className="min-w-0 flex-1 truncate text-xs text-navy-300 sm:text-sm">{label}</span>
         <Button onClick={onSave} loading={pending} disabled={disabled} className="shrink-0">
-          Save
+          Պահպանել
         </Button>
       </div>
     </div>

@@ -23,7 +23,7 @@ export function SiteFooter() {
           />
         </Link>
         <span>
-          Կայքը պատրաստվել է{" "}
+          Պատրաստված է{" "}
           <Link
             href={COPA_URL}
             target="_blank"
@@ -32,12 +32,12 @@ export function SiteFooter() {
           >
             COPA
           </Link>{" "}
-          ընկերության կողմից։
+          կողմից:
         </span>
         <span className="hidden text-navy-600 sm:inline" aria-hidden>
           ·
         </span>
-        <span className="text-[11px] tracking-wide text-navy-500">օլ ռայթս ռեզերվըդ 2026</span>
+        <span className="text-[11px] tracking-wide text-navy-500">Բոլոր իրավունքները պաշտպանված են © 2026</span>
       </div>
     </footer>
   );

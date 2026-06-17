@@ -38,13 +38,13 @@ type SortKey =
 type SortDir = "asc" | "desc";
 
 const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
-  { key: "name", label: "Խաղացող", align: "left" },
+  { key: "name", label: "Մասնակից", align: "left" },
   { key: "totalPoints", label: "Ընդհանուր", align: "right" },
   { key: "groupStagePoints", label: "Խմբային", align: "right" },
   { key: "playoff", label: "Փլեյ-օֆֆ", align: "right" },
   { key: "championPoints", label: "Չեմպ", align: "right" },
   { key: "exactScoreHits", label: "Ճշգրիտ", align: "right" },
-  { key: "complicatedExactScoreHits", label: "Բարդ ճիշտ", align: "right" },
+  { key: "complicatedExactScoreHits", label: "Բարդ ճշգրիտ", align: "right" },
   { key: "correctOutcomes", label: "Ելքեր", align: "right" },
   { key: "prizeAmount", label: "Մրցանակ", align: "right" },
 ];
@@ -175,23 +175,23 @@ export function LeaderboardClient({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-navy-400">
-          {expanded ? `Բոլոր ${sorted.length} մասնակիցները` : "Ցուցադրվում են առաջատարները և ձեր շրջապատը"}
+          {expanded ? `Բոլոր ${sorted.length} մասնակիցները` : "Ցուցադրված են առաջատարներն ու ձեր դիրքը"}
         </p>
         {canCollapse && (
           <Button variant="outline" size="sm" onClick={() => setExpanded((e) => !e)}>
-            {expanded ? "Ծալել աղյուսակը ↑" : `Տեսնել ամբողջ աղյուսակը (${sorted.length}) →`}
+            {expanded ? "Ծալել ↑" : `Ամբողջ աղյուսակը (${sorted.length}) →`}
           </Button>
         )}
       </div>
 
       <div className="flex items-center gap-2 md:hidden">
-        <label className="text-xs font-semibold uppercase tracking-wide text-navy-400">Դասավորել՝</label>
+        <label className="text-xs font-semibold uppercase tracking-wide text-navy-400">Դասավորել</label>
         <select
           value={sortKey}
           onChange={(e) => handleSort(e.target.value as SortKey)}
           className="h-10 flex-1 rounded-xl border border-white/10 bg-navy-900/80 px-3 text-sm font-semibold text-white outline-none focus:border-pitch-400"
         >
-          <option value="rank">Տեղ</option>
+          <option value="rank">Դիրք</option>
           {COLUMNS.map((c) => (
             <option key={c.key} value={c.key}>
               {c.label}

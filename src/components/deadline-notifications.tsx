@@ -124,11 +124,11 @@ export function DeadlineNotifications({ deadlines }: { deadlines: DeadlineItem[]
             </Badge>
           )}
         </div>
-        <p className="text-xs text-navy-400">Երևանի ժամանակով · ուղիղ հետհաշվարկ</p>
+        <p className="text-xs text-navy-400">Երևանի ժամանակով · հետհաշվարկ</p>
       </CardHeader>
       <CardContent className="space-y-5">
-        <Section title="✅ Ավարտված փուլեր" items={completed} variant="done" empty="Դեռ ոչ մի փուլ չի ավարտվել:" />
-        <Section title="⚡ Հաջորդ վերջնաժամկետ" items={actNext} variant="active" empty="Այս պահին սպասվող վերջնաժամկետ չկա:" />
+        <Section title="✅ Ավարտված փուլեր" items={completed} variant="done" empty="Ավարտված փուլեր չկան:" />
+        <Section title="⚡ Հաջորդ վերջնաժամկետ" items={actNext} variant="active" empty="Սպասվող վերջնաժամկետ չկա:" />
       </CardContent>
     </Card>
   );
