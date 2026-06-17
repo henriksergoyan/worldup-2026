@@ -17,9 +17,13 @@ type Local = Record<string, { home: number | null; away: number | null }>;
 export function GroupPredictions({
   matches,
   standingsByGroup = {},
+  readOnly = false,
+  memberLabel,
 }: {
   matches: MatchDTO[];
   standingsByGroup?: Record<string, GroupStandingRowDTO[]>;
+  readOnly?: boolean;
+  memberLabel?: string;
 }) {
   const { toast } = useToast();
   const [pending, start] = useTransition();
@@ -136,6 +140,8 @@ export function GroupPredictions({
                     m={m}
                     value={local[m.id]}
                     onChange={(side, v) => update(m.id, side, v)}
+                    readOnly={readOnly}
+                    memberLabel={memberLabel}
                   />
                 ))}
               </div>
@@ -144,7 +150,7 @@ export function GroupPredictions({
         );
       })}
 
-      <SaveBar count={dirty.size} pending={pending} onSave={save} />
+      {!readOnly && <SaveBar count={dirty.size} pending={pending} onSave={save} />}
     </div>
   );
 }
@@ -252,12 +258,16 @@ function MatchRow({
   m,
   value,
   onChange,
+  readOnly = false,
+  memberLabel,
 }: {
   m: MatchDTO;
   value: { home: number | null; away: number | null };
   onChange: (side: "home" | "away", v: number | null) => void;
+  readOnly?: boolean;
+  memberLabel?: string;
 }) {
-  const disabled = m.locked || m.actual !== null;
+  const disabled = readOnly || m.locked || m.actual !== null;
   const finalized = m.actual !== null;
   const hasPred = value.home !== null && value.away !== null;
   const won = (m.points ?? 0) > 0;
@@ -317,7 +327,9 @@ function MatchRow({
                   won ? "bg-pitch-500/15 text-pitch-200" : lost ? "bg-red-500/15 text-red-300" : "bg-white/5 text-navy-300",
                 )}
               >
-                <span className="text-[9px] font-bold uppercase tracking-wide opacity-70">Ձեր կանխատեսումը</span>
+                <span className="text-[9px] font-bold uppercase tracking-wide opacity-70">
+                  {memberLabel ? `${memberLabel}՝` : "Ձեր կանխատեսումը"}
+                </span>
                 <span className="font-black tabular-nums">{value.home ?? "—"}–{value.away ?? "—"}</span>
               </div>
             </div>

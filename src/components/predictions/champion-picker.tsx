@@ -9,10 +9,12 @@ import { flagFor } from "@/lib/flags";
 export function ChampionPicker({
   teams,
   current,
+  readOnly = false,
 }: {
   teams: TeamDTO[];
   current: string | null;
   lock?: { locked: boolean; lockAt: string | null };
+  readOnly?: boolean;
 }) {
   const pick = teams.find((t) => t.id === current);
 
@@ -21,7 +23,9 @@ export function ChampionPicker({
       <div className="glass p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="font-display text-lg font-bold text-white">Քո չեմպիոնը 🏆</h3>
+            <h3 className="font-display text-lg font-bold text-white">
+              {readOnly ? "Չեմպիոնի կանխատեսում 🏆" : "Քո չեմպիոնը 🏆"}
+            </h3>
             <p className="mt-1 text-sm text-navy-300">
               8 միավոր, եթե ձեր ընտրած թիմը դառնա չեմպիոն: Չեմպիոնի ընտրությունը կողպված է և փոփոխման ենթակա չէ:
             </p>

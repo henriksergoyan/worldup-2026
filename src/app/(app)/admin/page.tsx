@@ -8,6 +8,7 @@ import { AdminQuickResults, type QuickResultMatch } from "@/components/admin/adm
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatAMD } from "@/lib/utils";
+import { AdminMemberLink } from "@/components/rank-outlook-panel";
 import { MATCH_STATUS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -157,6 +158,12 @@ export default async function AdminPage() {
           desc="Նշեք վճարման կարգավիճակը և մուտքի իրավասությունը։"
         />
         <QuickLink
+          href="/admin/members"
+          icon="📋"
+          title="Կանխատեսումներ"
+          desc="Դիտեք յուրաքանչյուր մասնակցի կանխատեսումներն ու միավորները։"
+        />
+        <QuickLink
           href="/admin/fixtures"
           icon="📅"
           title="Խաղացուցակ"
@@ -179,7 +186,7 @@ export default async function AdminPage() {
             <div key={e.userId} className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2 text-sm">
               <span className="text-white">
                 <span className="mr-2 font-bold text-navy-400">{e.rank}</span>
-                {e.name}
+                <AdminMemberLink userId={e.userId} name={e.name} />
               </span>
               <span className="font-bold text-pitch-300">{e.totalPoints} միավոր</span>
             </div>

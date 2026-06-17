@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -67,7 +68,14 @@ function rankBadge(rank: number) {
   return null;
 }
 
-export function LeaderboardClient({ rows }: { rows: Row[]; prizePool: number }) {
+export function LeaderboardClient({
+  rows,
+  isAdmin = false,
+}: {
+  rows: Row[];
+  prizePool: number;
+  isAdmin?: boolean;
+}) {
   const [sortKey, setSortKey] = useState<SortKey>("rank");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -168,7 +176,16 @@ export function LeaderboardClient({ rows }: { rows: Row[]; prizePool: number }) 
                     <span className="flex items-center gap-1">{rankBadge(r.rank) ?? r.rank}</span>
                   </td>
                   <td className="px-4 py-2.5 font-semibold text-white">
-                    {r.name}
+                    {isAdmin ? (
+                      <Link
+                        href={`/admin/members/${r.userId}`}
+                        className="text-pitch-300 transition hover:text-pitch-200 hover:underline"
+                      >
+                        {r.name}
+                      </Link>
+                    ) : (
+                      r.name
+                    )}
                     {r.isMe && <span className="ml-2 text-xs text-pitch-300">(դու)</span>}
                   </td>
                   <td className="px-3 py-2.5 text-right font-bold tabular-nums text-pitch-300">
@@ -201,7 +218,18 @@ export function LeaderboardClient({ rows }: { rows: Row[]; prizePool: number }) 
                 <span className="w-6 text-center font-bold text-navy-300">
                   {rankBadge(r.rank) ?? r.rank}
                 </span>
-                <span className="font-semibold text-white">{r.name}</span>
+                <span className="font-semibold text-white">
+                  {isAdmin ? (
+                    <Link
+                      href={`/admin/members/${r.userId}`}
+                      className="text-pitch-300 transition hover:text-pitch-200 hover:underline"
+                    >
+                      {r.name}
+                    </Link>
+                  ) : (
+                    r.name
+                  )}
+                </span>
                 {r.isMe && <span className="text-xs text-pitch-300">(դու)</span>}
               </div>
               <span className="text-lg font-black tabular-nums text-pitch-300">{r.totalPoints} միավոր</span>

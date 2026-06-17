@@ -13,6 +13,8 @@ import { Countdown } from "@/components/countdown";
 import { ChampionHero } from "@/components/champion-hero";
 import { PHASE_LABELS, PLAYER_DEADLINE_PHASES, ROUND_LABELS, STAGES, TEAM_PICK_TYPES, type Round } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { computeRankOutlook } from "@/lib/rank-analytics";
+import { RankOutlookPanel } from "@/components/rank-outlook-panel";
 import { pickUpcomingMatches } from "@/lib/upcoming-matches";
 
 export const dynamic = "force-dynamic";
@@ -65,7 +67,7 @@ export default async function DashboardPage() {
   const user = await requireUser();
   const tournament = await getActiveTournament();
 
-  const [{ leaderboard, breakdownByUser }, deadlines, totalMatches, championPick, qualifierCount, recentResults, actualChampion, upcomingPool] =
+  const [{ leaderboard, breakdownByUser }, deadlines, totalMatches, championPick, qualifierCount, recentResults, actualChampion, upcomingPool, outlook] =
     await Promise.all([
       computeStandings(tournament.id),
       getDeadlineMap(tournament.id),
@@ -107,6 +109,7 @@ export default async function DashboardPage() {
         orderBy: { scheduledAt: "asc" },
         take: 24,
       }),
+      computeRankOutlook(tournament.id, user.id),
     ]);
 
   const upcomingMatches = pickUpcomingMatches(
@@ -193,6 +196,10 @@ export default async function DashboardPage() {
           sub={myRank && myRank.prizeAmount > 0 ? "եթե դիրքերը պահպանվեն" : "դեռ մրցանակային տեղերում չեք"}
         />
       </div>
+
+      {outlook && outlook.summary.pendingMatches > 0 && (
+        <RankOutlookPanel summary={outlook.summary} upcoming={outlook.upcoming} userName={user.name} />
+      )}
 
       <Card className="overflow-hidden border-pitch-500/30 bg-gradient-to-br from-pitch-500/[0.08] via-transparent to-transparent">
         <CardHeader className="pb-3">

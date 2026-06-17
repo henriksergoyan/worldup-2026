@@ -24,6 +24,7 @@ export function NavBar({
   const links: NavLink[] = isAdmin
     ? [
         { href: "/admin", label: "Ադմինիստրատորի էջ" },
+        { href: "/admin/members", label: "Կանխատեսումներ" },
         { href: "/leaderboard", label: "Մրցաշարային աղյուսակ" },
       ]
     : [

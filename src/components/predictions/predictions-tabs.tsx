@@ -27,6 +27,8 @@ export function PredictionsTabs({
   pickLimit,
   championLock,
   teamsLock,
+  readOnly = false,
+  memberLabel,
 }: {
   initialTab?: string;
   groupMatches: MatchDTO[];
@@ -38,6 +40,8 @@ export function PredictionsTabs({
   pickLimit: number;
   championLock: LockInfo;
   teamsLock: LockInfo;
+  readOnly?: boolean;
+  memberLabel?: string;
 }) {
   const [tab, setTab] = useState<Tab>(
     (TABS.find((t) => t.id === initialTab)?.id ?? "group") as Tab,
@@ -62,11 +66,18 @@ export function PredictionsTabs({
       </div>
 
       {tab === "group" && (
-        <GroupPredictions matches={groupMatches} standingsByGroup={standingsByGroup} />
+        <GroupPredictions
+          matches={groupMatches}
+          standingsByGroup={standingsByGroup}
+          readOnly={readOnly}
+          memberLabel={memberLabel}
+        />
       )}
-      {tab === "knockout" && <KnockoutPredictions matches={knockoutMatches} />}
+      {tab === "knockout" && (
+        <KnockoutPredictions matches={knockoutMatches} readOnly={readOnly} memberLabel={memberLabel} />
+      )}
       {tab === "champion" && (
-        <ChampionPicker teams={teams} current={championPick} lock={championLock} />
+        <ChampionPicker teams={teams} current={championPick} lock={championLock} readOnly={readOnly} />
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -65,11 +66,21 @@ export function UserEditorRow({ user }: { user: AdminUserRow }) {
           <Badge variant={user.role === "ADMIN" ? "gold" : "muted"}>{ROLE_LABELS[user.role] ?? user.role}</Badge>
           <span className="text-xs text-navy-400">{user.name}</span>
         </div>
-        {user.role !== "ADMIN" && (
-          <Button size="sm" variant="danger" onClick={remove} loading={pending}>
-            Հեռացնել
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {user.role === "PLAYER" && (
+            <Link
+              href={`/admin/members/${user.id}`}
+              className="text-xs font-semibold text-pitch-400 hover:text-pitch-300"
+            >
+              Կանխատեսումներ →
+            </Link>
+          )}
+          {user.role !== "ADMIN" && (
+            <Button size="sm" variant="danger" onClick={remove} loading={pending}>
+              Հեռացնել
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

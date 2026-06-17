@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 const LINKS = [
   { href: "/admin", label: "Ակնարկ" },
+  { href: "/admin/members", label: "Կանխատեսումներ" },
   { href: "/admin/results", label: "Արդյունքներ" },
   { href: "/admin/users", label: "Մասնակիցներ" },
   { href: "/admin/fixtures", label: "Խաղացուցակ" },
@@ -17,7 +18,7 @@ export function AdminNav() {
   return (
     <div className="flex gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.02] p-1.5">
       {LINKS.map((l) => {
-        const active = pathname === l.href;
+        const active = pathname === l.href || pathname.startsWith(l.href + "/");
         return (
           <Link
             key={l.href}

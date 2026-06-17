@@ -15,6 +15,10 @@ export interface DeadlineItem {
 
 const ACT_SOON_MS = 14 * 24 * 60 * 60 * 1000;
 
+function isActSoon(lockAt: string) {
+  return new Date(lockAt).getTime() - Date.now() <= ACT_SOON_MS;
+}
+
 function DeadlineRow({
   d,
   variant,
@@ -50,7 +54,7 @@ function DeadlineRow({
                 variant === "active" ? "text-amber-200" : "text-pitch-300",
               )}
             />
-            {variant === "active" && (
+            {variant === "active" && isActSoon(d.lockAt) && (
               <div className="text-xs font-semibold uppercase text-amber-400/90">Շուտով կփակվի</div>
             )}
           </>
@@ -95,8 +99,8 @@ export function DeadlineNotifications({ deadlines }: { deadlines: DeadlineItem[]
     .filter((d) => d.isOpen && !d.locked && new Date(d.lockAt).getTime() > now)
     .sort((a, b) => new Date(a.lockAt).getTime() - new Date(b.lockAt).getTime());
 
-  const actNext = upcoming.filter((d) => new Date(d.lockAt).getTime() - now <= ACT_SOON_MS);
-  const notStarted = upcoming.filter((d) => new Date(d.lockAt).getTime() - now > ACT_SOON_MS);
+  const actNext = upcoming.length > 0 ? [upcoming[0]] : [];
+  const nextIsSoon = actNext.length > 0 && isActSoon(actNext[0].lockAt);
 
   const next = upcoming[0];
 
@@ -109,12 +113,12 @@ export function DeadlineNotifications({ deadlines }: { deadlines: DeadlineItem[]
   }
 
   return (
-    <Card className={cn(actNext.length > 0 && "border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent")}>
+    <Card className={cn(nextIsSoon && "border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent")}>
       <CardHeader className="pb-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">⏰ Վերջնաժամկետներ</CardTitle>
           {next && (
-            <Badge variant={actNext.length > 0 ? "warning" : "info"}>
+            <Badge variant={nextIsSoon ? "warning" : "info"}>
               Հաջորդը՝{" "}
               <Countdown target={next.lockAt} mode="days" className="inline text-inherit" />
             </Badge>
@@ -124,8 +128,7 @@ export function DeadlineNotifications({ deadlines }: { deadlines: DeadlineItem[]
       </CardHeader>
       <CardContent className="space-y-5">
         <Section title="✅ Ավարտված փուլեր" items={completed} variant="done" empty="Դեռ ոչ մի փուլ չի ավարտվել:" />
-        <Section title="⚡ Շուտով փակվող" items={actNext} variant="active" empty="Այս պահին շտապ փակվող փուլեր չկան:" />
-        <Section title="📅 Սպասվող փուլեր" items={notStarted} variant="later" empty="Այլ սահմանված վերջնաժամկետներ չկան:" />
+        <Section title="⚡ Հաջորդ վերջնաժամկետ" items={actNext} variant="active" empty="Այս պահին սպասվող վերջնաժամկետ չկա:" />
       </CardContent>
     </Card>
   );

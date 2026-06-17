@@ -25,7 +25,15 @@ interface KO {
 
 type Local = Record<string, KO>;
 
-export function KnockoutPredictions({ matches }: { matches: MatchDTO[] }) {
+export function KnockoutPredictions({
+  matches,
+  readOnly = false,
+  memberLabel,
+}: {
+  matches: MatchDTO[];
+  readOnly?: boolean;
+  memberLabel?: string;
+}) {
   const { toast } = useToast();
   const [pending, start] = useTransition();
   const [local, setLocal] = useState<Local>(() => {
@@ -125,14 +133,21 @@ export function KnockoutPredictions({ matches }: { matches: MatchDTO[] }) {
             {isExpanded && (
               <div className="p-4 space-y-3 bg-navy-900/10">
                 {list.map((m) => (
-                  <KnockoutRow key={m.id} m={m} value={local[m.id]} onChange={(p) => patch(m.id, p)} />
+                  <KnockoutRow
+                    key={m.id}
+                    m={m}
+                    value={local[m.id]}
+                    onChange={(p) => patch(m.id, p)}
+                    readOnly={readOnly}
+                    memberLabel={memberLabel}
+                  />
                 ))}
               </div>
             )}
           </div>
         );
       })}
-      <SaveBar count={dirty.size} pending={pending} onSave={save} />
+      {!readOnly && <SaveBar count={dirty.size} pending={pending} onSave={save} />}
     </div>
   );
 }
@@ -141,12 +156,16 @@ function KnockoutRow({
   m,
   value,
   onChange,
+  readOnly = false,
+  memberLabel,
 }: {
   m: MatchDTO;
   value: KO;
   onChange: (p: Partial<KO>) => void;
+  readOnly?: boolean;
+  memberLabel?: string;
 }) {
-  const disabled = m.locked || m.actual !== null;
+  const disabled = readOnly || m.locked || m.actual !== null;
   const derivedWinner = resolveKnockoutWinner({
     normal: { home: value.normalHome, away: value.normalAway },
     extra: { home: value.extraHome, away: value.extraAway },
@@ -205,7 +224,10 @@ function KnockoutRow({
                   <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalAway}</span>
                 </div>
                 <div className="text-[11px] font-semibold text-pitch-300">
-                  Ձեր կանխատեսումը՝ <span className="font-bold">{value.normalHome ?? "—"} – {value.normalAway ?? "—"}</span>
+                  {memberLabel ? `${memberLabel}՝` : "Ձեր կանխատեսումը՝"}{" "}
+                  <span className="font-bold">
+                    {value.normalHome ?? "—"} – {value.normalAway ?? "—"}
+                  </span>
                 </div>
               </div>
             ) : m.locked ? (
