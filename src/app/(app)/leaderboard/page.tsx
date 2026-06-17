@@ -40,7 +40,7 @@ export default async function LeaderboardPage() {
 
   const defaultSelected = [
     user.id,
-    ...rows.filter((r) => r.userId !== user.id).slice(0, 2).map((r) => r.userId),
+    ...rows.filter((r) => r.userId !== user.id).slice(0, 3).map((r) => r.userId),
   ];
 
   return (
@@ -52,19 +52,19 @@ export default async function LeaderboardPage() {
         </p>
       </div>
 
+      <LeaderboardClient rows={rows} prizePool={prizePool} isAdmin={isAdmin} />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">📉 Դիրքի պատմություն</CardTitle>
           <p className="text-xs text-navy-400">
-            Ընդհանուր դիրքը յուրաքանչյուր ավարտված խաղից հետո · ընտրեք մինչև 3 խաղացող համեմատության համար
+            Ընդհանուր դիրքը յուրաքանչյուր ավարտված խաղից հետո · ընտրեք մինչև 5 խաղացող համեմատության համար
           </p>
         </CardHeader>
         <CardContent>
           <RankTimelineChart timeline={timeline} players={players} defaultSelected={defaultSelected} />
         </CardContent>
       </Card>
-
-      <LeaderboardClient rows={rows} prizePool={prizePool} isAdmin={isAdmin} />
     </div>
   );
 }

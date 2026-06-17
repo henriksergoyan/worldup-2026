@@ -89,7 +89,9 @@ export async function computeRankTimeline(tournamentId: string): Promise<RankTim
     prisma.actualTeamStatus.findMany({ where: { tournamentId } }),
   ]);
 
-  const finalized = matches.filter((m) => m.actualResult?.finalized);
+  const finalized = matches
+    .filter((m) => m.actualResult?.finalized)
+    .sort((a, b) => a.matchNumber - b.matchNumber);
   const predsByUserMatch = new Map<string, (typeof predictions)[number]>();
   for (const p of predictions) predsByUserMatch.set(`${p.userId}:${p.matchId}`, p);
 
