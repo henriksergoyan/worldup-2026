@@ -2,11 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { getMemberPredictionsData } from "@/lib/member-predictions-data";
-import { computeRankOutlook } from "@/lib/rank-analytics";
-import { getActiveTournament } from "@/lib/standings";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { MemberPredictionsView } from "@/components/member-predictions-view";
-import { RankOutlookPanel } from "@/components/rank-outlook-panel";
 import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
@@ -24,9 +21,6 @@ export default async function AdminMemberPage({
 
   const data = await getMemberPredictionsData(userId, { viewerIsAdmin: true });
   if (!data) notFound();
-
-  const tournament = await getActiveTournament();
-  const outlook = await computeRankOutlook(tournament.id, userId);
 
   return (
     <div className="space-y-6">
@@ -53,10 +47,6 @@ export default async function AdminMemberPage({
       </div>
 
       <AdminNav />
-
-      {outlook && outlook.upcoming.length > 0 && (
-        <RankOutlookPanel summary={outlook.summary} upcoming={outlook.upcoming} userName={data.user.name} />
-      )}
 
       <MemberPredictionsView data={data} initialTab={tab} readOnly />
     </div>

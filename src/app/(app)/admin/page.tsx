@@ -8,7 +8,7 @@ import { AdminQuickResults, type QuickResultMatch } from "@/components/admin/adm
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatAMD } from "@/lib/utils";
-import { AdminMemberLink } from "@/components/rank-outlook-panel";
+import { AdminMemberLink } from "@/components/admin-member-link";
 import { MATCH_STATUS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";

@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { computeStandings, getActiveTournament } from "@/lib/standings";
 import { AdminNav } from "@/components/admin/admin-nav";
-import { AdminMemberLink } from "@/components/rank-outlook-panel";
+import { AdminMemberLink } from "@/components/admin-member-link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 

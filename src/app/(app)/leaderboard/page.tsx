@@ -1,10 +1,8 @@
 import { requireUser } from "@/lib/auth";
 import { computeStandings, getActiveTournament } from "@/lib/standings";
 import { computeRankTimeline, getTimelinePlayers } from "@/lib/rank-timeline";
-import { computeRankOutlook } from "@/lib/rank-analytics";
 import { LeaderboardClient, type Row } from "@/components/leaderboard-client";
 import { RankTimelineChart } from "@/components/rank-timeline-chart";
-import { RankOutlookPanel } from "@/components/rank-outlook-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
@@ -14,12 +12,11 @@ export default async function LeaderboardPage() {
   const tournament = await getActiveTournament();
   const isAdmin = user.role === "ADMIN";
 
-  const [{ leaderboard, breakdownByUser, prizePool, paidCount }, timeline, players, outlook] =
+  const [{ leaderboard, breakdownByUser, prizePool, paidCount }, timeline, players] =
     await Promise.all([
       computeStandings(tournament.id),
       computeRankTimeline(tournament.id),
       getTimelinePlayers(),
-      computeRankOutlook(tournament.id, user.id),
     ]);
 
   const rows: Row[] = leaderboard.map((e) => {
@@ -54,10 +51,6 @@ export default async function LeaderboardPage() {
           {rows.length} խաղացող · Մրցանակային ֆոնդ՝ {prizePool.toLocaleString()} AMD · {paidCount} հոգի վճարած 💸 · Միավորների հավասարության դեպքում առաջնահերթությունը տրվում է ճշգրիտ հաշվով գուշակումների քանակին։
         </p>
       </div>
-
-      {!isAdmin && outlook && outlook.summary.pendingMatches > 0 && (
-        <RankOutlookPanel summary={outlook.summary} upcoming={outlook.upcoming} userName={user.name} />
-      )}
 
       <Card>
         <CardHeader>
