@@ -222,7 +222,8 @@ export default async function DashboardPage() {
           ) : (
             upcomingMatches.map((m) => {
               const pred = m.predictions[0] ?? null;
-              const hasPred = pred?.normalHomeGoals !== null && pred?.normalAwayGoals !== null;
+              const hasPred =
+                pred != null && pred.normalHomeGoals != null && pred.normalAwayGoals != null;
               const locked = isMatchLocked(m, deadlines, tournament.kickoffLockMinutes);
               const lockAt = matchEditLockAt(m.scheduledAt, tournament.kickoffLockMinutes);
               const stageLabel =
@@ -379,7 +380,8 @@ export default async function DashboardPage() {
             <div className="space-y-2">
               {recentResults.map((m) => {
                 const pred = m.predictions[0] ?? null;
-                const hasPred = pred?.normalHomeGoals !== null && pred?.normalHomeGoals !== undefined;
+                const hasPred =
+                  pred != null && pred.normalHomeGoals != null && pred.normalAwayGoals != null;
                 const pts = me?.matchPoints[m.id] ?? 0;
                 const won = pts > 0;
                 const lost = hasPred && !won;
