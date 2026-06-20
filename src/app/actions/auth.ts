@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { createSession, destroySession, verifyPassword, hashPassword } from "@/lib/auth";
+import { createSession, destroySession, verifyPassword, hashPassword, getCurrentUser } from "@/lib/auth";
 import { getActiveTournament } from "@/lib/standings";
 import { buildUsername, formatUserName, uniqueUsername } from "@/lib/user-utils";
 import type { Role } from "@/lib/constants";
@@ -92,4 +92,44 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
 export async function signOut(): Promise<void> {
   await destroySession();
   redirect("/login");
+}
+
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Մուտքագրեք ընթացիկ գաղտնաբառը"),
+    newPassword: z.string().min(6, "Նոր գաղտնաբառը պետք է լինի առնվազն 6 նիշ"),
+    confirmPassword: z.string().min(1, "Կրկնեք նոր գաղտնաբառը"),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    message: "Նոր գաղտնաբառերը չեն համընկնում",
+    path: ["confirmPassword"],
+  });
+
+export async function changePassword(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Մուտք գործեք կրկին" };
+  if (user.role === "ADMIN") return { error: "Ադմինիստրատորի գաղտնաբառը փոխվում է միայն սերվերի կողմից" };
+
+  const parsed = changePasswordSchema.safeParse({
+    currentPassword: formData.get("currentPassword"),
+    newPassword: formData.get("newPassword"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Տվյալները սխալ են" };
+  }
+
+  const row = await prisma.user.findUnique({ where: { id: user.id } });
+  if (!row) return { error: "Օգտատերը չի գտնվել" };
+
+  const ok = await verifyPassword(parsed.data.currentPassword, row.passwordHash);
+  if (!ok) return { error: "Ընթացիկ գաղտնաբառը սխալ է" };
+
+  const passwordHash = await hashPassword(parsed.data.newPassword);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash, plainPassword: parsed.data.newPassword },
+  });
+
+  return { success: "Գաղտնաբառը թարմացվեց" };
 }

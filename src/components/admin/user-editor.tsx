@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { useToast } from "@/components/ui/toast";
 import { updateUserProfile, generateUserPassword, deleteUser } from "@/app/actions/admin";
 import { PaidToggle, ActiveToggle } from "./toggles";
 import { buildUsername } from "@/lib/user-utils";
+import { cn } from "@/lib/utils";
 
 export interface AdminUserRow {
   id: string;
@@ -28,6 +30,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export function UserEditorRow({ user }: { user: AdminUserRow }) {
+  const router = useRouter();
   const { toast } = useToast();
   const [pending, start] = useTransition();
   const [firstName, setFirstName] = useState(user.firstName);
@@ -37,9 +40,11 @@ export function UserEditorRow({ user }: { user: AdminUserRow }) {
   const previewUsername = buildUsername(firstName.trim() || "player", lastName.trim());
 
   function saveProfile() {
+    if (!dirty) return;
     start(async () => {
       const res = await updateUserProfile(user.id, { firstName, lastName });
       toast(res.message, res.ok ? "success" : "error");
+      if (res.ok) router.refresh();
     });
   }
 
@@ -48,6 +53,7 @@ export function UserEditorRow({ user }: { user: AdminUserRow }) {
       const res = await generateUserPassword(user.id);
       if (res.password) setPassword(res.password);
       toast(res.message, res.ok ? "success" : "error");
+      if (res.ok) router.refresh();
     });
   }
 
@@ -56,15 +62,21 @@ export function UserEditorRow({ user }: { user: AdminUserRow }) {
     start(async () => {
       const res = await deleteUser(user.id);
       toast(res.message, res.ok ? "success" : "error");
+      if (res.ok) router.refresh();
     });
   }
 
   return (
-    <div className="glass space-y-3 p-4">
+    <div className={cn("glass flex flex-col gap-4 p-4", dirty && "ring-1 ring-pitch-500/30")}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={user.role === "ADMIN" ? "gold" : "muted"}>{ROLE_LABELS[user.role] ?? user.role}</Badge>
           <span className="text-xs text-navy-400">{user.name}</span>
+          {dirty && (
+            <Badge variant="warning" className="text-[10px]">
+              Չպահպանված
+            </Badge>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {user.role === "PLAYER" && (
@@ -101,19 +113,32 @@ export function UserEditorRow({ user }: { user: AdminUserRow }) {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-navy-900/50 px-3 py-2">
-          <span className="text-xs text-navy-400">Գաղտնաբառ</span>
-          <code className="font-mono text-sm font-bold text-gold-400">{password || "—"}</code>
+      <div className="flex flex-wrap items-center gap-3 border-t border-white/5 pt-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/10 bg-navy-900/50 px-3 py-2">
+          <span className="shrink-0 text-xs text-navy-400">Գաղտնաբառ</span>
+          <code className="truncate font-mono text-sm font-bold text-gold-400">{password || "—"}</code>
         </div>
         <Button size="sm" variant="outline" onClick={resetPassword} loading={pending}>
           Նոր գաղտնաբառ
         </Button>
-        <Button size="sm" variant="secondary" onClick={saveProfile} loading={pending} disabled={!dirty}>
-          Պահպանել
-        </Button>
         <PaidToggle userId={user.id} paid={user.paid} />
         <ActiveToggle userId={user.id} active={user.active} />
+      </div>
+
+      <div className="flex justify-end border-t border-white/5 pt-3">
+        <Button
+          size="md"
+          variant="primary"
+          onClick={saveProfile}
+          loading={pending}
+          disabled={!dirty}
+          className={cn(
+            "min-w-[120px] shadow-glow",
+            dirty && "bg-emerald-600 hover:bg-emerald-500 focus-visible:ring-emerald-400/60",
+          )}
+        >
+          Պահպանել
+        </Button>
       </div>
     </div>
   );

@@ -31,6 +31,7 @@ export function NavBar({
         { href: "/dashboard", label: "Իմ էջը" },
         { href: "/predictions", label: "Իմ կանխատեսումները" },
         { href: "/leaderboard", label: "Մրցաշարային աղյուսակ" },
+        { href: "/account", label: "Իմ հաշիվը" },
       ];
 
   const homeHref = isAdmin ? "/admin" : "/dashboard";

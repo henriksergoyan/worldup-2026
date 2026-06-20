@@ -62,7 +62,8 @@ function initState(m: ResultDTO): State {
 export function ResultsEditor({ matches }: { matches: ResultDTO[] }) {
   const { toast } = useToast();
   const [pending, start] = useTransition();
-  const [filter, setFilter] = useState<"all" | "group" | "knockout" | "pending">("all");
+  const [filter, setFilter] = useState<"all" | "group" | "knockout" | "pending" | "finished">("all");
+  const [query, setQuery] = useState("");
   const [state, setState] = useState<Record<string, State>>(() => {
     const s: Record<string, State> = {};
     for (const m of matches) s[m.id] = initState(m);
@@ -76,13 +77,20 @@ export function ResultsEditor({ matches }: { matches: ResultDTO[] }) {
   }
 
   const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
     return matches.filter((m) => {
       if (filter === "group") return m.stage === STAGES.GROUP;
       if (filter === "knockout") return m.stage === STAGES.KNOCKOUT;
       if (filter === "pending") return !state[m.id].finalized;
-      return true;
+      if (filter === "finished") return state[m.id].finalized;
+      if (!q) return true;
+      const hay = [m.homeName, m.awayName, m.homeSeedLabel, m.awaySeedLabel, String(m.matchNumber), m.groupCode]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
     });
-  }, [matches, filter, state]);
+  }, [matches, filter, state, query]);
 
   function save() {
     const dirtyIds = [...dirty];
@@ -121,32 +129,50 @@ export function ResultsEditor({ matches }: { matches: ResultDTO[] }) {
 
   const filters = [
     { id: "all", label: "Բոլորը" },
+    { id: "pending", label: "Սպասող" },
+    { id: "finished", label: "Ավարտված" },
     { id: "group", label: "Խմբային" },
     { id: "knockout", label: "Փլեյ-օֆ" },
-    { id: "pending", label: "Չավարտված" },
   ] as const;
 
   return (
     <div className="space-y-4 pb-savebar">
-      <div className="flex flex-wrap gap-1.5 overflow-x-auto">
-        {filters.map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setFilter(f.id)}
-            className={cn(
-              "whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition",
-              filter === f.id ? "bg-gold-500/20 text-gold-400" : "bg-white/[0.03] text-navy-300 hover:bg-white/5",
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
+      <p className="text-sm text-navy-300">
+        Ավարտված խաղերի հաշիվները կարելի է փոխել — ուղղեք արդյունքը և սեղմեք «Պահպանել և վերահաշվարկել»։
+      </p>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-1.5 overflow-x-auto">
+          {filters.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id)}
+              className={cn(
+                "whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition",
+                filter === f.id ? "bg-gold-500/20 text-gold-400" : "bg-white/[0.03] text-navy-300 hover:bg-white/5",
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Որոնել թիմ կամ խաղ №…"
+          className="h-10 w-full rounded-xl border border-white/10 bg-navy-900/80 px-3 text-sm text-white outline-none placeholder:text-navy-500 focus:border-gold-400 sm:max-w-xs"
+        />
       </div>
 
       <div className="space-y-2">
-        {filtered.map((m) => (
-          <ResultRow key={m.id} m={m} value={state[m.id]} onChange={(p) => patch(m.id, p)} />
-        ))}
+        {filtered.length === 0 ? (
+          <p className="py-6 text-center text-sm text-navy-400">Որոնման արդյունք չկա։</p>
+        ) : (
+          filtered.map((m) => (
+            <ResultRow key={m.id} m={m} value={state[m.id]} onChange={(p) => patch(m.id, p)} />
+          ))
+        )}
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-navy-950/90 backdrop-blur-xl bottom-bar-pad">

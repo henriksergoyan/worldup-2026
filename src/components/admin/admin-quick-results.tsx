@@ -28,6 +28,7 @@ export interface QuickResultMatch {
   penaltyHome: number | null;
   penaltyAway: number | null;
   winner: "HOME" | "AWAY" | null;
+  finalized: boolean;
 }
 
 type Local = Record<
@@ -43,7 +44,7 @@ type Local = Record<
   }
 >;
 
-type Filter = "all" | "group" | "knockout";
+type Filter = "all" | "pending" | "finished" | "group" | "knockout";
 
 function initLocal(matches: QuickResultMatch[]): Local {
   const s: Local = {};
@@ -103,6 +104,8 @@ export function AdminQuickResults({ matches }: { matches: QuickResultMatch[] }) 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return matches.filter((m) => {
+      if (filter === "pending" && m.finalized) return false;
+      if (filter === "finished" && !m.finalized) return false;
       if (filter === "group" && m.stage !== STAGES.GROUP) return false;
       if (filter === "knockout" && m.stage !== STAGES.KNOCKOUT) return false;
       if (!q) return true;
@@ -144,20 +147,29 @@ export function AdminQuickResults({ matches }: { matches: QuickResultMatch[] }) 
     return (
       <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-8 text-center">
         <div className="text-3xl">✅</div>
-        <p className="mt-2 text-sm font-semibold text-white">Բոլոր մեկնարկած խաղերը լրացված են</p>
-        <p className="mt-1 text-xs text-navy-400">Նոր խաղ մեկնարկելուն պես այն կհայտնվի այստեղ։</p>
+        <p className="mt-2 text-sm font-semibold text-white">Մեկնարկած խաղեր չկան</p>
+        <p className="mt-1 text-xs text-navy-400">Խաղը մեկնարկելուն պես այն կհայտնվի այստեղ։</p>
       </div>
     );
   }
 
+  const pendingCount = matches.filter((m) => !m.finalized).length;
+  const finishedCount = matches.filter((m) => m.finalized).length;
+
   const filters: { id: Filter; label: string }[] = [
     { id: "all", label: `Բոլորը (${matches.length})` },
+    { id: "pending", label: `Սպասող (${pendingCount})` },
+    { id: "finished", label: `Ավարտված (${finishedCount})` },
     { id: "group", label: "Խմբային" },
     { id: "knockout", label: "Փլեյ-օֆ" },
   ];
 
   return (
     <div className="space-y-4 pb-savebar">
+      <p className="text-xs text-navy-400">
+        Սխալ հաշիվ մուտքագրելու դեպքում փոխեք արդյունքը և սեղմեք «Պահպանել և վերահաշվարկել»։ Ավարտված խաղերն էլ կարելի է ուղղել։
+      </p>
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-1.5">
           {filters.map((f) => (
@@ -250,14 +262,21 @@ function QuickResultRow({
     <div
       className={cn(
         "rounded-xl border p-3 sm:p-4",
-        dirty ? "border-gold-500/35 bg-gold-500/[0.06]" : "border-amber-500/15 bg-amber-500/[0.03]",
+        dirty
+          ? "border-gold-500/35 bg-gold-500/[0.06]"
+          : m.finalized
+            ? "border-pitch-500/25 bg-pitch-500/[0.04]"
+            : "border-amber-500/15 bg-amber-500/[0.03]",
       )}
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-400">
         <span>
           #{m.matchNumber} · {stageLabel} · {formatDateTime(m.scheduledAt)}
         </span>
-        {dirty && <Badge variant="warning">Չպահպանված</Badge>}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {m.finalized && <Badge variant="success">Ավարտված</Badge>}
+          {dirty && <Badge variant="warning">Չպահպանված</Badge>}
+        </div>
       </div>
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">

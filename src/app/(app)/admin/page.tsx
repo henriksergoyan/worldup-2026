@@ -18,7 +18,7 @@ export default async function AdminPage() {
   const tournament = await getActiveTournament();
   const now = new Date();
 
-  const [playerCount, paidCount, matchCount, finishedCount, predictionCount, standings, awaitingMatches] =
+  const [playerCount, paidCount, matchCount, finishedCount, predictionCount, standings, kickedOffMatches] =
     await Promise.all([
       prisma.user.count({ where: { role: "PLAYER" } }),
       prisma.user.count({ where: { role: "PLAYER", paid: true } }),
@@ -32,16 +32,16 @@ export default async function AdminPage() {
         where: {
           tournamentId: tournament.id,
           scheduledAt: { lte: now },
-          NOT: { actualResult: { finalized: true } },
         },
         include: { homeTeam: true, awayTeam: true, actualResult: true },
         orderBy: { scheduledAt: "desc" },
+        take: 48,
       }),
     ]);
 
   const pendingCount = matchCount - finishedCount;
 
-  const quickResultMatches: QuickResultMatch[] = awaitingMatches.map((m) => {
+  const quickResultMatches: QuickResultMatch[] = kickedOffMatches.map((m) => {
     const r = m.actualResult;
     return {
       id: m.id,
@@ -66,6 +66,7 @@ export default async function AdminPage() {
           : r?.winnerTeamId === m.awayTeamId && m.awayTeamId
             ? ("AWAY" as const)
             : null,
+      finalized: r?.finalized ?? false,
     };
   });
 
@@ -116,10 +117,10 @@ export default async function AdminPage() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <span>⏱️</span> Սպասում են արդյունքի
+                <span>⏱️</span> Արդյունքների մուտք
               </CardTitle>
               <p className="mt-1 text-xs text-navy-300 sm:text-sm">
-                Մուտքագրեք հաշիվները այստեղից — պահպանելիս միավորները վերահաշվարկվում են ավտոմատ։
+                Մուտքագրեք կամ ուղղեք հաշիվները — ավարտված խաղերն էլ կարելի է խմբագրել։ Պահպանելիս միավորները վերահաշվարկվում են։
               </p>
             </div>
             <a href="/admin/results">

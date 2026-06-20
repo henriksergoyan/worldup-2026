@@ -53,7 +53,7 @@ export default async function AdminResultsPage() {
       <div>
         <h1 className="font-display text-2xl font-black text-white md:text-3xl">Արդյունքների մուտք</h1>
         <p className="text-sm text-navy-300">
-          Մուտքագրեք արդյունական հաշիվները և վերջնականացրեք խաղերը։ Վերջնականացումից հետո միավորները վերահաշվարկվում են ավտոմատ։
+          Մուտքագրեք կամ ուղղեք արդյունական հաշիվները։ Ավարտված խաղերն էլ կարելի է խմբագրել — պահպանելիս միավորները վերահաշվարկվում են։
         </p>
       </div>
       <AdminNav />
