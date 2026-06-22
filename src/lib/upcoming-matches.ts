@@ -1,5 +1,5 @@
 import { type Phase } from "./constants";
-import { isMatchLocked, type DeadlineState } from "./deadlines";
+import type { DeadlineState } from "./deadlines";
 
 export type UpcomingMatchInput = {
   stage: string;
@@ -41,13 +41,13 @@ export function isMatchVisibleInUpcomingList(
 }
 
 /**
- * Pick the next N upcoming fixtures for the player dashboard.
- * Prefers live games, then open predictions, then locked future kickoffs.
+ * Pick the next N fixtures for the player dashboard.
+ * Live games first, then everything else in kickoff order (lock status does not reorder).
  */
 export function pickUpcomingMatches<T extends UpcomingMatchInput>(
   matches: T[],
-  deadlines: Map<Phase, DeadlineState>,
-  kickoffLockMinutes: number,
+  _deadlines: Map<Phase, DeadlineState>,
+  _kickoffLockMinutes: number,
   limit = 3,
   now = Date.now(),
 ): T[] {
@@ -55,18 +55,8 @@ export function pickUpcomingMatches<T extends UpcomingMatchInput>(
     .filter((m) => isMatchVisibleInUpcomingList(m, now))
     .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime());
 
-  const live: T[] = [];
-  const open: T[] = [];
-  const locked: T[] = [];
-  for (const m of visible) {
-    if (isMatchLive(m, now)) {
-      live.push(m);
-    } else if (isMatchLocked(m, deadlines, kickoffLockMinutes)) {
-      locked.push(m);
-    } else {
-      open.push(m);
-    }
-  }
+  const live = visible.filter((m) => isMatchLive(m, now));
+  const rest = visible.filter((m) => !isMatchLive(m, now));
 
-  return [...live, ...open, ...locked].slice(0, limit);
+  return [...live, ...rest].slice(0, limit);
 }

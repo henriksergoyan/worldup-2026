@@ -105,7 +105,7 @@ export default async function DashboardPage() {
           predictions: { where: { userId: user.id } },
         },
         orderBy: { scheduledAt: "asc" },
-        take: 24,
+        take: 48,
       }),
     ]);
 
@@ -113,7 +113,7 @@ export default async function DashboardPage() {
     upcomingPool,
     deadlines,
     tournament.kickoffLockMinutes,
-    3,
+    6,
   );
 
   const me = breakdownByUser[user.id];
