@@ -2,8 +2,10 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { computeStandings, getActiveTournament } from "@/lib/standings";
+import { getDeadlineCompletionReport } from "@/lib/deadline-completion";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminMemberLink } from "@/components/admin-member-link";
+import { DeadlineCompletionBadge } from "@/components/admin/deadline-completion-badge";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
@@ -12,7 +14,13 @@ export const dynamic = "force-dynamic";
 export default async function AdminMembersPage() {
   await requireAdmin();
   const tournament = await getActiveTournament();
-  const { leaderboard, breakdownByUser } = await computeStandings(tournament.id);
+  const [{ leaderboard, breakdownByUser }, deadlineCompletion] = await Promise.all([
+    computeStandings(tournament.id),
+    getDeadlineCompletionReport(tournament.id),
+  ]);
+
+  const completionByUser = new Map(deadlineCompletion.players.map((p) => [p.userId, p]));
+  const hasDeadline = deadlineCompletion.phase != null && (deadlineCompletion.players[0]?.total ?? 0) > 0;
 
   const users = await prisma.user.findMany({
     where: { role: "PLAYER" },
@@ -27,6 +35,14 @@ export default async function AdminMembersPage() {
         <h1 className="font-display text-2xl font-black text-white md:text-3xl">Մասնակիցների կանխատեսումներ</h1>
         <p className="text-sm text-navy-300">
           Սեղմեք անունի վրա՝ տեսնելու համար ամբողջական կանխատեսումները, միավորները և արդյունքները։
+          {hasDeadline && (
+            <>
+              {" "}
+              <span className="text-amber-300/90">
+                «Հաջորդ վերջնաժամկետ» սյունակը ցույց է տալիս, թե քանի խաղ է լրացրել յուրաքանչյուրը։
+              </span>
+            </>
+          )}
         </p>
       </div>
 
@@ -41,6 +57,7 @@ export default async function AdminMembersPage() {
                 <th className="px-4 py-3">Խաղացող</th>
                 <th className="px-4 py-3 text-right">Միավոր</th>
                 <th className="px-4 py-3 text-right">Կանխատեսումներ</th>
+                {hasDeadline && <th className="px-4 py-3 text-right">Հաջորդ վերջնաժամկետ</th>}
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -65,6 +82,22 @@ export default async function AdminMembersPage() {
                     <td className="px-4 py-3 text-right tabular-nums text-navy-300">
                       {bd?.predictionsMade ?? 0}
                     </td>
+                    {hasDeadline && (
+                      <td className="px-4 py-3 text-right">
+                        {(() => {
+                          const c = completionByUser.get(u.id);
+                          if (!c) return <span className="text-navy-500">—</span>;
+                          return (
+                            <DeadlineCompletionBadge
+                              filled={c.filled}
+                              total={c.total}
+                              status={c.status}
+                              compact
+                            />
+                          );
+                        })()}
+                      </td>
+                    )}
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/admin/members/${u.id}`}

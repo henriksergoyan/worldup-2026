@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { formatAMD } from "@/lib/utils";
 import { AdminMemberLink } from "@/components/admin-member-link";
 import { MATCH_STATUS } from "@/lib/constants";
+import { getDeadlineCompletionReport } from "@/lib/deadline-completion";
+import { DeadlineCompletionPanel } from "@/components/admin/deadline-completion-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +20,7 @@ export default async function AdminPage() {
   const tournament = await getActiveTournament();
   const now = new Date();
 
-  const [playerCount, paidCount, matchCount, finishedCount, predictionCount, standings, kickedOffMatches] =
+  const [playerCount, paidCount, matchCount, finishedCount, predictionCount, standings, kickedOffMatches, deadlineCompletion] =
     await Promise.all([
       prisma.user.count({ where: { role: "PLAYER" } }),
       prisma.user.count({ where: { role: "PLAYER", paid: true } }),
@@ -37,6 +39,7 @@ export default async function AdminPage() {
         orderBy: { scheduledAt: "desc" },
         take: 48,
       }),
+      getDeadlineCompletionReport(tournament.id),
     ]);
 
   const pendingCount = matchCount - finishedCount;
@@ -110,6 +113,8 @@ export default async function AdminPage() {
           </Card>
         ))}
       </div>
+
+      <DeadlineCompletionPanel report={deadlineCompletion} />
 
       {/* Matches that already kicked off and still need results */}
       <Card className="overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-500/[0.08] via-transparent to-transparent">

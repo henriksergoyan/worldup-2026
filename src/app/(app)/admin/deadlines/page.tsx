@@ -1,8 +1,10 @@
 import { requireAdmin } from "@/lib/auth";
 import { getActiveTournament } from "@/lib/standings";
 import { getDeadlineMap } from "@/lib/deadlines";
+import { getDeadlineCompletionReport } from "@/lib/deadline-completion";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { DeadlinesEditor, type DeadlineRow } from "@/components/admin/deadlines-editor";
+import { DeadlineCompletionPanel } from "@/components/admin/deadline-completion-panel";
 import { PHASE_ORDER } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +12,10 @@ export const dynamic = "force-dynamic";
 export default async function AdminDeadlinesPage() {
   await requireAdmin();
   const tournament = await getActiveTournament();
-  const map = await getDeadlineMap(tournament.id);
+  const [map, deadlineCompletion] = await Promise.all([
+    getDeadlineMap(tournament.id),
+    getDeadlineCompletionReport(tournament.id),
+  ]);
 
   const rows: DeadlineRow[] = PHASE_ORDER.map((phase) => {
     const d = map.get(phase);
@@ -32,6 +37,7 @@ export default async function AdminDeadlinesPage() {
         </p>
       </div>
       <AdminNav />
+      <DeadlineCompletionPanel report={deadlineCompletion} />
       <DeadlinesEditor rows={rows} />
     </div>
   );
