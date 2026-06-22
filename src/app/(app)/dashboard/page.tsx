@@ -13,7 +13,7 @@ import { Countdown } from "@/components/countdown";
 import { ChampionHero } from "@/components/champion-hero";
 import { PHASE_LABELS, PLAYER_DEADLINE_PHASES, ROUND_LABELS, STAGES, TEAM_PICK_TYPES, type Round } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { pickUpcomingMatches } from "@/lib/upcoming-matches";
+import { pickUpcomingMatches, isMatchLive, UPCOMING_MATCH_VISIBLE_AFTER_KICKOFF_MS } from "@/lib/upcoming-matches";
 
 export const dynamic = "force-dynamic";
 
@@ -96,7 +96,7 @@ export default async function DashboardPage() {
         where: {
           tournamentId: tournament.id,
           NOT: { actualResult: { finalized: true } },
-          scheduledAt: { gt: new Date() },
+          scheduledAt: { gt: new Date(Date.now() - UPCOMING_MATCH_VISIBLE_AFTER_KICKOFF_MS) },
         },
         include: {
           homeTeam: true,
@@ -199,10 +199,10 @@ export default async function DashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <span>📅</span> Սպասվող խաղեր
+                <span>📅</span> Սպասվող և ընթացիկ խաղեր
               </CardTitle>
               <p className="mt-1 text-xs text-navy-300 sm:text-sm">
-                Մոտակա 3 խաղերը, որոնց կանխատեսումը դեռ բաց է
+                Մոտակա խաղերը և այն խաղերը, որոնք արդեն մեկնարկել են (ցուցադրվում են մինչև 2 ժամ kickoff-ից հետո)
               </p>
             </div>
             <Link href="/predictions">
@@ -225,6 +225,7 @@ export default async function DashboardPage() {
               const hasPred =
                 pred != null && pred.normalHomeGoals != null && pred.normalAwayGoals != null;
               const locked = isMatchLocked(m, deadlines, tournament.kickoffLockMinutes);
+              const live = isMatchLive(m);
               const lockAt = matchEditLockAt(m.scheduledAt, tournament.kickoffLockMinutes);
               const stageLabel =
                 m.stage === STAGES.KNOCKOUT
@@ -270,6 +271,7 @@ export default async function DashboardPage() {
                       <span className="text-xs font-semibold text-amber-300">⚠️ Կանխատեսումը լրացված չէ</span>
                     )}
                     <div className="flex flex-wrap items-center gap-1.5">
+                      {live && <Badge variant="danger">🔴 Ընթացքում</Badge>}
                       {locked ? (
                         <Badge variant="muted">🔒 Փակ է</Badge>
                       ) : (

@@ -45,7 +45,7 @@ export const EXCEL_DEADLINES: ExcelDeadline[] = [
   {
     phase: PHASES.GROUP_R3,
     lockAt: yerevanLocalToUtc(2026, 6, 23, 0, 0),
-    label: "Group stage round 3 scores",
+    label: "Group stage round 3 scores (overridden at runtime: 1hr before first R3 kickoff)",
   },
   {
     phase: PHASES.KO_R32,

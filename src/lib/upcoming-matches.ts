@@ -9,6 +9,9 @@ export type UpcomingMatchInput = {
   actualResult?: { finalized: boolean } | null;
 };
 
+/** How long after kickoff a match stays on the player's upcoming list. */
+export const UPCOMING_MATCH_VISIBLE_AFTER_KICKOFF_MS = 2 * 60 * 60 * 1000;
+
 /** Kickoff has not passed and the match is not finalized. */
 export function isMatchUpcoming(
   match: UpcomingMatchInput,
@@ -18,10 +21,28 @@ export function isMatchUpcoming(
   return match.scheduledAt.getTime() > now;
 }
 
+/** In progress: kickoff passed, not finalized, still within the post-kickoff visibility window. */
+export function isMatchLive(
+  match: UpcomingMatchInput,
+  now = Date.now(),
+): boolean {
+  if (match.actualResult?.finalized) return false;
+  const kickoff = match.scheduledAt.getTime();
+  return kickoff <= now && now < kickoff + UPCOMING_MATCH_VISIBLE_AFTER_KICKOFF_MS;
+}
+
+/** Shown on dashboard until finalized or 2 hours after kickoff. */
+export function isMatchVisibleInUpcomingList(
+  match: UpcomingMatchInput,
+  now = Date.now(),
+): boolean {
+  if (match.actualResult?.finalized) return false;
+  return now < match.scheduledAt.getTime() + UPCOMING_MATCH_VISIBLE_AFTER_KICKOFF_MS;
+}
+
 /**
  * Pick the next N upcoming fixtures for the player dashboard.
- * Prefers matches that are still open for predictions (not locked),
- * then fills with the nearest locked kickoffs if needed.
+ * Prefers live games, then open predictions, then locked future kickoffs.
  */
 export function pickUpcomingMatches<T extends UpcomingMatchInput>(
   matches: T[],
@@ -30,19 +51,22 @@ export function pickUpcomingMatches<T extends UpcomingMatchInput>(
   limit = 3,
   now = Date.now(),
 ): T[] {
-  const future = matches
-    .filter((m) => isMatchUpcoming(m, now))
+  const visible = matches
+    .filter((m) => isMatchVisibleInUpcomingList(m, now))
     .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime());
 
+  const live: T[] = [];
   const open: T[] = [];
   const locked: T[] = [];
-  for (const m of future) {
-    if (isMatchLocked(m, deadlines, kickoffLockMinutes)) {
+  for (const m of visible) {
+    if (isMatchLive(m, now)) {
+      live.push(m);
+    } else if (isMatchLocked(m, deadlines, kickoffLockMinutes)) {
       locked.push(m);
     } else {
       open.push(m);
     }
   }
 
-  return [...open, ...locked].slice(0, limit);
+  return [...live, ...open, ...locked].slice(0, limit);
 }

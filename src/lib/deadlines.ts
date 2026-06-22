@@ -34,8 +34,54 @@ export function phaseForMatch(match: {
   return indexInGroup < 4 ? PHASES.GROUP_R1_R2 : PHASES.GROUP_R3;
 }
 
+export function isGroupRound3Match(match: {
+  stage: string;
+  round: string | null;
+  matchNumber: number;
+}): boolean {
+  return match.stage === STAGES.GROUP && phaseForMatch(match) === PHASES.GROUP_R3;
+}
+
+type MatchScheduleRow = {
+  stage: string;
+  round: string | null;
+  matchNumber: number;
+  scheduledAt: Date;
+};
+
+/** Earliest kickoff among group-stage round 3 fixtures. */
+export function groupR3FirstKickoff(matches: MatchScheduleRow[]): Date | null {
+  const r3 = matches.filter(isGroupRound3Match);
+  if (r3.length === 0) return null;
+  return r3.reduce(
+    (min, m) => (m.scheduledAt.getTime() < min.getTime() ? m.scheduledAt : min),
+    r3[0].scheduledAt,
+  );
+}
+
+/** GROUP_R3 phase locks 1 hour before the first round-3 kickoff. */
+export function groupR3PhaseLockAt(
+  matches: MatchScheduleRow[],
+  kickoffLockMinutes: number = DEFAULT_KICKOFF_LOCK_MINUTES,
+): Date | null {
+  const first = groupR3FirstKickoff(matches);
+  if (!first) return null;
+  return matchEditLockAt(first, kickoffLockMinutes);
+}
+
 export async function getDeadlineMap(tournamentId: string): Promise<Map<Phase, DeadlineState>> {
-  const rows = await prisma.deadline.findMany({ where: { tournamentId } });
+  const [rows, tournament, matches] = await Promise.all([
+    prisma.deadline.findMany({ where: { tournamentId } }),
+    prisma.tournament.findUniqueOrThrow({
+      where: { id: tournamentId },
+      select: { kickoffLockMinutes: true },
+    }),
+    prisma.match.findMany({
+      where: { tournamentId },
+      select: { stage: true, round: true, matchNumber: true, scheduledAt: true },
+    }),
+  ]);
+
   const map = new Map<Phase, DeadlineState>();
   for (const r of rows) {
     map.set(r.phase as Phase, {
@@ -45,6 +91,19 @@ export async function getDeadlineMap(tournamentId: string): Promise<Map<Phase, D
       locked: isPhaseLocked(r),
     });
   }
+
+  const r3LockAt = groupR3PhaseLockAt(matches, tournament.kickoffLockMinutes);
+  if (r3LockAt) {
+    const existing = map.get(PHASES.GROUP_R3);
+    const isOpen = existing?.isOpen ?? true;
+    map.set(PHASES.GROUP_R3, {
+      phase: PHASES.GROUP_R3,
+      lockAt: r3LockAt,
+      isOpen,
+      locked: isPhaseLocked({ lockAt: r3LockAt, isOpen }),
+    });
+  }
+
   return map;
 }
 
