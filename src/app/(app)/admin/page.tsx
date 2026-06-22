@@ -20,7 +20,7 @@ export default async function AdminPage() {
   const tournament = await getActiveTournament();
   const now = new Date();
 
-  const [playerCount, paidCount, matchCount, finishedCount, predictionCount, standings, kickedOffMatches, deadlineCompletion] =
+  const [playerCount, paidCount, matchCount, finishedCount, predictionCount, standings, kickedOffMatches, pendingScoreCount, deadlineCompletion] =
     await Promise.all([
       prisma.user.count({ where: { role: "PLAYER" } }),
       prisma.user.count({ where: { role: "PLAYER", paid: true } }),
@@ -39,8 +39,17 @@ export default async function AdminPage() {
         orderBy: { scheduledAt: "desc" },
         take: 48,
       }),
+      prisma.match.count({
+        where: {
+          tournamentId: tournament.id,
+          scheduledAt: { lte: now },
+          OR: [{ actualResult: null }, { actualResult: { finalized: false } }],
+        },
+      }),
       getDeadlineCompletionReport(tournament.id),
     ]);
+
+  const prioritizeScoreEntry = pendingScoreCount > 0;
 
   const pendingCount = matchCount - finishedCount;
 
@@ -71,6 +80,9 @@ export default async function AdminPage() {
             : null,
       finalized: r?.finalized ?? false,
     };
+  }).sort((a, b) => {
+    if (a.finalized !== b.finalized) return a.finalized ? 1 : -1;
+    return new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime();
   });
 
   const stats = [
@@ -104,30 +116,17 @@ export default async function AdminPage() {
 
       <AdminNav />
 
-      <Card className="overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-500/[0.08] via-transparent to-transparent">
-        <CardHeader className="pb-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <span>⏱️</span> Արդյունքների մուտք
-              </CardTitle>
-              <p className="mt-1 text-xs text-navy-300 sm:text-sm">
-                Մուտքագրեք կամ ուղղեք հաշիվները — ավարտված խաղերն էլ կարելի է խմբագրել։ Պահպանելիս միավորները վերահաշվարկվում են։
-              </p>
-            </div>
-            <a href="/admin/results">
-              <Button variant="outline" size="sm">
-                Բոլոր արդյունքները →
-              </Button>
-            </a>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <AdminQuickResults matches={quickResultMatches} />
-        </CardContent>
-      </Card>
-
-      <DeadlineCompletionPanel report={deadlineCompletion} />
+      {prioritizeScoreEntry ? (
+        <>
+          <ResultsEntryCard matches={quickResultMatches} defaultFilter="pending" />
+          <DeadlineCompletionPanel report={deadlineCompletion} />
+        </>
+      ) : (
+        <>
+          <DeadlineCompletionPanel report={deadlineCompletion} />
+          <ResultsEntryCard matches={quickResultMatches} />
+        </>
+      )}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {stats.map((s) => (
@@ -189,6 +188,39 @@ export default async function AdminPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function ResultsEntryCard({
+  matches,
+  defaultFilter = "all",
+}: {
+  matches: QuickResultMatch[];
+  defaultFilter?: "all" | "pending" | "finished" | "group" | "knockout";
+}) {
+  return (
+    <Card className="overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-500/[0.08] via-transparent to-transparent">
+      <CardHeader className="pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <span>⏱️</span> Արդյունքների մուտք
+            </CardTitle>
+            <p className="mt-1 text-xs text-navy-300 sm:text-sm">
+              Մուտքագրեք կամ ուղղեք հաշիվները — ավարտված խաղերն էլ կարելի է խմբագրել։ Պահպանելիս միավորները վերահաշվարկվում են։
+            </p>
+          </div>
+          <a href="/admin/results">
+            <Button variant="outline" size="sm">
+              Բոլոր արդյունքները →
+            </Button>
+          </a>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <AdminQuickResults matches={matches} defaultFilter={defaultFilter} />
+      </CardContent>
+    </Card>
   );
 }
 

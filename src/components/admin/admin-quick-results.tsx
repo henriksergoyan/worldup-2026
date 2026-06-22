@@ -88,10 +88,16 @@ function NumBox({
   );
 }
 
-export function AdminQuickResults({ matches }: { matches: QuickResultMatch[] }) {
+export function AdminQuickResults({
+  matches,
+  defaultFilter = "all",
+}: {
+  matches: QuickResultMatch[];
+  defaultFilter?: Filter;
+}) {
   const { toast } = useToast();
   const [pending, start] = useTransition();
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<Filter>(defaultFilter);
   const [query, setQuery] = useState("");
   const [local, setLocal] = useState<Local>(() => initLocal(matches));
   const [dirty, setDirty] = useState<Set<string>>(new Set());
