@@ -318,6 +318,7 @@ function SmallScorePair({
       <div className="flex items-center gap-1.5">
         <input
           type="number"
+          inputMode="numeric"
           min={0}
           max={99}
           value={home ?? ""}
@@ -328,6 +329,7 @@ function SmallScorePair({
         <span className="text-navy-500">:</span>
         <input
           type="number"
+          inputMode="numeric"
           min={0}
           max={99}
           value={away ?? ""}

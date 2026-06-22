@@ -38,7 +38,7 @@ export function NavBar({
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-navy-950/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
+      <div className="px-safe mx-auto flex h-16 max-w-6xl items-center justify-between gap-4">
         <Link href={homeHref} className="flex items-center gap-2">
           <span className="text-2xl">⚽</span>
           <span className="font-display text-lg font-black tracking-tight text-white">
@@ -100,7 +100,7 @@ export function NavBar({
       </div>
 
       {open && (
-        <nav className="flex flex-col gap-1 border-t border-white/10 px-4 py-3 md:hidden">
+        <nav className="px-safe flex flex-col gap-1 border-t border-white/10 py-3 md:hidden">
           <div className="mb-1 flex items-center gap-2.5 px-1 pb-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-pitch-500/20 text-sm font-bold text-pitch-200">
               {initials(user.name)}

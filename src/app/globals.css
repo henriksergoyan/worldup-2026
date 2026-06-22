@@ -64,6 +64,11 @@
   .pb-savebar {
     padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
   }
+  /* Horizontal padding that keeps clear of the notch in landscape (min 1rem) */
+  .px-safe {
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  }
 }
 
 /* Prevent accidental horizontal scroll on small screens */

@@ -189,7 +189,7 @@ export function LeaderboardClient({
         <select
           value={sortKey}
           onChange={(e) => handleSort(e.target.value as SortKey)}
-          className="h-10 flex-1 rounded-xl border border-white/10 bg-navy-900/80 px-3 text-sm font-semibold text-white outline-none focus:border-pitch-400"
+          className="h-10 flex-1 rounded-xl border border-white/10 bg-navy-900/80 px-3 text-base font-semibold text-white outline-none focus:border-pitch-400"
         >
           <option value="rank">Դիրք</option>
           {COLUMNS.map((c) => (

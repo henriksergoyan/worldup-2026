@@ -104,19 +104,6 @@ export default async function AdminPage() {
 
       <AdminNav />
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {stats.map((s) => (
-          <Card key={s.label} className="p-4 sm:p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-navy-400 sm:text-xs">{s.label}</div>
-            <div className={`mt-2 text-xl font-black sm:text-2xl ${s.accent ?? "text-white"}`}>{s.value}</div>
-            {s.sub && <div className="mt-1 text-xs text-navy-400">{s.sub}</div>}
-          </Card>
-        ))}
-      </div>
-
-      <DeadlineCompletionPanel report={deadlineCompletion} />
-
-      {/* Matches that already kicked off and still need results */}
       <Card className="overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-500/[0.08] via-transparent to-transparent">
         <CardHeader className="pb-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -140,15 +127,17 @@ export default async function AdminPage() {
         </CardContent>
       </Card>
 
-      {/* Explanation of Recalculate button */}
-      <Card className="border-emerald-500/20 bg-emerald-500/[0.02] p-4 text-sm text-navy-200">
-        <div className="flex items-start gap-2.5">
-          <span className="text-base">💡</span>
-          <p>
-            <strong className="text-white">Կարևոր է.</strong> Խաղերի արդյունքներ կամ փոփոխություններ մուտքագրելուց հետո սեղմեք <strong className="text-emerald-400 font-bold">«Վերահաշվարկ»</strong> կոճակը՝ մասնակիցների միավորները, փլեյ-օֆֆի զույգերը և աղյուսակը ավտոմատ թարմացնելու համար։
-          </p>
-        </div>
-      </Card>
+      <DeadlineCompletionPanel report={deadlineCompletion} />
+
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {stats.map((s) => (
+          <Card key={s.label} className="p-4 sm:p-5">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-navy-400 sm:text-xs">{s.label}</div>
+            <div className={`mt-2 text-xl font-black sm:text-2xl ${s.accent ?? "text-white"}`}>{s.value}</div>
+            {s.sub && <div className="mt-1 text-xs text-navy-400">{s.sub}</div>}
+          </Card>
+        ))}
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <QuickLink

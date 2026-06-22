@@ -49,7 +49,7 @@ export function PredictionsTabs({
 
   return (
     <div>
-      <div className="mb-5 flex gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.02] p-1.5">
+      <div className="sticky top-16 z-30 mb-5 flex gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-navy-950/90 p-1.5 backdrop-blur-xl">
         {TABS.map((t) => (
           <button
             key={t.id}
