@@ -12,6 +12,12 @@ import { useToast } from "@/components/ui/toast";
 import { saveKnockoutPredictions } from "@/app/actions/predictions";
 import { resolveKnockoutWinner } from "@/lib/scoring";
 import { ROUND_LABELS, ROUNDS, type Round } from "@/lib/constants";
+import {
+  PredictionSaveDialog,
+  buildBizaConfirmation,
+  type BizaConfirmation,
+  type PredictionOutcome,
+} from "./prediction-save-dialog";
 
 interface KO {
   normalHome: number | null;
@@ -52,8 +58,16 @@ export function KnockoutPredictions({
     return init;
   });
   const [dirty, setDirty] = useState<Set<string>>(new Set());
+  const [confirmation, setConfirmation] = useState<BizaConfirmation | null>(null);
+  const [pendingItems, setPendingItems] = useState<({ matchId: string } & KO)[]>([]);
   // Rounds start collapsed for a cleaner overview.
   const [expandedRounds, setExpandedRounds] = useState<Record<string, boolean>>({});
+
+  const matchById = useMemo(() => {
+    const map = new Map<string, MatchDTO>();
+    for (const m of matches) map.set(m.id, m);
+    return map;
+  }, [matches]);
 
   const rounds = useMemo(() => {
     const map = new Map<string, MatchDTO[]>();
@@ -77,10 +91,40 @@ export function KnockoutPredictions({
       toast("Պահպանելու փոփոխություն չկա:", "info");
       return;
     }
+
+    const outcomes: PredictionOutcome[] = [];
+    for (const item of items) {
+      const m = matchById.get(item.matchId);
+      if (!m) continue;
+      const homeName = m.homeName ?? m.homeSeedLabel;
+      const awayName = m.awayName ?? m.awaySeedLabel;
+      if (!homeName || !awayName) continue;
+      const winnerSide = resolveKnockoutWinner({
+        normal: { home: item.normalHome, away: item.normalAway },
+        extra: { home: item.extraHome, away: item.extraAway },
+        penalty: { home: item.penaltyHome, away: item.penaltyAway },
+        winner: item.winner,
+      });
+      if (winnerSide === null) continue;
+      outcomes.push({ homeName, awayName, result: winnerSide });
+    }
+
+    const confirm = buildBizaConfirmation(outcomes);
+    if (!confirm) {
+      runSave(items);
+      return;
+    }
+    setPendingItems(items);
+    setConfirmation(confirm);
+  }
+
+  function runSave(items: ({ matchId: string } & KO)[]) {
     start(async () => {
       const res = await saveKnockoutPredictions(items);
       toast(res.message, res.ok ? "success" : "error");
       if (res.ok) setDirty(new Set());
+      setConfirmation(null);
+      setPendingItems([]);
     });
   }
 
@@ -148,6 +192,17 @@ export function KnockoutPredictions({
         );
       })}
       {!readOnly && <SaveBar count={dirty.size} pending={pending} onSave={save} />}
+
+      <PredictionSaveDialog
+        confirmation={confirmation}
+        pending={pending}
+        onConfirm={() => runSave(pendingItems)}
+        onCancel={() => {
+          if (pending) return;
+          setConfirmation(null);
+          setPendingItems([]);
+        }}
+      />
     </div>
   );
 }

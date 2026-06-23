@@ -11,6 +11,12 @@ import { useToast } from "@/components/ui/toast";
 import { saveGroupPredictions } from "@/app/actions/predictions";
 import { cn, formatDateTime } from "@/lib/utils";
 import { flagFor } from "@/lib/flags";
+import {
+  PredictionSaveDialog,
+  buildBizaConfirmation,
+  type BizaConfirmation,
+  type PredictionOutcome,
+} from "./prediction-save-dialog";
 
 type Local = Record<string, { home: number | null; away: number | null }>;
 
@@ -35,8 +41,18 @@ export function GroupPredictions({
     return init;
   });
   const [dirty, setDirty] = useState<Set<string>>(new Set());
+  const [confirmation, setConfirmation] = useState<BizaConfirmation | null>(null);
+  const [pendingItems, setPendingItems] = useState<
+    { matchId: string; home: number | null; away: number | null }[]
+  >([]);
   // Groups start collapsed; the header carries a recent-results summary.
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+
+  const matchById = useMemo(() => {
+    const map = new Map<string, MatchDTO>();
+    for (const m of matches) map.set(m.id, m);
+    return map;
+  }, [matches]);
 
   const groups = useMemo(() => {
     const map = new Map<string, MatchDTO[]>();
@@ -64,10 +80,38 @@ export function GroupPredictions({
       toast("Պահպանելու փոփոխություն չկա:", "info");
       return;
     }
+
+    const outcomes: PredictionOutcome[] = [];
+    for (const item of items) {
+      if (item.home === null || item.away === null) continue;
+      const m = matchById.get(item.matchId);
+      if (!m) continue;
+      const homeName = m.homeName ?? m.homeSeedLabel;
+      const awayName = m.awayName ?? m.awaySeedLabel;
+      if (!homeName || !awayName) continue;
+      outcomes.push({
+        homeName,
+        awayName,
+        result: item.home > item.away ? "HOME" : item.away > item.home ? "AWAY" : "DRAW",
+      });
+    }
+
+    const confirm = buildBizaConfirmation(outcomes);
+    if (!confirm) {
+      runSave(items);
+      return;
+    }
+    setPendingItems(items);
+    setConfirmation(confirm);
+  }
+
+  function runSave(items: { matchId: string; home: number | null; away: number | null }[]) {
     start(async () => {
       const res = await saveGroupPredictions(items);
       toast(res.message, res.ok ? "success" : "error");
       if (res.ok) setDirty(new Set());
+      setConfirmation(null);
+      setPendingItems([]);
     });
   }
 
@@ -151,6 +195,17 @@ export function GroupPredictions({
       })}
 
       {!readOnly && <SaveBar count={dirty.size} pending={pending} onSave={save} />}
+
+      <PredictionSaveDialog
+        confirmation={confirmation}
+        pending={pending}
+        onConfirm={() => runSave(pendingItems)}
+        onCancel={() => {
+          if (pending) return;
+          setConfirmation(null);
+          setPendingItems([]);
+        }}
+      />
     </div>
   );
 }
