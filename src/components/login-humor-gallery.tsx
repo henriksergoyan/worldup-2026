@@ -82,10 +82,6 @@ export function LoginHumorGallery() {
 
   return (
     <div className="space-y-3">
-      <p className="px-0.5 text-xs font-semibold uppercase tracking-wider text-navy-400">
-        Հումորային դրվագներ
-      </p>
-
       <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-navy-950/40 p-1.5 shadow-2xl backdrop-blur-sm">
         {EPISODES.length > 1 && (
           <>
@@ -138,25 +134,40 @@ export function LoginHumorGallery() {
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="mt-2.5 space-y-1.5">
-                {ep.songStyle && (
-                  <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400/90">
-                    🎵 Երգ
-                  </p>
-                )}
-                <p
-                  className={cn(
-                    "whitespace-pre-line rounded-lg px-3 py-2.5 text-center text-sm font-bold leading-relaxed",
-                    ep.songStyle &&
-                      "border border-amber-500/30 bg-gradient-to-br from-amber-500/15 to-red-500/10 font-serif italic text-amber-100",
-                    ep.retailStyle &&
-                      "border border-violet-500/35 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 text-violet-100",
-                  )}
+            ) : ep.songStyle ? (
+              <div className="relative mt-2.5 overflow-hidden rounded-lg border border-amber-400/35 bg-gradient-to-br from-amber-500/25 via-orange-500/10 to-rose-500/20 px-4 py-3 shadow-[inset_0_1px_0_rgba(251,191,36,0.15)]">
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -left-1 top-1/2 -translate-y-1/2 text-lg opacity-40"
                 >
+                  🎵
+                </span>
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -right-1 top-1/2 -translate-y-1/2 text-lg opacity-40"
+                >
+                  🎶
+                </span>
+                <p className="whitespace-pre-line text-center font-serif text-sm font-bold italic leading-relaxed text-transparent bg-gradient-to-r from-amber-100 via-yellow-200 to-amber-100 bg-clip-text drop-shadow-[0_0_20px_rgba(251,191,36,0.25)]">
                   {ep.caption}
                 </p>
+                <p
+                  aria-hidden
+                  className="mt-1.5 text-center text-[11px] tracking-[0.35em] text-amber-300/50"
+                >
+                  ♪ ♫ ♪
+                </p>
               </div>
+            ) : (
+              <p
+                className={cn(
+                  "mt-2.5 whitespace-pre-line rounded-lg px-3 py-2.5 text-center text-sm font-bold leading-relaxed",
+                  ep.retailStyle &&
+                    "border border-violet-500/35 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 text-violet-100",
+                )}
+              >
+                {ep.caption}
+              </p>
             )}
           </article>
         ))}
