@@ -125,6 +125,13 @@ export function GroupPredictions({
           list.reduce((sum, m) => sum + (m.averagePoints ?? 0), 0).toFixed(1),
         );
 
+        const unpredictedCount = list.filter((m) => {
+          const isLocked = m.locked || m.actual !== null;
+          if (isLocked) return false;
+          const val = local[m.id];
+          return !val || val.home === null || val.away === null;
+        }).length;
+
         // Most recent finalized games in this group (up to 4).
         const recent = [...list]
           .filter((m) => m.actual !== null)
@@ -134,11 +141,24 @@ export function GroupPredictions({
         const standings = standingsByGroup[code] ?? [];
 
         return (
-          <div key={code} className="rounded-2xl border border-white/5 bg-navy-950/20 overflow-hidden">
+          <div
+            key={code}
+            className={cn(
+              "rounded-2xl border bg-navy-950/20 overflow-hidden transition-all duration-300",
+              unpredictedCount > 0
+                ? "border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.03)]"
+                : "border-white/5"
+            )}
+          >
             {/* Clickable Collapsible Header */}
             <div
               onClick={() => setExpandedGroups((prev) => ({ ...prev, [code]: !isExpanded }))}
-              className="flex flex-col gap-3 p-4 bg-white/[0.02] hover:bg-white/[0.05] transition cursor-pointer select-none border-b border-white/5"
+              className={cn(
+                "flex flex-col gap-3 p-4 transition cursor-pointer select-none border-b border-white/5",
+                unpredictedCount > 0
+                  ? "bg-amber-500/[0.02] hover:bg-amber-500/[0.04]"
+                  : "bg-white/[0.02] hover:bg-white/[0.05]"
+              )}
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -150,6 +170,11 @@ export function GroupPredictions({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
+                  {unpredictedCount > 0 && (
+                    <Badge variant="warning" className="bg-amber-500/20 border-amber-500/35 text-amber-300 animate-pulse">
+                      ✍️ {unpredictedCount} չլրացված
+                    </Badge>
+                  )}
                   <Badge variant="success" className="bg-pitch-900/40 border-pitch-500/20 text-pitch-300">
                     🏆 +{totalPoints} միավոր
                   </Badge>
