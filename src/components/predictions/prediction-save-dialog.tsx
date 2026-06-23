@@ -125,10 +125,10 @@ export function PredictionSaveDialog({
             >
               {confirmation.kind === "decisive" ? (
                 <>
-                  Լսել եմ <Team name={declineTeam(confirmation.winnerKey, "genitive")} tone="win" /> վրա ես որոշել դնես,
-                  ախպորս տղեն <Team name={declineTeam(confirmation.loserKey, "genitive")} tone="lose" /> նախագահի շոֆեռն ա ու
-                  ասել ա՝ եթե էսօր <Team name={declineTeam(confirmation.loserKey, "definite")} tone="lose" /> չկրի, էս տարի ոչ
-                  մի տուրիստ <Team name={declineTeam(confirmation.loserKey, "ablative")} tone="lose" /> չի գնալու{" "}
+                  Լսել եմ <Team name={declineTeam(confirmation.winnerKey, "genitive")} tone="win" /> վրա ես որոշել դնես…{" "}
+                  Ախպորս տղեն <Team name={declineTeam(confirmation.loserKey, "genitive")} tone="lose" /> նախագահի շոֆեռն ա ու ասել ա՝ եթե էսօր{" "}
+                  <Team name={declineTeam(confirmation.loserKey, "definite")} tone="lose" /> չկրի, էս տարի ոչ մի տուրիստ{" "}
+                  <Team name={declineTeam(confirmation.loserKey, "ablative")} tone="lose" /> չի գնալու{" "}
                   <Team name={declineTeam(confirmation.winnerKey, "plain")} tone="win" /> հանգստանալու։{" "}
                   <span className="text-white">Վստա՞հ ես։</span>
                 </>
