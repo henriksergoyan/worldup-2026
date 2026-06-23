@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { flagFor } from "@/lib/flags";
+import { flagFor, translateTeam } from "@/lib/flags";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -47,7 +47,7 @@ export function ChampionStats({
               {myPick ? (
                 <div className="mt-1 flex items-center gap-2 font-display text-2xl font-bold text-white">
                   <span>{flagFor(myPick.teamName)}</span>
-                  {myPick.teamName}
+                  {translateTeam(myPick.teamName)}
                   {actualChampionId === myPick.teamId && <Badge variant="success">Իրական չեմպիոն ★</Badge>}
                 </div>
               ) : (
@@ -84,7 +84,7 @@ export function ChampionStats({
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                   <div className="flex min-w-0 flex-wrap items-center gap-2 font-semibold text-white">
                     <span>{flagFor(row.teamName)}</span>
-                    {row.teamName}
+                    {translateTeam(row.teamName)}
                     {isMine && <Badge variant="info">Դուք</Badge>}
                     {isActual && <Badge variant="gold">Չեմպիոն 🏆</Badge>}
                   </div>
@@ -135,7 +135,7 @@ export function ChampionStats({
                       {p.isMe && <span className="ml-1 text-xs text-pitch-300">(դուք)</span>}
                     </td>
                     <td className="px-4 py-2.5 text-navy-200">
-                      {flagFor(p.teamName)} {p.teamName}
+                      {flagFor(p.teamName)} {translateTeam(p.teamName)}
                     </td>
                   </tr>
                 ))}

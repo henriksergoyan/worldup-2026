@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { saveGroupPredictions } from "@/app/actions/predictions";
 import { cn, formatDateTime } from "@/lib/utils";
-import { flagFor } from "@/lib/flags";
+import { flagFor, translateTeam } from "@/lib/flags";
 import {
   PredictionSaveDialog,
   buildBizaConfirmation,
@@ -227,7 +227,7 @@ function RecentChip({ m, isNew }: { m: MatchDTO; isNew: boolean }) {
         </span>
       )}
       <span className="font-semibold text-navy-200">
-        {m.homeName ?? m.homeSeedLabel} <span className="font-black tabular-nums text-white">{m.actual?.normalHome}–{m.actual?.normalAway}</span> {m.awayName ?? m.awaySeedLabel}
+        {m.homeName ? translateTeam(m.homeName) : m.homeSeedLabel} <span className="font-black tabular-nums text-white">{m.actual?.normalHome}–{m.actual?.normalAway}</span> {m.awayName ? translateTeam(m.awayName) : m.awaySeedLabel}
       </span>
       {hasPred ? (
         <span
@@ -289,7 +289,7 @@ function GroupStandingsTable({ rows }: { rows: GroupStandingRowDTO[] }) {
                 </td>
                 <td className="px-1 py-1.5 font-semibold text-white">
                   <span className="mr-1">{flagFor(r.teamName)}</span>
-                  {r.teamName}
+                  {translateTeam(r.teamName)}
                 </td>
                 <td className="px-1.5 py-1.5 text-center tabular-nums text-navy-300">{r.played}</td>
                 <td className="px-1.5 py-1.5 text-center tabular-nums text-navy-300">{r.gf}</td>

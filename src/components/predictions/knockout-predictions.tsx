@@ -9,6 +9,7 @@ import { TeamChip } from "@/components/team-chip";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatDateTime } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
+import { translateTeam } from "@/lib/flags";
 import { saveKnockoutPredictions } from "@/app/actions/predictions";
 import { resolveKnockoutWinner } from "@/lib/scoring";
 import { ROUND_LABELS, ROUNDS, type Round } from "@/lib/constants";
@@ -331,13 +332,13 @@ function KnockoutRow({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-navy-400">Անցնում է հաջորդ փուլ՝</span>
         <WinnerPill
-          label={m.homeName ?? m.homeSeedLabel ?? "Տանտեր"}
+          label={m.homeName ? translateTeam(m.homeName) : (m.homeSeedLabel ?? "Տանտեր")}
           active={derivedWinner === "HOME"}
           onClick={() => !disabled && onChange({ winner: "HOME" })}
           disabled={disabled}
         />
         <WinnerPill
-          label={m.awayName ?? m.awaySeedLabel ?? "Հյուր"}
+          label={m.awayName ? translateTeam(m.awayName) : (m.awaySeedLabel ?? "Հյուր")}
           active={derivedWinner === "AWAY"}
           onClick={() => !disabled && onChange({ winner: "AWAY" })}
           disabled={disabled}

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TeamChip } from "@/components/team-chip";
+import { translateTeam } from "@/lib/flags";
 import { ROUND_LABELS, STAGES, type Round } from "@/lib/constants";
 
 export interface ArenaPrediction {
@@ -177,9 +178,9 @@ export function MatchArena(props: MatchArenaProps) {
             <CardContent className="space-y-3">
               {(
                 [
-                  ["1", `${props.homeName ?? "Տանտերերի"} հաղթանակ`, "from-pitch-600 to-pitch-400"],
+                  ["1", `${props.homeName ? translateTeam(props.homeName) : "Տանտերերի"} հաղթանակ`, "from-pitch-600 to-pitch-400"],
                   ["X", "Ոչ-ոքի", "from-amber-600 to-amber-400"],
-                  ["2", `${props.awayName ?? "Հյուրերի"} հաղթանակ`, "from-sky-600 to-sky-400"],
+                  ["2", `${props.awayName ? translateTeam(props.awayName) : "Հյուրերի"} հաղթանակ`, "from-sky-600 to-sky-400"],
                 ] as const
               ).map(([k, label, grad]) => {
                 const count = dist[k];
@@ -282,9 +283,9 @@ export function MatchArena(props: MatchArenaProps) {
               <CardHeader>
                 <CardTitle className="text-base">Արդյունքների ցուցատախտակ</CardTitle>
                 <p className="text-xs text-navy-400">
-                  <span className="text-pitch-300">Կանաչ</span> = {props.homeName ?? "Տանտերերի"} հաղթանակ ·{" "}
+                  <span className="text-pitch-300">Կանաչ</span> = {props.homeName ? translateTeam(props.homeName) : "Տանտերերի"} հաղթանակ ·{" "}
                   <span className="text-amber-300">Դեղին</span> = Ոչ-ոքի ·{" "}
-                  <span className="text-sky-300">Կապույտ</span> = {props.awayName ?? "Հյուրերի"} հաղթանակ
+                  <span className="text-sky-300">Կապույտ</span> = {props.awayName ? translateTeam(props.awayName) : "Հյուրերի"} հաղթանակ
                 </p>
               </CardHeader>
               <CardContent className="overflow-x-auto p-0">
@@ -327,10 +328,10 @@ export function MatchArena(props: MatchArenaProps) {
                             </td>
                             <td className="px-4 py-2.5 text-navy-200">
                               {outcome === "1"
-                                ? `${props.homeName ?? "Տանտերերի"} հաղթանակ`
+                                ? `${props.homeName ? translateTeam(props.homeName) : "Տանտերերի"} հաղթանակ`
                                 : outcome === "X"
                                   ? "Ոչ-ոքի"
-                                  : `${props.awayName ?? "Հյուրերի"} հաղթանակ`}
+                                  : `${props.awayName ? translateTeam(props.awayName) : "Հյուրերի"} հաղթանակ`}
                             </td>
                             <td className="px-4 py-2.5 text-right font-bold tabular-nums text-pitch-300">
                               {p.points !== null ? `+${p.points}` : "—"}

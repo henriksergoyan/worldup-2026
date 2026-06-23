@@ -4,7 +4,7 @@ import Link from "next/link";
 import { TeamDTO } from "./types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { flagFor } from "@/lib/flags";
+import { flagFor, translateTeam } from "@/lib/flags";
 
 export function ChampionPicker({
   teams,
@@ -44,7 +44,7 @@ export function ChampionPicker({
         <div className="flex items-center gap-4 rounded-2xl border border-gold-500/40 bg-gold-500/10 p-5">
           <span className="text-5xl">{flagFor(pick.name)}</span>
           <div>
-            <div className="font-display text-2xl font-bold text-white">{pick.name}</div>
+            <div className="font-display text-2xl font-bold text-white">{translateTeam(pick.name)}</div>
             <div className="text-sm text-navy-300">Խումբ {pick.groupCode}</div>
           </div>
         </div>

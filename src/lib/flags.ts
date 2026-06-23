@@ -50,6 +50,62 @@ export const TEAM_FLAGS: Record<string, string> = {
   Panama: "🇵🇦",
 };
 
+export const TEAM_TRANSLATIONS: Record<string, string> = {
+  Mexico: "Մեքսիկա",
+  "South Africa": "Հարավային Աֆրիկա",
+  "South Korea": "Հարավային Կորեա",
+  "Czech Republic": "Չեխիա",
+  Canada: "Կանադա",
+  "Bosnia and Herzegovina": "Բոսնիա և Հերցեգովինա",
+  Qatar: "Կատար",
+  Switzerland: "Շվեյցարիա",
+  Brazil: "Բրազիլիա",
+  Morocco: "Մարոկկո",
+  Haiti: "Հայիթի",
+  Scotland: "Շոտլանդիա",
+  "United States": "ԱՄՆ",
+  Paraguay: "Պարագվայ",
+  Australia: "Ավստրալիա",
+  Turkey: "Թուրքիա",
+  Germany: "Գերմանիա",
+  "Curaçao": "Կյուրասաո",
+  "Ivory Coast": "Կոտ դ'Իվուար",
+  Ecuador: "Էկվադոր",
+  Netherlands: "Նիդերլանդներ",
+  Japan: "Ճապոնիա",
+  Sweden: "Շվեդիա",
+  Tunisia: "Թունիս",
+  Belgium: "Բելգիա",
+  Egypt: "Եգիպտոս",
+  Iran: "Իրան",
+  "New Zealand": "Նոր Զելանդիա",
+  Spain: "Իսպանիա",
+  "Cape Verde": "Կաբո Վերդե",
+  "Saudi Arabia": "Սաուդյան Արաբիա",
+  Uruguay: "Ուրուգվայ",
+  France: "Ֆրանսիա",
+  Senegal: "Սենեգալ",
+  Iraq: "Իրաք",
+  Norway: "Նորվեգիա",
+  Argentina: "Արգենտինա",
+  Algeria: "Ալժիր",
+  Austria: "Ավստրիա",
+  Jordan: "Հորդանան",
+  Portugal: "Պորտուգալիա",
+  "DR Congo": "Կոնգոյի ԴՀ",
+  Uzbekistan: "Ուզբեկստան",
+  Colombia: "Կոլումբիա",
+  England: "Անգլիա",
+  Croatia: "Խորվաթիա",
+  Ghana: "Գանա",
+  Panama: "Պանամա",
+};
+
+export function translateTeam(name: string | null | undefined): string {
+  if (!name) return "";
+  return TEAM_TRANSLATIONS[name] ?? name;
+}
+
 export function flagFor(teamName: string | null | undefined): string {
   if (!teamName) return "⚽";
   return TEAM_FLAGS[teamName] ?? "⚽";

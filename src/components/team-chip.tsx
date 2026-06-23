@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { flagFor } from "@/lib/flags";
+import { flagFor, translateTeam } from "@/lib/flags";
 
 export function TeamChip({
   name,
@@ -12,7 +12,7 @@ export function TeamChip({
   align?: "left" | "right";
   className?: string;
 }) {
-  const label = name ?? seedLabel ?? "TBD";
+  const label = name ? translateTeam(name) : (seedLabel ?? "TBD");
   const flag = name ? flagFor(name) : "❓";
   return (
     <span

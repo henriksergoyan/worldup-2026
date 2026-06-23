@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { translateTeam } from "@/lib/flags";
 
 export type PredictionOutcome = {
   homeName: string;
@@ -29,13 +30,13 @@ export function buildBizaConfirmation(outcomes: PredictionOutcome[]): BizaConfir
   const decisive = valid.filter((o) => o.result !== "DRAW");
   if (decisive.length > 0) {
     const chosen = pick(decisive);
-    const winner = chosen.result === "HOME" ? chosen.homeName : chosen.awayName;
-    const loser = chosen.result === "HOME" ? chosen.awayName : chosen.homeName;
+    const winner = translateTeam(chosen.result === "HOME" ? chosen.homeName : chosen.awayName);
+    const loser = translateTeam(chosen.result === "HOME" ? chosen.awayName : chosen.homeName);
     return { kind: "decisive", winner, loser };
   }
 
   const chosen = pick(valid);
-  const team = Math.random() < 0.5 ? chosen.homeName : chosen.awayName;
+  const team = translateTeam(Math.random() < 0.5 ? chosen.homeName : chosen.awayName);
   return { kind: "draw", team };
 }
 
@@ -96,22 +97,23 @@ export function PredictionSaveDialog({
       />
 
       <div className="relative z-10 w-full max-w-md animate-fade-in overflow-hidden rounded-3xl border border-white/10 bg-navy-900 shadow-2xl">
-        <div className="relative h-44 w-full overflow-hidden sm:h-52">
-          <Image
-            src="/biza-shofer.png"
-            alt="Բիձեն"
-            fill
-            className="object-cover object-top"
-            sizes="448px"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-navy-900 via-navy-900/20 to-transparent" />
-          <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-navy-950/70 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-300 backdrop-blur-sm">
+        <div className="relative bg-gradient-to-b from-navy-950 to-navy-900 px-6 pb-2 pt-6">
+          <div className="relative mx-auto aspect-[3/4] w-full max-w-[220px] overflow-hidden rounded-2xl border border-amber-400/25 bg-black shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
+            <Image
+              src="/biza-shofer.png"
+              alt="Բիձեն"
+              fill
+              className="object-contain object-center"
+              sizes="220px"
+              priority
+            />
+          </div>
+          <span className="absolute left-1/2 top-5 z-10 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-amber-400/30 bg-navy-950/85 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-300 backdrop-blur-sm">
             <span aria-hidden>☝️</span> Բիձեն ասում ա
           </span>
         </div>
 
-        <div className="px-6 pb-6 pt-4">
+        <div className="px-6 pb-6 pt-3">
           <div className="relative rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-500/[0.08] to-white/[0.02] p-4">
             <span
               aria-hidden
@@ -146,7 +148,7 @@ export function PredictionSaveDialog({
               onClick={onCancel}
               disabled={pending}
             >
-              Չէ, ետ նայեմ 🤔
+              Չէ, փոշմանեցի լավ 🤔
             </Button>
             <Button className="w-full" onClick={onConfirm} loading={pending}>
               Հա, վստահ եմ 💪

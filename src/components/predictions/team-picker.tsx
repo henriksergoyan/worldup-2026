@@ -5,7 +5,7 @@ import { TeamDTO, LockInfo } from "./types";
 import { SaveBarSimple } from "./champion-picker";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatDateTime } from "@/lib/utils";
-import { flagFor } from "@/lib/flags";
+import { flagFor, translateTeam } from "@/lib/flags";
 import { useToast } from "@/components/ui/toast";
 import { setQualifierPicks } from "@/app/actions/predictions";
 
@@ -96,7 +96,7 @@ export function TeamPicker({
                     )}
                   >
                     <span className="text-lg">{flagFor(t.name)}</span>
-                    <span className="min-w-0 truncate text-sm font-semibold text-white">{t.name}</span>
+                    <span className="min-w-0 truncate text-sm font-semibold text-white">{translateTeam(t.name)}</span>
                     {active && <span className="ml-auto text-pitch-300">✓</span>}
                   </button>
                 );

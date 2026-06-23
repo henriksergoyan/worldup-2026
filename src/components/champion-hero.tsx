@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { flagFor } from "@/lib/flags";
+import { flagFor, translateTeam } from "@/lib/flags";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -29,7 +29,7 @@ export function ChampionHero({
             {hasPick ? (
               <>
                 <div className="mt-0.5 truncate font-display text-2xl font-black text-white sm:text-3xl">
-                  {teamName}
+                  {translateTeam(teamName)}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   {groupCode && (
