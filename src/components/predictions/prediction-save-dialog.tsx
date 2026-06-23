@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { translateTeam } from "@/lib/flags";
+import { declineTeam } from "@/lib/flags";
 
 export type PredictionOutcome = {
   homeName: string;
@@ -12,8 +12,8 @@ export type PredictionOutcome = {
 };
 
 export type BizaConfirmation =
-  | { kind: "decisive"; winner: string; loser: string }
-  | { kind: "draw"; team: string };
+  | { kind: "decisive"; winnerKey: string; loserKey: string }
+  | { kind: "draw"; teamKey: string };
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -30,14 +30,14 @@ export function buildBizaConfirmation(outcomes: PredictionOutcome[]): BizaConfir
   const decisive = valid.filter((o) => o.result !== "DRAW");
   if (decisive.length > 0) {
     const chosen = pick(decisive);
-    const winner = translateTeam(chosen.result === "HOME" ? chosen.homeName : chosen.awayName);
-    const loser = translateTeam(chosen.result === "HOME" ? chosen.awayName : chosen.homeName);
-    return { kind: "decisive", winner, loser };
+    const winnerKey = chosen.result === "HOME" ? chosen.homeName : chosen.awayName;
+    const loserKey = chosen.result === "HOME" ? chosen.awayName : chosen.homeName;
+    return { kind: "decisive", winnerKey, loserKey };
   }
 
   const chosen = pick(valid);
-  const team = translateTeam(Math.random() < 0.5 ? chosen.homeName : chosen.awayName);
-  return { kind: "draw", team };
+  const teamKey = Math.random() < 0.5 ? chosen.homeName : chosen.awayName;
+  return { kind: "draw", teamKey };
 }
 
 function Team({ name, tone }: { name: string; tone: "win" | "lose" }) {
@@ -125,16 +125,16 @@ export function PredictionSaveDialog({
             >
               {confirmation.kind === "decisive" ? (
                 <>
-                  Լսել եմ <Team name={confirmation.winner} tone="win" />-ի վրա ես որոշել դնես,
-                  ախպորս տղեն <Team name={confirmation.loser} tone="lose" />-ի նախագահի շոֆեռն ա ու
-                  ասել ա՝ եթե էսօր <Team name={confirmation.loser} tone="lose" />-ը չկրի, էս տարի ոչ
-                  մի տուրիստ <Team name={confirmation.loser} tone="lose" />-ից չի գնալու{" "}
-                  <Team name={confirmation.winner} tone="win" /> հանգստանալու։{" "}
+                  Լսել եմ <Team name={declineTeam(confirmation.winnerKey, "genitive")} tone="win" /> վրա ես որոշել դնես,
+                  ախպորս տղեն <Team name={declineTeam(confirmation.loserKey, "genitive")} tone="lose" /> նախագահի շոֆեռն ա ու
+                  ասել ա՝ եթե էսօր <Team name={declineTeam(confirmation.loserKey, "definite")} tone="lose" /> չկրի, էս տարի ոչ
+                  մի տուրիստ <Team name={declineTeam(confirmation.loserKey, "ablative")} tone="lose" /> չի գնալու{" "}
+                  <Team name={declineTeam(confirmation.winnerKey, "plain")} tone="win" /> հանգստանալու։{" "}
                   <span className="text-white">Վստա՞հ ես։</span>
                 </>
               ) : (
                 <>
-                  Էս <Team name={confirmation.team} tone="win" />-ի հաղթանակին չես հավատում, հա՞{" "}
+                  Էս <Team name={declineTeam(confirmation.teamKey, "genitive")} tone="win" /> հաղթանակին չես հավատում, հա՞{" "}
                   <span className="text-white">🤨</span>
                 </>
               )}
