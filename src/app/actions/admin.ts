@@ -274,7 +274,6 @@ export async function updateTeam(teamId: string, input: z.input<typeof teamSchem
 const deadlineSchema = z.object({
   phase: z.string().min(1),
   lockAt: z.string().nullable().optional(),
-  isOpen: z.boolean(),
 });
 
 export async function updateDeadline(input: z.input<typeof deadlineSchema>): Promise<AdminResult> {
@@ -288,8 +287,8 @@ export async function updateDeadline(input: z.input<typeof deadlineSchema>): Pro
   }
   await prisma.deadline.upsert({
     where: { tournamentId_phase: { tournamentId: tournament.id, phase: parsed.data.phase } },
-    create: { tournamentId: tournament.id, phase: parsed.data.phase, lockAt, isOpen: parsed.data.isOpen },
-    update: { lockAt, isOpen: parsed.data.isOpen },
+    create: { tournamentId: tournament.id, phase: parsed.data.phase, lockAt, isOpen: true },
+    update: { lockAt, isOpen: true },
   });
   await audit(admin.id, "UPDATE_DEADLINE", "Deadline", parsed.data.phase, undefined, parsed.data);
   revalidateAll();

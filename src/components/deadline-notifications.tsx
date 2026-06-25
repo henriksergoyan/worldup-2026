@@ -10,7 +10,6 @@ export interface DeadlineItem {
   phase: Phase;
   lockAt: string;
   locked: boolean;
-  isOpen: boolean;
 }
 
 const ACT_SOON_MS = 14 * 24 * 60 * 60 * 1000;
@@ -96,7 +95,7 @@ export function DeadlineNotifications({ deadlines }: { deadlines: DeadlineItem[]
     .sort((a, b) => new Date(b.lockAt).getTime() - new Date(a.lockAt).getTime());
 
   const upcoming = deadlines
-    .filter((d) => d.isOpen && !d.locked && new Date(d.lockAt).getTime() > now)
+    .filter((d) => !d.locked && new Date(d.lockAt).getTime() > now)
     .sort((a, b) => new Date(a.lockAt).getTime() - new Date(b.lockAt).getTime());
 
   const actNext = upcoming.length > 0 ? [upcoming[0]] : [];

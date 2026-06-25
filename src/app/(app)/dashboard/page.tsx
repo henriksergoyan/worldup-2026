@@ -130,7 +130,6 @@ export default async function DashboardPage() {
         phase,
         lockAt: d.lockAt.toISOString(),
         locked: d.locked,
-        isOpen: d.isOpen,
       },
     ];
   });

@@ -10,12 +10,10 @@ export interface DeadlineState {
 
 export const DEFAULT_KICKOFF_LOCK_MINUTES = 60;
 
-/** A phase is locked for players when it's closed or its lock time has passed. */
-export function isPhaseLocked(deadline: { lockAt: Date | null; isOpen: boolean } | null | undefined): boolean {
-  if (!deadline) return false;
-  if (!deadline.isOpen) return true;
-  if (deadline.lockAt && Date.now() >= deadline.lockAt.getTime()) return true;
-  return false;
+/** A phase is locked once its lock time has passed. */
+export function isPhaseLocked(deadline: { lockAt: Date | null } | null | undefined): boolean {
+  if (!deadline?.lockAt) return false;
+  return Date.now() >= deadline.lockAt.getTime();
 }
 
 /** @deprecated alias */
@@ -74,14 +72,13 @@ export function groupR3PhaseLockAt(
  * Admin may extend the deadline; it never shortens below kickoff − lock window.
  */
 export function resolveGroupR3Deadline(
-  adminDeadline: { lockAt: Date | null; isOpen: boolean } | undefined,
+  adminDeadline: { lockAt: Date | null } | undefined,
   matches: MatchScheduleRow[],
   kickoffLockMinutes: number = DEFAULT_KICKOFF_LOCK_MINUTES,
 ): DeadlineState | null {
   const kickoffLockAt = groupR3PhaseLockAt(matches, kickoffLockMinutes);
   if (!kickoffLockAt) return null;
 
-  const isOpen = adminDeadline?.isOpen ?? true;
   const lockAt =
     adminDeadline?.lockAt != null
       ? new Date(Math.max(adminDeadline.lockAt.getTime(), kickoffLockAt.getTime()))
@@ -90,8 +87,8 @@ export function resolveGroupR3Deadline(
   return {
     phase: PHASES.GROUP_R3,
     lockAt,
-    isOpen,
-    locked: isPhaseLocked({ lockAt, isOpen }),
+    isOpen: true,
+    locked: isPhaseLocked({ lockAt }),
   };
 }
 
@@ -194,7 +191,7 @@ export function upcomingDeadlines(
 ): DeadlineState[] {
   const now = Date.now();
   return [...deadlines.values()]
-    .filter((d) => d.lockAt && d.isOpen && d.lockAt.getTime() > now)
+    .filter((d) => d.lockAt && d.lockAt.getTime() > now)
     .sort((a, b) => a.lockAt!.getTime() - b.lockAt!.getTime())
     .slice(0, limit);
 }

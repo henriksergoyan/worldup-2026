@@ -22,7 +22,6 @@ export default async function AdminDeadlinesPage() {
     return {
       phase,
       lockAt: d?.lockAt?.toISOString() ?? null,
-      isOpen: d?.isOpen ?? true,
       locked: d?.locked ?? false,
     };
   });
@@ -32,8 +31,8 @@ export default async function AdminDeadlinesPage() {
       <div>
         <h1 className="font-display text-2xl font-black text-white md:text-3xl">Ժամկետներ</h1>
         <p className="text-sm text-navy-300">
-          Սահմանեք փակման ժամը (տեղական ժամանակ) յուրաքանչյուր փուլի համար։ «Բաց» նշումը հանեք՝ փուլը փակելու համար,
-          կամ սահմանեք ապագա ժամ և թողեք բաց՝ փուլը վերաբացելու համար։
+          Սահմանեք փակման ժամը (տեղական ժամանակ) յուրաքանչյուր փուլի համար։ Ապագա ամսաթիվը թողնում է փուլը բաց,
+          անցած ամսաթիվը՝ փակ։ Վերաբացելու համար սահմանեք նոր ապագա ժամ։
         </p>
       </div>
       <AdminNav />

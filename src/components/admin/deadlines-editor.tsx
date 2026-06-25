@@ -10,7 +10,6 @@ import { PHASE_LABELS, type Phase } from "@/lib/constants";
 export interface DeadlineRow {
   phase: Phase;
   lockAt: string | null; // ISO
-  isOpen: boolean;
   locked: boolean;
 }
 
@@ -36,12 +35,11 @@ function DeadlineRowEditor({ row }: { row: DeadlineRow }) {
   const { toast } = useToast();
   const [pending, start] = useTransition();
   const [lockAt, setLockAt] = useState(toLocalInput(row.lockAt));
-  const [isOpen, setIsOpen] = useState(row.isOpen);
 
   function save() {
     start(async () => {
       const iso = lockAt ? new Date(lockAt).toISOString() : null;
-      const res = await updateDeadline({ phase: row.phase, lockAt: iso, isOpen });
+      const res = await updateDeadline({ phase: row.phase, lockAt: iso });
       toast(res.message, res.ok ? "success" : "error");
     });
   }
@@ -64,15 +62,6 @@ function DeadlineRowEditor({ row }: { row: DeadlineRow }) {
         onChange={(e) => setLockAt(e.target.value)}
         className="h-10 rounded-xl border border-white/10 bg-navy-900/70 px-3 text-sm text-white outline-none focus:border-pitch-400"
       />
-      <label className="flex cursor-pointer items-center gap-2 text-sm text-navy-200">
-        <input
-          type="checkbox"
-          checked={isOpen}
-          onChange={(e) => setIsOpen(e.target.checked)}
-          className="h-4 w-4 accent-pitch-500"
-        />
-        Բաց
-      </label>
       <Button size="sm" variant="secondary" onClick={save} loading={pending}>
         Պահպանել
       </Button>
