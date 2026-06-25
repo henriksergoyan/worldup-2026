@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { groupR3FirstKickoff, groupR3PhaseLockAt, isGroupRound3Match } from "./deadlines";
+import {
+  groupR3FirstKickoff,
+  groupR3PhaseLockAt,
+  isGroupRound3Match,
+  resolveGroupR3Deadline,
+} from "./deadlines";
 import { STAGES } from "./constants";
 
 describe("GROUP_R3 deadline", () => {
@@ -22,5 +27,28 @@ describe("GROUP_R3 deadline", () => {
 
     const lockAt = groupR3PhaseLockAt(matches, 60);
     expect(lockAt?.toISOString()).toBe("2026-06-23T15:00:00.000Z");
+  });
+
+  it("uses kickoff lock when admin deadline is earlier", () => {
+    const resolved = resolveGroupR3Deadline(
+      { lockAt: new Date("2026-06-22T00:00:00Z"), isOpen: true },
+      matches,
+      60,
+    );
+    expect(resolved?.lockAt.toISOString()).toBe("2026-06-23T15:00:00.000Z");
+    expect(resolved?.locked).toBe(true);
+  });
+
+  it("respects admin extension past first kickoff lock", () => {
+    const extended = new Date("2026-06-25T20:00:00Z");
+    const resolved = resolveGroupR3Deadline({ lockAt: extended, isOpen: true }, matches, 60);
+    expect(resolved?.lockAt.toISOString()).toBe(extended.toISOString());
+    expect(resolved?.locked).toBe(false);
+  });
+
+  it("stays locked when admin marks phase closed", () => {
+    const extended = new Date("2026-06-25T20:00:00Z");
+    const resolved = resolveGroupR3Deadline({ lockAt: extended, isOpen: false }, matches, 60);
+    expect(resolved?.locked).toBe(true);
   });
 });

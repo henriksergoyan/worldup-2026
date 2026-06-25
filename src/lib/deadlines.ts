@@ -69,6 +69,32 @@ export function groupR3PhaseLockAt(
   return matchEditLockAt(first, kickoffLockMinutes);
 }
 
+/**
+ * Merge admin GROUP_R3 settings with the automatic first-kickoff lock.
+ * Admin may extend the deadline; it never shortens below kickoff − lock window.
+ */
+export function resolveGroupR3Deadline(
+  adminDeadline: { lockAt: Date | null; isOpen: boolean } | undefined,
+  matches: MatchScheduleRow[],
+  kickoffLockMinutes: number = DEFAULT_KICKOFF_LOCK_MINUTES,
+): DeadlineState | null {
+  const kickoffLockAt = groupR3PhaseLockAt(matches, kickoffLockMinutes);
+  if (!kickoffLockAt) return null;
+
+  const isOpen = adminDeadline?.isOpen ?? true;
+  const lockAt =
+    adminDeadline?.lockAt != null
+      ? new Date(Math.max(adminDeadline.lockAt.getTime(), kickoffLockAt.getTime()))
+      : kickoffLockAt;
+
+  return {
+    phase: PHASES.GROUP_R3,
+    lockAt,
+    isOpen,
+    locked: isPhaseLocked({ lockAt, isOpen }),
+  };
+}
+
 export async function getDeadlineMap(tournamentId: string): Promise<Map<Phase, DeadlineState>> {
   const [rows, tournament, matches] = await Promise.all([
     prisma.deadline.findMany({ where: { tournamentId } }),
@@ -92,16 +118,13 @@ export async function getDeadlineMap(tournamentId: string): Promise<Map<Phase, D
     });
   }
 
-  const r3LockAt = groupR3PhaseLockAt(matches, tournament.kickoffLockMinutes);
-  if (r3LockAt) {
-    const existing = map.get(PHASES.GROUP_R3);
-    const isOpen = existing?.isOpen ?? true;
-    map.set(PHASES.GROUP_R3, {
-      phase: PHASES.GROUP_R3,
-      lockAt: r3LockAt,
-      isOpen,
-      locked: isPhaseLocked({ lockAt: r3LockAt, isOpen }),
-    });
+  const r3Deadline = resolveGroupR3Deadline(
+    map.get(PHASES.GROUP_R3),
+    matches,
+    tournament.kickoffLockMinutes,
+  );
+  if (r3Deadline) {
+    map.set(PHASES.GROUP_R3, r3Deadline);
   }
 
   return map;
