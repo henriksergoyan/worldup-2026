@@ -8,7 +8,7 @@ export interface DeadlineState {
   locked: boolean;
 }
 
-export const DEFAULT_KICKOFF_LOCK_MINUTES = 60;
+export const DEFAULT_KICKOFF_LOCK_MINUTES = 0;
 
 /** A phase is locked once its lock time has passed. */
 export function isPhaseLocked(deadline: { lockAt: Date | null } | null | undefined): boolean {
@@ -57,7 +57,7 @@ export function groupR3FirstKickoff(matches: MatchScheduleRow[]): Date | null {
   );
 }
 
-/** GROUP_R3 phase locks 1 hour before the first round-3 kickoff. */
+/** GROUP_R3 automatic floor: first round-3 kickoff minus the kickoff lock window. */
 export function groupR3PhaseLockAt(
   matches: MatchScheduleRow[],
   kickoffLockMinutes: number = DEFAULT_KICKOFF_LOCK_MINUTES,
@@ -133,7 +133,7 @@ export function matchEditLockAt(scheduledAt: Date, kickoffLockMinutes: number): 
 }
 
 /**
- * Match predictions lock 1 hour (configurable) before kickoff.
+ * Match predictions lock at kickoff minus the configured window (default: 0 = at kickoff).
  * Champion/team picks still use phase deadlines (checked separately).
  */
 export function isMatchPredictionLocked(
@@ -168,7 +168,7 @@ export function predictionsRevealAt(
 
 /**
  * Others' predictions become visible once the phase deadline passes or match editing
- * locks (1hr before kickoff), whichever comes first. Admins always see all.
+ * locks (kickoff minus lock window), whichever comes first. Admins always see all.
  */
 export function canRevealPredictions(
   match: { stage: string; round: string | null; matchNumber: number; scheduledAt: Date },

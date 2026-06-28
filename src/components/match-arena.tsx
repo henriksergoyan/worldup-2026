@@ -138,7 +138,7 @@ export function MatchArena(props: MatchArenaProps) {
             <div>
               <h3 className="font-display text-xl font-bold text-white">Կանխատեսումները դեռ փակ են</h3>
               <p className="mt-1 max-w-md text-sm text-navy-300">
-                Կանխատեսել է <span className="font-bold text-white">{props.predictionsCount}</span> մասնակից (<span className="font-bold text-white">{props.totalPlayers}</span>-ից)։ Բոլոր կանխատեսումները կբացվեն <Countdown target={props.lockAt} mode="days" className="inline font-semibold text-amber-200" /> հետո (խաղից 1 ժամ առաջ):
+                Կանխատեսել է <span className="font-bold text-white">{props.predictionsCount}</span> մասնակից (<span className="font-bold text-white">{props.totalPlayers}</span>-ից)։ Բոլոր կանխատեսումները կբացվեն <Countdown target={props.lockAt} mode="days" className="inline font-semibold text-amber-200" /> հետո (խաղի սկզբին):
               </p>
             </div>
             <div className="flex gap-6 text-center">

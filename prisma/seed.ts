@@ -120,7 +120,7 @@ async function main() {
       entryFee: data.entryFee,
       prizeSplitJson: data.prizeSplit,
       knockoutPickCount: 16,
-      kickoffLockMinutes: 60,
+      kickoffLockMinutes: 0,
       registrationOpen: true,
     },
   });

@@ -48,7 +48,7 @@ export function SettingsEditor({
       const res = await updateSettings({
         entryFee: Number(fee || 0),
         knockoutPickCount: Number(pickCount || 1),
-        kickoffLockMinutes: Number(lockMins || 60),
+        kickoffLockMinutes: Number(lockMins || 0),
         registrationOpen: regOpen,
         prizeSplit: prize,
       });
@@ -75,7 +75,7 @@ export function SettingsEditor({
             <Label>Կանխատեսման փակում (րոպե մինչև խաղի սկիզբը)</Label>
             <Input type="number" value={lockMins} onChange={(e) => setLockMins(e.target.value)} />
             <p className="text-xs text-navy-400">
-              Խաղացողները կարող են խմբագրել կանխատեսումները մինչև խաղի սկիզբից այսքան րոպե առաջ (լռելյայն՝ 60)։
+              Խաղացողները կարող են խմբագրել կանխատեսումները մինչև խաղի սկիզբից այսքան րոպե առաջ (0 = մինչև խաղի սկիզբը)։
             </p>
           </div>
           <label className="flex cursor-pointer items-center gap-2 text-sm text-navy-200">

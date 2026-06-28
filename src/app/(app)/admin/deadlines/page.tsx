@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getActiveTournament } from "@/lib/standings";
 import { getDeadlineMap } from "@/lib/deadlines";
 import { getDeadlineCompletionReport } from "@/lib/deadline-completion";
@@ -12,17 +13,21 @@ export const dynamic = "force-dynamic";
 export default async function AdminDeadlinesPage() {
   await requireAdmin();
   const tournament = await getActiveTournament();
-  const [map, deadlineCompletion] = await Promise.all([
+  const [map, rawDeadlines, deadlineCompletion] = await Promise.all([
     getDeadlineMap(tournament.id),
+    prisma.deadline.findMany({ where: { tournamentId: tournament.id } }),
     getDeadlineCompletionReport(tournament.id),
   ]);
 
+  const rawByPhase = new Map(rawDeadlines.map((d) => [d.phase, d]));
+
   const rows: DeadlineRow[] = PHASE_ORDER.map((phase) => {
-    const d = map.get(phase);
+    const effective = map.get(phase);
+    const raw = rawByPhase.get(phase);
     return {
       phase,
-      lockAt: d?.lockAt?.toISOString() ?? null,
-      locked: d?.locked ?? false,
+      lockAt: raw?.lockAt?.toISOString() ?? effective?.lockAt?.toISOString() ?? null,
+      locked: effective?.locked ?? false,
     };
   });
 

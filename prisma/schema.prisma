@@ -46,8 +46,8 @@ model Tournament {
   prizeSplitJson Json
   // Number of teams each player must pick as knockout qualifiers
   knockoutPickCount Int   @default(16)
-  // Minutes before kickoff when match predictions lock (default 60 = 1 hour).
-  kickoffLockMinutes Int  @default(60)
+  // Minutes before kickoff when match predictions lock (default 0 = at kickoff).
+  kickoffLockMinutes Int  @default(0)
   registrationOpen   Boolean @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

@@ -21,10 +21,15 @@ describe("GROUP_R3 deadline", () => {
     expect(isGroupRound3Match(matches[2])).toBe(true);
   });
 
-  it("locks 1 hour before the earliest round 3 kickoff", () => {
+  it("locks at the earliest round 3 kickoff when lock window is zero", () => {
     const first = groupR3FirstKickoff(matches);
     expect(first?.toISOString()).toBe("2026-06-23T16:00:00.000Z");
 
+    const lockAt = groupR3PhaseLockAt(matches, 0);
+    expect(lockAt?.toISOString()).toBe("2026-06-23T16:00:00.000Z");
+  });
+
+  it("locks before kickoff when a lock window is configured", () => {
     const lockAt = groupR3PhaseLockAt(matches, 60);
     expect(lockAt?.toISOString()).toBe("2026-06-23T15:00:00.000Z");
   });
@@ -33,15 +38,15 @@ describe("GROUP_R3 deadline", () => {
     const resolved = resolveGroupR3Deadline(
       { lockAt: new Date("2026-06-22T00:00:00Z") },
       matches,
-      60,
+      0,
     );
-    expect(resolved?.lockAt.toISOString()).toBe("2026-06-23T15:00:00.000Z");
+    expect(resolved?.lockAt.toISOString()).toBe("2026-06-23T16:00:00.000Z");
     expect(resolved?.locked).toBe(true);
   });
 
   it("respects admin extension past first kickoff lock", () => {
-    const extended = new Date("2026-06-25T20:00:00Z");
-    const resolved = resolveGroupR3Deadline({ lockAt: extended }, matches, 60);
+    const extended = new Date("2030-06-25T20:00:00Z");
+    const resolved = resolveGroupR3Deadline({ lockAt: extended }, matches, 0);
     expect(resolved?.lockAt.toISOString()).toBe(extended.toISOString());
     expect(resolved?.locked).toBe(false);
   });
