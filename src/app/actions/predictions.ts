@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { getActiveTournament } from "@/lib/standings";
 import { getDeadlineMap, isMatchLocked } from "@/lib/deadlines";
-import { isKnockoutPredictionAmbiguous } from "@/lib/scoring";
+import { isKnockoutPredictionAmbiguous, sanitizeKnockoutExtras } from "@/lib/scoring";
 import { PHASES, STAGES, TEAM_PICK_TYPES } from "@/lib/constants";
 
 export interface ActionResult {
@@ -120,12 +120,22 @@ export async function saveKnockoutPredictions(
       continue;
     }
 
+    const sanitized = sanitizeKnockoutExtras({
+      normal: { home: nh, away: na },
+      extra: { home: item.extraHome ?? null, away: item.extraAway ?? null },
+      penalty: { home: item.penaltyHome ?? null, away: item.penaltyAway ?? null },
+    });
+    const extraHome = sanitized.extra.home;
+    const extraAway = sanitized.extra.away;
+    const penaltyHome = sanitized.penalty.home;
+    const penaltyAway = sanitized.penalty.away;
+
     // Validation: the advancing team must be unambiguous once the tie is decided.
     const winnerSide = item.winner ?? null;
     const ambiguous = isKnockoutPredictionAmbiguous({
       normal: { home: nh, away: na },
-      extra: { home: item.extraHome ?? null, away: item.extraAway ?? null },
-      penalty: { home: item.penaltyHome ?? null, away: item.penaltyAway ?? null },
+      extra: { home: extraHome, away: extraAway },
+      penalty: { home: penaltyHome, away: penaltyAway },
       winner: winnerSide,
     });
     if (ambiguous) {
@@ -145,19 +155,19 @@ export async function saveKnockoutPredictions(
         matchId: match.id,
         normalHomeGoals: nh,
         normalAwayGoals: na,
-        extraHomeGoals: item.extraHome ?? null,
-        extraAwayGoals: item.extraAway ?? null,
-        penaltyHomeGoals: item.penaltyHome ?? null,
-        penaltyAwayGoals: item.penaltyAway ?? null,
+        extraHomeGoals: extraHome,
+        extraAwayGoals: extraAway,
+        penaltyHomeGoals: penaltyHome,
+        penaltyAwayGoals: penaltyAway,
         predictedWinnerTeamId,
       },
       update: {
         normalHomeGoals: nh,
         normalAwayGoals: na,
-        extraHomeGoals: item.extraHome ?? null,
-        extraAwayGoals: item.extraAway ?? null,
-        penaltyHomeGoals: item.penaltyHome ?? null,
-        penaltyAwayGoals: item.penaltyAway ?? null,
+        extraHomeGoals: extraHome,
+        extraAwayGoals: extraAway,
+        penaltyHomeGoals: penaltyHome,
+        penaltyAwayGoals: penaltyAway,
         predictedWinnerTeamId,
       },
     });

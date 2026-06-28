@@ -178,6 +178,44 @@ export function isKnockoutPredictionAmbiguous(input: KnockoutScoreInput): boolea
   return resolveKnockoutWinner(input) === null;
 }
 
+/** Extra time is only meaningful when normal time ends in a draw. */
+export function isKnockoutNormalDraw(normal: ScoreInput): boolean {
+  return bothPresent(normal) && normal.home === normal.away;
+}
+
+/** Penalties apply only when normal + extra time aggregate is still tied. */
+export function canEnterKnockoutPenalties(input: {
+  normal: ScoreInput;
+  extra: ScoreInput;
+}): boolean {
+  if (!bothPresent(input.normal) || input.normal.home !== input.normal.away) return false;
+  if (!bothPresent(input.extra)) return false;
+  return input.normal.home + input.extra.home === input.normal.away + input.extra.away;
+}
+
+/** Remove extra-time / penalty fields that are invalid for the given normal-time score. */
+export function sanitizeKnockoutExtras(input: {
+  normal: { home: number; away: number };
+  extra: { home: number | null; away: number | null };
+  penalty: { home: number | null; away: number | null };
+}): {
+  extra: { home: number | null; away: number | null };
+  penalty: { home: number | null; away: number | null };
+} {
+  if (input.normal.home !== input.normal.away) {
+    return { extra: { home: null, away: null }, penalty: { home: null, away: null } };
+  }
+  const eh = input.extra.home;
+  const ea = input.extra.away;
+  if (eh === null || ea === null) {
+    return { extra: { home: eh, away: ea }, penalty: { home: null, away: null } };
+  }
+  if (input.normal.home + eh !== input.normal.away + ea) {
+    return { extra: { home: eh, away: ea }, penalty: { home: null, away: null } };
+  }
+  return { extra: { home: eh, away: ea }, penalty: { home: input.penalty.home, away: input.penalty.away } };
+}
+
 export interface KnockoutScoringResult extends ScoringResult {
   breakdown: {
     normal: ScoringResult;

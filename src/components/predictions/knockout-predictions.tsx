@@ -11,7 +11,7 @@ import { cn, formatDateTime } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 import { translateTeam } from "@/lib/flags";
 import { saveKnockoutPredictions } from "@/app/actions/predictions";
-import { resolveKnockoutWinner } from "@/lib/scoring";
+import { resolveKnockoutWinner, sanitizeKnockoutExtras, canEnterKnockoutPenalties, isKnockoutNormalDraw } from "@/lib/scoring";
 import { ROUND_LABELS, ROUNDS, type Round } from "@/lib/constants";
 import {
   PredictionSaveDialog,
@@ -46,13 +46,27 @@ export function KnockoutPredictions({
   const [local, setLocal] = useState<Local>(() => {
     const init: Local = {};
     for (const m of matches) {
+      const normalHome = m.pred?.normalHome ?? null;
+      const normalAway = m.pred?.normalAway ?? null;
+      const extraHome = m.pred?.extraHome ?? null;
+      const extraAway = m.pred?.extraAway ?? null;
+      const penaltyHome = m.pred?.penaltyHome ?? null;
+      const penaltyAway = m.pred?.penaltyAway ?? null;
+      const sanitized =
+        normalHome !== null && normalAway !== null
+          ? sanitizeKnockoutExtras({
+              normal: { home: normalHome, away: normalAway },
+              extra: { home: extraHome, away: extraAway },
+              penalty: { home: penaltyHome, away: penaltyAway },
+            })
+          : null;
       init[m.id] = {
-        normalHome: m.pred?.normalHome ?? null,
-        normalAway: m.pred?.normalAway ?? null,
-        extraHome: m.pred?.extraHome ?? null,
-        extraAway: m.pred?.extraAway ?? null,
-        penaltyHome: m.pred?.penaltyHome ?? null,
-        penaltyAway: m.pred?.penaltyAway ?? null,
+        normalHome,
+        normalAway,
+        extraHome: sanitized?.extra.home ?? extraHome,
+        extraAway: sanitized?.extra.away ?? extraAway,
+        penaltyHome: sanitized?.penalty.home ?? penaltyHome,
+        penaltyAway: sanitized?.penalty.away ?? penaltyAway,
         winner: m.pred?.winner ?? null,
       };
     }
@@ -82,7 +96,53 @@ export function KnockoutPredictions({
   }, [matches]);
 
   function patch(id: string, p: Partial<KO>) {
-    setLocal((prev) => ({ ...prev, [id]: { ...prev[id], ...p } }));
+    setLocal((prev) => {
+      const current = prev[id];
+      let updates: Partial<KO> = { ...p };
+      const nh = updates.normalHome ?? current.normalHome;
+      const na = updates.normalAway ?? current.normalAway;
+
+      if ("normalHome" in p || "normalAway" in p) {
+        if (nh !== null && na !== null) {
+          const sanitized = sanitizeKnockoutExtras({
+            normal: { home: nh, away: na },
+            extra: {
+              home: updates.extraHome ?? current.extraHome,
+              away: updates.extraAway ?? current.extraAway,
+            },
+            penalty: {
+              home: updates.penaltyHome ?? current.penaltyHome,
+              away: updates.penaltyAway ?? current.penaltyAway,
+            },
+          });
+          updates = {
+            ...updates,
+            extraHome: sanitized.extra.home,
+            extraAway: sanitized.extra.away,
+            penaltyHome: sanitized.penalty.home,
+            penaltyAway: sanitized.penalty.away,
+          };
+        }
+      }
+
+      const merged = { ...current, ...updates };
+      if ("extraHome" in p || "extraAway" in p) {
+        if (merged.normalHome !== null && merged.normalAway !== null) {
+          const sanitized = sanitizeKnockoutExtras({
+            normal: { home: merged.normalHome, away: merged.normalAway },
+            extra: { home: merged.extraHome, away: merged.extraAway },
+            penalty: { home: merged.penaltyHome, away: merged.penaltyAway },
+          });
+          updates = {
+            ...updates,
+            penaltyHome: sanitized.penalty.home,
+            penaltyAway: sanitized.penalty.away,
+          };
+        }
+      }
+
+      return { ...prev, [id]: { ...current, ...updates } };
+    });
     setDirty((prev) => new Set(prev).add(id));
   }
 
@@ -254,6 +314,11 @@ function KnockoutRow({
     winner: value.winner,
   });
   const hasScores = value.normalHome !== null && value.normalAway !== null;
+  const normalIsDraw = hasScores && isKnockoutNormalDraw({ home: value.normalHome, away: value.normalAway });
+  const pensEnabled = canEnterKnockoutPenalties({
+    normal: { home: value.normalHome ?? 0, away: value.normalAway ?? 0 },
+    extra: { home: value.extraHome, away: value.extraAway },
+  });
   const ambiguous = hasScores && derivedWinner === null;
   const finalized = m.actual !== null;
   const won = (m.points ?? 0) > 0;
@@ -342,15 +407,15 @@ function KnockoutRow({
           away={value.extraAway}
           onHome={(v) => onChange({ extraHome: v })}
           onAway={(v) => onChange({ extraAway: v })}
-          disabled={disabled}
+          disabled={disabled || !normalIsDraw}
         />
         <SmallScorePair
-          label="Պենալտիներ"
+          label="11-մետրանոցներ"
           home={value.penaltyHome}
           away={value.penaltyAway}
           onHome={(v) => onChange({ penaltyHome: v })}
           onAway={(v) => onChange({ penaltyAway: v })}
-          disabled={disabled}
+          disabled={disabled || !pensEnabled}
         />
       </div>
 
@@ -370,7 +435,7 @@ function KnockoutRow({
         />
         {ambiguous && (
           <span className="text-xs font-medium text-amber-300">
-            Ոչ-ոքի է: Ընտրի՛ր անցնող թիմին կամ նշանակի՛ր պենալտիներ:
+            Ոչ-ոքի է: Ընտրի՛ր անցնող թիմին կամ նշանակի՛ր 11-մետրանոցներ:
           </span>
         )}
       </div>

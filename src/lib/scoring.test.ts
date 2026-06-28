@@ -9,6 +9,8 @@ import {
   scoreChampionPick,
   resolveKnockoutWinner,
   isKnockoutPredictionAmbiguous,
+  sanitizeKnockoutExtras,
+  canEnterKnockoutPenalties,
   calculateLeaderboard,
 } from "./scoring";
 
@@ -98,6 +100,70 @@ describe("resolveKnockoutWinner", () => {
   });
   it("respects explicit winner", () => {
     expect(resolveKnockoutWinner({ normal: { home: 1, away: 1 }, winner: "AWAY" })).toBe("AWAY");
+  });
+});
+
+describe("sanitizeKnockoutExtras", () => {
+  it("clears extra and penalties when normal time is not a draw", () => {
+    expect(
+      sanitizeKnockoutExtras({
+        normal: { home: 2, away: 1 },
+        extra: { home: 1, away: 0 },
+        penalty: { home: 4, away: 3 },
+      }),
+    ).toEqual({
+      extra: { home: null, away: null },
+      penalty: { home: null, away: null },
+    });
+  });
+
+  it("clears penalties when extra time breaks the tie", () => {
+    expect(
+      sanitizeKnockoutExtras({
+        normal: { home: 1, away: 1 },
+        extra: { home: 1, away: 0 },
+        penalty: { home: 4, away: 3 },
+      }),
+    ).toEqual({
+      extra: { home: 1, away: 0 },
+      penalty: { home: null, away: null },
+    });
+  });
+
+  it("keeps penalties when aggregate stays tied after extra time", () => {
+    expect(
+      sanitizeKnockoutExtras({
+        normal: { home: 1, away: 1 },
+        extra: { home: 0, away: 0 },
+        penalty: { home: 4, away: 3 },
+      }),
+    ).toEqual({
+      extra: { home: 0, away: 0 },
+      penalty: { home: 4, away: 3 },
+    });
+  });
+});
+
+describe("canEnterKnockoutPenalties", () => {
+  it("requires a draw and completed extra time with tied aggregate", () => {
+    expect(
+      canEnterKnockoutPenalties({
+        normal: { home: 2, away: 1 },
+        extra: { home: 0, away: 0 },
+      }),
+    ).toBe(false);
+    expect(
+      canEnterKnockoutPenalties({
+        normal: { home: 1, away: 1 },
+        extra: { home: null, away: null },
+      }),
+    ).toBe(false);
+    expect(
+      canEnterKnockoutPenalties({
+        normal: { home: 1, away: 1 },
+        extra: { home: 0, away: 0 },
+      }),
+    ).toBe(true);
   });
 });
 
