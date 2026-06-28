@@ -11,7 +11,7 @@ import { cn, formatDateTime } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 import { translateTeam } from "@/lib/flags";
 import { saveKnockoutPredictions } from "@/app/actions/predictions";
-import { resolveKnockoutWinner, sanitizeKnockoutExtras, canEnterKnockoutPenalties, isKnockoutNormalDraw } from "@/lib/scoring";
+import { resolveKnockoutWinner, sanitizeKnockoutExtras, canEnterKnockoutPenalties, isKnockoutNormalDraw, patchKnockoutFields } from "@/lib/scoring";
 import { ROUND_LABELS, ROUNDS, type Round } from "@/lib/constants";
 import {
   PredictionSaveDialog,
@@ -98,49 +98,7 @@ export function KnockoutPredictions({
   function patch(id: string, p: Partial<KO>) {
     setLocal((prev) => {
       const current = prev[id];
-      let updates: Partial<KO> = { ...p };
-      const nh = updates.normalHome ?? current.normalHome;
-      const na = updates.normalAway ?? current.normalAway;
-
-      if ("normalHome" in p || "normalAway" in p) {
-        if (nh !== null && na !== null) {
-          const sanitized = sanitizeKnockoutExtras({
-            normal: { home: nh, away: na },
-            extra: {
-              home: updates.extraHome ?? current.extraHome,
-              away: updates.extraAway ?? current.extraAway,
-            },
-            penalty: {
-              home: updates.penaltyHome ?? current.penaltyHome,
-              away: updates.penaltyAway ?? current.penaltyAway,
-            },
-          });
-          updates = {
-            ...updates,
-            extraHome: sanitized.extra.home,
-            extraAway: sanitized.extra.away,
-            penaltyHome: sanitized.penalty.home,
-            penaltyAway: sanitized.penalty.away,
-          };
-        }
-      }
-
-      const merged = { ...current, ...updates };
-      if ("extraHome" in p || "extraAway" in p) {
-        if (merged.normalHome !== null && merged.normalAway !== null) {
-          const sanitized = sanitizeKnockoutExtras({
-            normal: { home: merged.normalHome, away: merged.normalAway },
-            extra: { home: merged.extraHome, away: merged.extraAway },
-            penalty: { home: merged.penaltyHome, away: merged.penaltyAway },
-          });
-          updates = {
-            ...updates,
-            penaltyHome: sanitized.penalty.home,
-            penaltyAway: sanitized.penalty.away,
-          };
-        }
-      }
-
+      const updates = patchKnockoutFields(current, p);
       return { ...prev, [id]: { ...current, ...updates } };
     });
     setDirty((prev) => new Set(prev).add(id));
@@ -315,10 +273,12 @@ function KnockoutRow({
   });
   const hasScores = value.normalHome !== null && value.normalAway !== null;
   const normalIsDraw = hasScores && isKnockoutNormalDraw({ home: value.normalHome, away: value.normalAway });
-  const pensEnabled = canEnterKnockoutPenalties({
-    normal: { home: value.normalHome ?? 0, away: value.normalAway ?? 0 },
-    extra: { home: value.extraHome, away: value.extraAway },
-  });
+  const pensEnabled =
+    hasScores &&
+    canEnterKnockoutPenalties({
+      normal: { home: value.normalHome, away: value.normalAway },
+      extra: { home: value.extraHome, away: value.extraAway },
+    });
   const ambiguous = hasScores && derivedWinner === null;
   const finalized = m.actual !== null;
   const won = (m.points ?? 0) > 0;
@@ -400,24 +360,34 @@ function KnockoutRow({
         <CrowdArenaLink matchId={m.id} disabled={!m.revealed} />
       </div>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <SmallScorePair
-          label="Լրացուցիչ ժամանակ"
-          home={value.extraHome}
-          away={value.extraAway}
-          onHome={(v) => onChange({ extraHome: v })}
-          onAway={(v) => onChange({ extraAway: v })}
-          disabled={disabled || !normalIsDraw}
-        />
-        <SmallScorePair
-          label="11-մետրանոցներ"
-          home={value.penaltyHome}
-          away={value.penaltyAway}
-          onHome={(v) => onChange({ penaltyHome: v })}
-          onAway={(v) => onChange({ penaltyAway: v })}
-          disabled={disabled || !pensEnabled}
-        />
-      </div>
+      {normalIsDraw && (
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <SmallScorePair
+            label="Լրացուցիչ ժամանակ"
+            home={value.extraHome}
+            away={value.extraAway}
+            onHome={(v) => onChange({ extraHome: v })}
+            onAway={(v) => onChange({ extraAway: v })}
+            disabled={disabled}
+          />
+          {pensEnabled && (
+            <SmallScorePair
+              label="11 մետրանոցներ"
+              home={value.penaltyHome}
+              away={value.penaltyAway}
+              onHome={(v) => onChange({ penaltyHome: v })}
+              onAway={(v) => onChange({ penaltyAway: v })}
+              disabled={disabled}
+            />
+          )}
+        </div>
+      )}
+
+      {!disabled && hasScores && !normalIsDraw && (
+        <p className="mt-3 text-xs text-navy-400">
+          Լրացուցիչ ժամանակ և 11 մետրանոցները հասանելի են միայն ոչ-ոքու հաշվի դեպքում։
+        </p>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-navy-400">Անցնում է հաջորդ փուլ՝</span>
@@ -435,7 +405,7 @@ function KnockoutRow({
         />
         {ambiguous && (
           <span className="text-xs font-medium text-amber-300">
-            Ոչ-ոքի է: Ընտրի՛ր անցնող թիմին կամ նշանակի՛ր 11-մետրանոցներ:
+            Ոչ-ոքի է: Ընտրի՛ր անցնող թիմին կամ նշանակի՛ր 11 մետրանոցներ:
           </span>
         )}
       </div>
@@ -469,7 +439,10 @@ function SmallScorePair({
           max={99}
           value={home ?? ""}
           disabled={disabled}
-          onChange={(e) => onHome(e.target.value === "" ? null : Math.max(0, Math.floor(Number(e.target.value))))}
+          onChange={(e) => {
+            if (disabled) return;
+            onHome(e.target.value === "" ? null : Math.max(0, Math.floor(Number(e.target.value))));
+          }}
           className="h-11 w-11 rounded-lg border border-white/10 bg-navy-900/80 text-center text-base font-bold text-white outline-none focus:border-pitch-400 disabled:opacity-40"
         />
         <span className="text-navy-500">:</span>
@@ -480,7 +453,10 @@ function SmallScorePair({
           max={99}
           value={away ?? ""}
           disabled={disabled}
-          onChange={(e) => onAway(e.target.value === "" ? null : Math.max(0, Math.floor(Number(e.target.value))))}
+          onChange={(e) => {
+            if (disabled) return;
+            onAway(e.target.value === "" ? null : Math.max(0, Math.floor(Number(e.target.value))));
+          }}
           className="h-11 w-11 rounded-lg border border-white/10 bg-navy-900/80 text-center text-base font-bold text-white outline-none focus:border-pitch-400 disabled:opacity-40"
         />
       </div>

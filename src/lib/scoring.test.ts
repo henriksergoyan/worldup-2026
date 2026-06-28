@@ -101,6 +101,15 @@ describe("resolveKnockoutWinner", () => {
   it("respects explicit winner", () => {
     expect(resolveKnockoutWinner({ normal: { home: 1, away: 1 }, winner: "AWAY" })).toBe("AWAY");
   });
+  it("ignores extra time and penalties when normal time has a winner", () => {
+    expect(
+      resolveKnockoutWinner({
+        normal: { home: 0, away: 1 },
+        extra: { home: 1, away: 0 },
+        penalty: { home: 4, away: 3 },
+      }),
+    ).toBe("AWAY");
+  });
 });
 
 describe("sanitizeKnockoutExtras", () => {
@@ -202,6 +211,38 @@ describe("scoreKnockoutMatch", () => {
     );
     expect(r.qualifyingWinnerHit).toBe(false);
     expect(r.points).toBe(0);
+  });
+
+  it("ignores extra time and penalties when the match did not go beyond 90 minutes", () => {
+    const pred = {
+      normal: { home: 0, away: 2 },
+      extra: { home: 0, away: 0 },
+      penalty: { home: 4, away: 3 },
+    };
+    const actual = {
+      normal: { home: 0, away: 1 },
+      extra: { home: 0, away: 0 },
+      penalty: { home: 4, away: 3 },
+    };
+    const r = scoreKnockoutMatch(pred, actual);
+    expect(r.points).toBe(4);
+    expect(r.breakdown.extra).toBeNull();
+    expect(r.breakdown.penalty).toBeNull();
+  });
+
+  it("gives the same normal-time points to everyone with the same full-time pick", () => {
+    const actual = {
+      normal: { home: 0, away: 1 },
+      extra: { home: 0, away: 0 },
+      penalty: { home: 5, away: 4 },
+    };
+    const withExtras = scoreKnockoutMatch(
+      { normal: { home: 0, away: 2 }, extra: { home: 0, away: 0 }, penalty: { home: 5, away: 4 } },
+      actual,
+    );
+    const normalOnly = scoreKnockoutMatch({ normal: { home: 0, away: 2 } }, actual);
+    expect(withExtras.points).toBe(normalOnly.points);
+    expect(normalOnly.points).toBe(4);
   });
 });
 

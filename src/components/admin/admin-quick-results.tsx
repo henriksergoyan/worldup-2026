@@ -6,7 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { bulkSaveResults } from "@/app/actions/admin";
-import { resolveKnockoutWinner } from "@/lib/scoring";
+import {
+  resolveKnockoutWinner,
+  sanitizeKnockoutExtras,
+  canEnterKnockoutPenalties,
+  isKnockoutNormalDraw,
+  patchKnockoutFields,
+} from "@/lib/scoring";
 import { cn, formatDateTime } from "@/lib/utils";
 import { ROUND_LABELS, STAGES, type Round } from "@/lib/constants";
 
@@ -49,13 +55,21 @@ type Filter = "all" | "pending" | "finished" | "group" | "knockout";
 function initLocal(matches: QuickResultMatch[]): Local {
   const s: Local = {};
   for (const m of matches) {
+    const sanitized =
+      m.stage === STAGES.KNOCKOUT && m.normalHome !== null && m.normalAway !== null
+        ? sanitizeKnockoutExtras({
+            normal: { home: m.normalHome, away: m.normalAway },
+            extra: { home: m.extraHome, away: m.extraAway },
+            penalty: { home: m.penaltyHome, away: m.penaltyAway },
+          })
+        : null;
     s[m.id] = {
       normalHome: m.normalHome,
       normalAway: m.normalAway,
-      extraHome: m.extraHome,
-      extraAway: m.extraAway,
-      penaltyHome: m.penaltyHome,
-      penaltyAway: m.penaltyAway,
+      extraHome: sanitized?.extra.home ?? m.extraHome,
+      extraAway: sanitized?.extra.away ?? m.extraAway,
+      penaltyHome: sanitized?.penalty.home ?? m.penaltyHome,
+      penaltyAway: sanitized?.penalty.away ?? m.penaltyAway,
       winner: m.winner,
     };
   }
@@ -103,7 +117,12 @@ export function AdminQuickResults({
   const [dirty, setDirty] = useState<Set<string>>(new Set());
 
   function patch(id: string, p: Partial<Local[string]>) {
-    setLocal((prev) => ({ ...prev, [id]: { ...prev[id], ...p } }));
+    setLocal((prev) => {
+      const current = prev[id];
+      const m = matches.find((x) => x.id === id);
+      const updates = m?.stage === STAGES.KNOCKOUT ? patchKnockoutFields(current, p) : p;
+      return { ...prev, [id]: { ...current, ...updates } };
+    });
     setDirty((prev) => new Set(prev).add(id));
   }
 
@@ -263,6 +282,14 @@ function QuickResultRow({
         winner: value.winner,
       })
     : null;
+  const hasScores = value.normalHome !== null && value.normalAway !== null;
+  const normalIsDraw = hasScores && isKnockoutNormalDraw({ home: value.normalHome, away: value.normalAway });
+  const pensEnabled =
+    hasScores &&
+    canEnterKnockoutPenalties({
+      normal: { home: value.normalHome, away: value.normalAway },
+      extra: { home: value.extraHome, away: value.extraAway },
+    });
 
   return (
     <div
@@ -297,16 +324,22 @@ function QuickResultRow({
 
       {isKO && (
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-navy-400">ԼՀ</span>
-            <NumBox small value={value.extraHome} onChange={(v) => onChange({ extraHome: v })} />
-            <NumBox small value={value.extraAway} onChange={(v) => onChange({ extraAway: v })} />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-navy-400">ՏՀ</span>
-            <NumBox small value={value.penaltyHome} onChange={(v) => onChange({ penaltyHome: v })} />
-            <NumBox small value={value.penaltyAway} onChange={(v) => onChange({ penaltyAway: v })} />
-          </div>
+          {normalIsDraw && (
+            <>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-navy-400">ԼՀ</span>
+                <NumBox small value={value.extraHome} onChange={(v) => onChange({ extraHome: v })} />
+                <NumBox small value={value.extraAway} onChange={(v) => onChange({ extraAway: v })} />
+              </div>
+              {pensEnabled && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-navy-400">11 մ</span>
+                  <NumBox small value={value.penaltyHome} onChange={(v) => onChange({ penaltyHome: v })} />
+                  <NumBox small value={value.penaltyAway} onChange={(v) => onChange({ penaltyAway: v })} />
+                </div>
+              )}
+            </>
+          )}
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-navy-400">Անցնում է</span>
             <button

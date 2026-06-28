@@ -7,7 +7,7 @@ import {
   getDeadlineMap,
   predictionsRevealAt,
 } from "@/lib/deadlines";
-import { scoreNormalPrediction, scoreKnockoutMatch } from "@/lib/scoring";
+import { scoreNormalPrediction, scoreKnockoutMatch, type Side } from "@/lib/scoring";
 import { MatchArena, type ArenaPrediction } from "@/components/match-arena";
 import { STAGES } from "@/lib/constants";
 
@@ -42,6 +42,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
     scheduledAt,
     homeTeam,
     awayTeam,
+    homeTeamId,
+    awayTeamId,
     homeSeedLabel,
     awaySeedLabel,
     actualResult,
@@ -67,6 +69,17 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const finalized = actualResult?.finalized ?? false;
   const actual = actualResult;
 
+  function winnerSide(
+    teamId: string | null | undefined,
+    homeTeamId: string | null,
+    awayTeamId: string | null,
+  ): Side | null {
+    if (!teamId) return null;
+    if (teamId === homeTeamId) return "HOME";
+    if (teamId === awayTeamId) return "AWAY";
+    return null;
+  }
+
   function pointsFor(pred: (typeof predictions)[number]): number | null {
     if (!finalized || !actual) return null;
     if (stage === STAGES.GROUP) {
@@ -80,11 +93,13 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         normal: { home: pred.normalHomeGoals, away: pred.normalAwayGoals },
         extra: { home: pred.extraHomeGoals, away: pred.extraAwayGoals },
         penalty: { home: pred.penaltyHomeGoals, away: pred.penaltyAwayGoals },
+        winner: winnerSide(pred.predictedWinnerTeamId, homeTeamId, awayTeamId),
       },
       {
         normal: { home: actual.normalHomeGoals, away: actual.normalAwayGoals },
         extra: { home: actual.extraHomeGoals, away: actual.extraAwayGoals },
         penalty: { home: actual.penaltyHomeGoals, away: actual.penaltyAwayGoals },
+        winner: winnerSide(actual.winnerTeamId, homeTeamId, awayTeamId),
       },
     ).points;
   }

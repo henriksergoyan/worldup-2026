@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin, hashPassword } from "@/lib/auth";
 import { generateReadablePassword, buildUsername, formatUserName } from "@/lib/user-utils";
 import { getActiveTournament } from "@/lib/standings";
-import { resolveKnockoutWinner } from "@/lib/scoring";
+import { resolveKnockoutWinner, sanitizeKnockoutExtras } from "@/lib/scoring";
 import { refreshBracketFromResults } from "@/lib/bracket-engine";
 import { EXCEL_DEADLINES } from "@/lib/excel-deadlines";
 import { syncTeamPicksFromWorkbook } from "@/lib/sync-team-picks";
@@ -113,6 +113,22 @@ export async function saveResult(
   const nh = data.normalHome ?? null;
   const na = data.normalAway ?? null;
 
+  let extraHome = data.extraHome ?? null;
+  let extraAway = data.extraAway ?? null;
+  let penaltyHome = data.penaltyHome ?? null;
+  let penaltyAway = data.penaltyAway ?? null;
+  if (match.stage === STAGES.KNOCKOUT && nh !== null && na !== null) {
+    const sanitized = sanitizeKnockoutExtras({
+      normal: { home: nh, away: na },
+      extra: { home: extraHome, away: extraAway },
+      penalty: { home: penaltyHome, away: penaltyAway },
+    });
+    extraHome = sanitized.extra.home;
+    extraAway = sanitized.extra.away;
+    penaltyHome = sanitized.penalty.home;
+    penaltyAway = sanitized.penalty.away;
+  }
+
   // Derive winner team for knockout matches.
   let winnerTeamId: string | null = null;
   if (match.stage === STAGES.KNOCKOUT && nh !== null && na !== null) {
@@ -120,8 +136,8 @@ export async function saveResult(
       data.winner ??
       resolveKnockoutWinner({
         normal: { home: nh, away: na },
-        extra: { home: data.extraHome ?? null, away: data.extraAway ?? null },
-        penalty: { home: data.penaltyHome ?? null, away: data.penaltyAway ?? null },
+        extra: { home: extraHome, away: extraAway },
+        penalty: { home: penaltyHome, away: penaltyAway },
       });
     winnerTeamId = side === "HOME" ? match.homeTeamId : side === "AWAY" ? match.awayTeamId : null;
   }
@@ -130,10 +146,10 @@ export async function saveResult(
   const payload = {
     normalHomeGoals: nh,
     normalAwayGoals: na,
-    extraHomeGoals: data.extraHome ?? null,
-    extraAwayGoals: data.extraAway ?? null,
-    penaltyHomeGoals: data.penaltyHome ?? null,
-    penaltyAwayGoals: data.penaltyAway ?? null,
+    extraHomeGoals: extraHome,
+    extraAwayGoals: extraAway,
+    penaltyHomeGoals: penaltyHome,
+    penaltyAwayGoals: penaltyAway,
     winnerTeamId,
     finalized,
   };

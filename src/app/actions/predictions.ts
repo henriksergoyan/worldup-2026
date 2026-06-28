@@ -141,7 +141,7 @@ export async function saveKnockoutPredictions(
     if (ambiguous) {
       return {
         ok: false,
-        message: `Match ${match.matchNumber}: tie is unresolved. Add extra time / penalties or a predicted winner.`,
+        message: `Match ${match.matchNumber}: tie is unresolved. Add extra time / 11 մետրանոցներ or a predicted winner.`,
       };
     }
 

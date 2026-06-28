@@ -152,16 +152,20 @@ export interface KnockoutScoreInput {
  */
 export function resolveKnockoutWinner(input: KnockoutScoreInput): Side | null {
   if (input.winner === "HOME" || input.winner === "AWAY") return input.winner;
+  if (!bothPresent(input.normal)) return null;
 
-  const nh = isNum(input.normal.home) ? input.normal.home : 0;
-  const na = isNum(input.normal.away) ? input.normal.away : 0;
-  const eh = input.extra && isNum(input.extra.home) ? input.extra.home : 0;
-  const ea = input.extra && isNum(input.extra.away) ? input.extra.away : 0;
+  const nh = input.normal.home;
+  const na = input.normal.away;
+  if (nh > na) return "HOME";
+  if (na > nh) return "AWAY";
 
-  const aggHome = nh + eh;
-  const aggAway = na + ea;
-  if (aggHome > aggAway) return "HOME";
-  if (aggAway > aggHome) return "AWAY";
+  // Draw after 90 minutes — extra time may apply, then penalties.
+  if (input.extra && bothPresent(input.extra)) {
+    const aggHome = nh + input.extra.home;
+    const aggAway = na + input.extra.away;
+    if (aggHome > aggAway) return "HOME";
+    if (aggAway > aggHome) return "AWAY";
+  }
 
   if (input.penalty && bothPresent(input.penalty)) {
     if (input.penalty.home > input.penalty.away) return "HOME";
@@ -216,6 +220,66 @@ export function sanitizeKnockoutExtras(input: {
   return { extra: { home: eh, away: ea }, penalty: { home: input.penalty.home, away: input.penalty.away } };
 }
 
+export interface KnockoutFieldValues {
+  normalHome: number | null;
+  normalAway: number | null;
+  extraHome: number | null;
+  extraAway: number | null;
+  penaltyHome: number | null;
+  penaltyAway: number | null;
+}
+
+/** Apply a partial knockout edit and clear invalid extra-time / penalty fields. */
+export function patchKnockoutFields<T extends KnockoutFieldValues>(
+  current: T,
+  patch: Partial<T>,
+): Partial<T> {
+  let updates: Partial<T> = { ...patch };
+  const nh = (updates.normalHome ?? current.normalHome) as number | null;
+  const na = (updates.normalAway ?? current.normalAway) as number | null;
+
+  if ("normalHome" in patch || "normalAway" in patch) {
+    if (nh !== null && na !== null) {
+      const sanitized = sanitizeKnockoutExtras({
+        normal: { home: nh, away: na },
+        extra: {
+          home: (updates.extraHome ?? current.extraHome) as number | null,
+          away: (updates.extraAway ?? current.extraAway) as number | null,
+        },
+        penalty: {
+          home: (updates.penaltyHome ?? current.penaltyHome) as number | null,
+          away: (updates.penaltyAway ?? current.penaltyAway) as number | null,
+        },
+      });
+      updates = {
+        ...updates,
+        extraHome: sanitized.extra.home,
+        extraAway: sanitized.extra.away,
+        penaltyHome: sanitized.penalty.home,
+        penaltyAway: sanitized.penalty.away,
+      } as Partial<T>;
+    }
+  }
+
+  const merged = { ...current, ...updates };
+  if ("extraHome" in patch || "extraAway" in patch) {
+    if (merged.normalHome !== null && merged.normalAway !== null) {
+      const sanitized = sanitizeKnockoutExtras({
+        normal: { home: merged.normalHome, away: merged.normalAway },
+        extra: { home: merged.extraHome, away: merged.extraAway },
+        penalty: { home: merged.penaltyHome, away: merged.penaltyAway },
+      });
+      updates = {
+        ...updates,
+        penaltyHome: sanitized.penalty.home,
+        penaltyAway: sanitized.penalty.away,
+      } as Partial<T>;
+    }
+  }
+
+  return updates;
+}
+
 export interface KnockoutScoringResult extends ScoringResult {
   breakdown: {
     normal: ScoringResult;
@@ -227,7 +291,7 @@ export interface KnockoutScoringResult extends ScoringResult {
 
 /**
  * Score a full knockout match: normal time (group rules) + extra time + penalties
- * (ET/penalty rules) + 1 bonus point for predicting the advancing team.
+ * (only when the actual match went there) + 1 bonus point for predicting the advancing team.
  */
 export function scoreKnockoutMatch(
   prediction: KnockoutScoreInput,
@@ -236,15 +300,35 @@ export function scoreKnockoutMatch(
   const normal = scoreNormalPrediction(prediction.normal, actual.normal);
 
   const emptyScore: ScoreInput = { home: null, away: null };
-  const extra =
-    actual.extra && bothPresent(actual.extra)
-      ? scoreExtraOrPenaltyPrediction(prediction.extra ?? emptyScore, actual.extra)
-      : null;
+  let extra: ScoringResult | null = null;
+  let penalty: ScoringResult | null = null;
 
-  const penalty =
-    actual.penalty && bothPresent(actual.penalty)
-      ? scoreExtraOrPenaltyPrediction(prediction.penalty ?? emptyScore, actual.penalty)
-      : null;
+  if (bothPresent(actual.normal)) {
+    const actualSanitized = sanitizeKnockoutExtras({
+      normal: actual.normal,
+      extra: { home: actual.extra?.home ?? null, away: actual.extra?.away ?? null },
+      penalty: { home: actual.penalty?.home ?? null, away: actual.penalty?.away ?? null },
+    });
+    const predGated = sanitizeKnockoutExtras({
+      normal: actual.normal,
+      extra: { home: prediction.extra?.home ?? null, away: prediction.extra?.away ?? null },
+      penalty: { home: prediction.penalty?.home ?? null, away: prediction.penalty?.away ?? null },
+    });
+
+    if (actualSanitized.extra.home !== null && actualSanitized.extra.away !== null) {
+      extra = scoreExtraOrPenaltyPrediction(
+        predGated.extra.home !== null && predGated.extra.away !== null ? predGated.extra : emptyScore,
+        actualSanitized.extra,
+      );
+    }
+
+    if (actualSanitized.penalty.home !== null && actualSanitized.penalty.away !== null) {
+      penalty = scoreExtraOrPenaltyPrediction(
+        predGated.penalty.home !== null && predGated.penalty.away !== null ? predGated.penalty : emptyScore,
+        actualSanitized.penalty,
+      );
+    }
+  }
 
   const actualWinner = resolveKnockoutWinner(actual);
   const predictedWinner = resolveKnockoutWinner(prediction);

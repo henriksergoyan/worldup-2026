@@ -6,7 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { bulkSaveResults } from "@/app/actions/admin";
-import { resolveKnockoutWinner } from "@/lib/scoring";
+import {
+  resolveKnockoutWinner,
+  sanitizeKnockoutExtras,
+  canEnterKnockoutPenalties,
+  isKnockoutNormalDraw,
+  patchKnockoutFields,
+} from "@/lib/scoring";
 import { cn, formatDateTime } from "@/lib/utils";
 import { ROUND_LABELS, STAGES, type Round } from "@/lib/constants";
 
@@ -47,13 +53,27 @@ interface State {
 }
 
 function initState(m: ResultDTO): State {
+  const normalHome = m.result?.normalHome ?? null;
+  const normalAway = m.result?.normalAway ?? null;
+  const extraHome = m.result?.extraHome ?? null;
+  const extraAway = m.result?.extraAway ?? null;
+  const penaltyHome = m.result?.penaltyHome ?? null;
+  const penaltyAway = m.result?.penaltyAway ?? null;
+  const sanitized =
+    m.stage === STAGES.KNOCKOUT && normalHome !== null && normalAway !== null
+      ? sanitizeKnockoutExtras({
+          normal: { home: normalHome, away: normalAway },
+          extra: { home: extraHome, away: extraAway },
+          penalty: { home: penaltyHome, away: penaltyAway },
+        })
+      : null;
   return {
-    normalHome: m.result?.normalHome ?? null,
-    normalAway: m.result?.normalAway ?? null,
-    extraHome: m.result?.extraHome ?? null,
-    extraAway: m.result?.extraAway ?? null,
-    penaltyHome: m.result?.penaltyHome ?? null,
-    penaltyAway: m.result?.penaltyAway ?? null,
+    normalHome,
+    normalAway,
+    extraHome: sanitized?.extra.home ?? extraHome,
+    extraAway: sanitized?.extra.away ?? extraAway,
+    penaltyHome: sanitized?.penalty.home ?? penaltyHome,
+    penaltyAway: sanitized?.penalty.away ?? penaltyAway,
     winner: m.result?.winner ?? null,
     finalized: m.result?.finalized ?? false,
   };
@@ -72,7 +92,12 @@ export function ResultsEditor({ matches }: { matches: ResultDTO[] }) {
   const [dirty, setDirty] = useState<Set<string>>(new Set());
 
   function patch(id: string, p: Partial<State>) {
-    setState((prev) => ({ ...prev, [id]: { ...prev[id], ...p } }));
+    setState((prev) => {
+      const current = prev[id];
+      const m = matches.find((x) => x.id === id);
+      const updates = m?.stage === STAGES.KNOCKOUT ? patchKnockoutFields(current, p) : p;
+      return { ...prev, [id]: { ...current, ...updates } };
+    });
     setDirty((prev) => new Set(prev).add(id));
   }
 
@@ -235,6 +260,14 @@ function ResultRow({
     penalty: { home: value.penaltyHome, away: value.penaltyAway },
     winner: value.winner,
   });
+  const hasScores = value.normalHome !== null && value.normalAway !== null;
+  const normalIsDraw = hasScores && isKnockoutNormalDraw({ home: value.normalHome, away: value.normalAway });
+  const pensEnabled =
+    hasScores &&
+    canEnterKnockoutPenalties({
+      normal: { home: value.normalHome, away: value.normalAway },
+      extra: { home: value.extraHome, away: value.extraAway },
+    });
 
   return (
     <div className={cn("glass p-3 sm:p-4", value.finalized && "border-pitch-500/30 bg-pitch-500/[0.04]")}>
@@ -258,16 +291,22 @@ function ResultRow({
 
       {isKO && (
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-navy-400">ԼՀ</span>
-            <NumBox value={value.extraHome} onChange={(v) => onChange({ extraHome: v })} small />
-            <NumBox value={value.extraAway} onChange={(v) => onChange({ extraAway: v })} small />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-navy-400">ՏՀ</span>
-            <NumBox value={value.penaltyHome} onChange={(v) => onChange({ penaltyHome: v })} small />
-            <NumBox value={value.penaltyAway} onChange={(v) => onChange({ penaltyAway: v })} small />
-          </div>
+          {normalIsDraw && (
+            <>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-navy-400">ԼՀ</span>
+                <NumBox value={value.extraHome} onChange={(v) => onChange({ extraHome: v })} small />
+                <NumBox value={value.extraAway} onChange={(v) => onChange({ extraAway: v })} small />
+              </div>
+              {pensEnabled && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-navy-400">11 մ</span>
+                  <NumBox value={value.penaltyHome} onChange={(v) => onChange({ penaltyHome: v })} small />
+                  <NumBox value={value.penaltyAway} onChange={(v) => onChange({ penaltyAway: v })} small />
+                </div>
+              )}
+            </>
+          )}
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-navy-400">Անցնում է</span>
             <button
