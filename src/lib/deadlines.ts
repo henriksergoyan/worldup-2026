@@ -143,15 +143,16 @@ export function isMatchPredictionLocked(
   return Date.now() >= matchEditLockAt(match.scheduledAt, kickoffLockMinutes).getTime();
 }
 
-/** Combined lock: kickoff window OR legacy phase lock (whichever locks first). */
+/**
+ * Match predictions lock at kickoff minus the configured window (default: 0 = at kickoff).
+ * Phase deadlines govern champion/team picks only — not per-match score entry.
+ */
 export function isMatchLocked(
-  match: { stage: string; round: string | null; matchNumber: number; scheduledAt: Date },
-  deadlines: Map<Phase, DeadlineState>,
+  match: { scheduledAt: Date },
+  _deadlines?: Map<Phase, DeadlineState>,
   kickoffLockMinutes: number = DEFAULT_KICKOFF_LOCK_MINUTES,
 ): boolean {
-  if (isMatchPredictionLocked(match, kickoffLockMinutes)) return true;
-  const phase = phaseForMatch(match);
-  return deadlines.get(phase)?.locked ?? false;
+  return isMatchPredictionLocked(match, kickoffLockMinutes);
 }
 
 /** When others' predictions become visible (phase deadline or kickoff lock, whichever is earlier). */
