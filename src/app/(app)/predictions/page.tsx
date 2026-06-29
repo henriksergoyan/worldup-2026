@@ -8,9 +8,10 @@ import {
   canRevealPredictions,
 } from "@/lib/deadlines";
 import { buildGroupTables } from "@/lib/group-tables";
+import { buildPredictedAdvancing, buildQualifiersViz } from "@/lib/qualifiers";
 import { PredictionsTabs } from "@/components/predictions/predictions-tabs";
 import type { GroupStandingRowDTO } from "@/components/predictions/types";
-import { PHASES, STAGES, TEAM_PICK_TYPES, type Phase } from "@/lib/constants";
+import { PHASES, POINTS, STAGES, TEAM_PICK_TYPES, type Phase } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -159,6 +160,28 @@ export default async function PredictionsPage({
     .filter((p) => p.type === TEAM_PICK_TYPES.KNOCKOUT_QUALIFIER)
     .map((p) => p.teamId);
 
+  const groupMatchesWithPred = matches
+    .filter((m) => m.stage === STAGES.GROUP)
+    .map((m) => ({
+      groupCode: m.groupCode,
+      homeTeamId: m.homeTeamId,
+      awayTeamId: m.awayTeamId,
+      pred: m.predictions[0] ?? null,
+    }));
+  const advancing = buildPredictedAdvancing(
+    teams.map((t) => ({ id: t.id, name: t.name, groupCode: t.groupCode })),
+    groupMatchesWithPred,
+    (i) => {
+      const p = groupMatchesWithPred[i].pred;
+      return p ? { home: p.normalHomeGoals, away: p.normalAwayGoals } : null;
+    },
+  );
+  const qualifiersViz = buildQualifiersViz(
+    advancing,
+    standings.actualQualifiedTeamIds,
+    POINTS.TEAM_PICK,
+  );
+
   const lockInfo = (phase: Phase) => {
     const d = deadlines.get(phase);
     return { locked: d?.locked ?? false, lockAt: d?.lockAt?.toISOString() ?? null };
@@ -184,6 +207,7 @@ export default async function PredictionsPage({
         pickLimit={tournament.knockoutPickCount}
         championLock={lockInfo(PHASES.CHAMPION)}
         teamsLock={{ locked: false, lockAt: null }}
+        qualifiers={qualifiersViz}
       />
     </div>
   );

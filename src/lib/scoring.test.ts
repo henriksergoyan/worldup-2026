@@ -213,6 +213,21 @@ describe("scoreKnockoutMatch", () => {
     expect(r.points).toBe(0);
   });
 
+  it("awards the advancing bonus even when the manner of winning differs", () => {
+    // Predicted: home advances via extra time (normal draw, ET win).
+    const pred = {
+      normal: { home: 1, away: 1 },
+      extra: { home: 1, away: 0 },
+    };
+    // Actual: home advanced in normal time (no extra time played).
+    const actual = { normal: { home: 2, away: 0 } };
+    const r = scoreKnockoutMatch(pred, actual);
+    // Wrong normal score/outcome (0) but advancing team correct → +1.
+    expect(r.qualifyingWinnerHit).toBe(true);
+    expect(r.breakdown.qualifyingWinnerPoints).toBe(1);
+    expect(r.points).toBe(1);
+  });
+
   it("ignores extra time and penalties when the match did not go beyond 90 minutes", () => {
     const pred = {
       normal: { home: 0, away: 2 },

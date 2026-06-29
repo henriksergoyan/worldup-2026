@@ -7,6 +7,7 @@ import {
   calculateLeaderboard,
   type Side,
 } from "./scoring";
+import { buildPredictedAdvancing } from "./qualifiers";
 import { STAGES, TEAM_PICK_TYPES } from "./constants";
 
 export interface RankTimelinePoint {
@@ -78,7 +79,7 @@ function ranksFromAccumulators(
 
 /** Overall rank after each finalized match, chronologically from match #1. */
 export async function computeRankTimeline(tournamentId: string): Promise<RankTimelinePoint[]> {
-  const [tournament, users, matches, predictions, teamPicks, teamStatuses] = await Promise.all([
+  const [tournament, users, matches, predictions, teamPicks, teamStatuses, teams] = await Promise.all([
     prisma.tournament.findUniqueOrThrow({ where: { id: tournamentId } }),
     prisma.user.findMany({ where: { role: "PLAYER", active: true } }),
     prisma.match.findMany({
@@ -89,7 +90,18 @@ export async function computeRankTimeline(tournamentId: string): Promise<RankTim
     prisma.prediction.findMany({ where: { match: { tournamentId } } }),
     prisma.teamPick.findMany({ where: { tournamentId } }),
     prisma.actualTeamStatus.findMany({ where: { tournamentId } }),
+    prisma.team.findMany({ where: { tournamentId } }),
   ]);
+
+  const teamMeta = teams.map((t) => ({ id: t.id, name: t.name, groupCode: t.groupCode }));
+  const groupMatchesMeta = matches
+    .filter((m) => m.stage === STAGES.GROUP)
+    .map((m) => ({
+      id: m.id,
+      groupCode: m.groupCode,
+      homeTeamId: m.homeTeamId,
+      awayTeamId: m.awayTeamId,
+    }));
 
   const finalized = matches
     .filter((m) => m.actualResult?.finalized)
@@ -102,9 +114,11 @@ export async function computeRankTimeline(tournamentId: string): Promise<RankTim
   const paidCount = users.filter((u) => u.paid).length;
 
   const accs: Accumulator[] = users.map((user) => {
-    const userQualifierPicks = teamPicks
-      .filter((tp) => tp.userId === user.id && tp.type === TEAM_PICK_TYPES.KNOCKOUT_QUALIFIER)
-      .map((tp) => tp.teamId);
+    const advancing = buildPredictedAdvancing(teamMeta, groupMatchesMeta, (i) => {
+      const p = predsByUserMatch.get(`${user.id}:${groupMatchesMeta[i].id}`);
+      if (!p) return null;
+      return { home: p.normalHomeGoals, away: p.normalAwayGoals };
+    });
     const userChampion = teamPicks.find(
       (tp) => tp.userId === user.id && tp.type === TEAM_PICK_TYPES.CHAMPION,
     );
@@ -114,7 +128,7 @@ export async function computeRankTimeline(tournamentId: string): Promise<RankTim
       paid: user.paid,
       groupStagePoints: 0,
       knockoutStagePoints: 0,
-      knockoutTeamPoints: scoreTeamPicks(userQualifierPicks, qualifiedTeamIds),
+      knockoutTeamPoints: scoreTeamPicks(advancing.teamIds, qualifiedTeamIds),
       championPoints: scoreChampionPick(userChampion?.teamId ?? null, championTeamId),
       exactScoreHits: 0,
       complicatedExactScoreHits: 0,

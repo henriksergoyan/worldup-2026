@@ -161,6 +161,9 @@ export function KnockoutPredictions({
 
   return (
     <div className="space-y-4 pb-savebar">
+      <p className="rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-navy-300">
+        💡 +1 միավոր՝ ճիշտ կանխատեսված անցնող թիմի համար (անկախ նրանից՝ հիմնական, լրացուցիչ ժամանակում, թե 11 մետրանոցներով է անցել)։
+      </p>
       {rounds.map(([round, list]) => {
         const isExpanded = expandedRounds[round] ?? false;
         const completedCount = list.filter((m) => m.actual !== null).length;

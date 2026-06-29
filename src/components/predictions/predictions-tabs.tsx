@@ -5,7 +5,8 @@ import { MatchDTO, TeamDTO, LockInfo, GroupStandingRowDTO } from "./types";
 import { GroupPredictions } from "./group-predictions";
 import { KnockoutPredictions } from "./knockout-predictions";
 import { ChampionPicker } from "./champion-picker";
-import { TeamPicker } from "./team-picker";
+import { PlayoffQualifiers } from "./playoff-qualifiers";
+import type { QualifiersViz } from "@/lib/qualifiers";
 import { cn } from "@/lib/utils";
 
 type Tab = "group" | "knockout" | "champion";
@@ -27,6 +28,7 @@ export function PredictionsTabs({
   pickLimit,
   championLock,
   teamsLock,
+  qualifiers,
   readOnly = false,
   memberLabel,
 }: {
@@ -40,6 +42,7 @@ export function PredictionsTabs({
   pickLimit: number;
   championLock: LockInfo;
   teamsLock: LockInfo;
+  qualifiers?: QualifiersViz;
   readOnly?: boolean;
   memberLabel?: string;
 }) {
@@ -74,7 +77,10 @@ export function PredictionsTabs({
         />
       )}
       {tab === "knockout" && (
-        <KnockoutPredictions matches={knockoutMatches} readOnly={readOnly} memberLabel={memberLabel} />
+        <>
+          {qualifiers && <PlayoffQualifiers viz={qualifiers} />}
+          <KnockoutPredictions matches={knockoutMatches} readOnly={readOnly} memberLabel={memberLabel} />
+        </>
       )}
       {tab === "champion" && (
         <ChampionPicker teams={teams} current={championPick} lock={championLock} readOnly={readOnly} />

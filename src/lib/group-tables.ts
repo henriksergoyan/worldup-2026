@@ -180,3 +180,48 @@ export function rankThirdPlaceTeams(tables: Map<string, GroupTable>): ThirdPlace
   });
   return thirds.slice(0, 8);
 }
+
+export interface AdvancingGroupSlot {
+  groupCode: string;
+  complete: boolean;
+  first: GroupStandingRow | null;
+  second: GroupStandingRow | null;
+}
+
+export interface AdvancingSelection {
+  /** Group winners and runners-up, one entry per group (sorted by group code). */
+  byGroup: AdvancingGroupSlot[];
+  /** Best eight third-placed teams across complete groups. */
+  bestThirds: ThirdPlaceCandidate[];
+  /** Flat list of every team id that advances to the knockout stage. */
+  teamIds: string[];
+}
+
+/**
+ * Determine which teams advance to the knockout stage from a set of group
+ * tables: the top two of every completed group plus the best eight third-placed
+ * teams. Mirrors the qualifier logic used when filling the real bracket so that
+ * a player's predicted standings and the actual standings are scored the same way.
+ */
+export function selectAdvancingTeams(tables: Map<string, GroupTable>): AdvancingSelection {
+  const byGroup: AdvancingGroupSlot[] = [...tables.values()]
+    .sort((a, b) => a.groupCode.localeCompare(b.groupCode))
+    .map((t) => ({
+      groupCode: t.groupCode,
+      complete: t.complete,
+      first: t.rows.find((r) => r.rank === 1) ?? null,
+      second: t.rows.find((r) => r.rank === 2) ?? null,
+    }));
+
+  const bestThirds = rankThirdPlaceTeams(tables);
+
+  const teamIds: string[] = [];
+  for (const g of byGroup) {
+    if (!g.complete) continue;
+    if (g.first) teamIds.push(g.first.teamId);
+    if (g.second) teamIds.push(g.second.teamId);
+  }
+  for (const t of bestThirds) teamIds.push(t.teamId);
+
+  return { byGroup, bestThirds, teamIds };
+}

@@ -23,6 +23,7 @@ export function MemberPredictionsView({
             <Stat label="Ընդհանուր" value={`${data.breakdown.totalPoints} մվ`} accent />
             <Stat label="Խմբային" value={String(data.breakdown.groupStagePoints)} />
             <Stat label="Փլեյ-օֆֆ" value={String(data.breakdown.knockoutStagePoints)} />
+            <Stat label="Անցած թիմեր" value={String(data.breakdown.knockoutTeamPoints)} />
             <Stat label="Չեմպիոն" value={String(data.breakdown.championPoints)} />
             <Stat label="Ճշգրիտ հաշիվ" value={String(data.breakdown.exactScoreHits)} />
           </CardContent>
@@ -40,6 +41,7 @@ export function MemberPredictionsView({
         pickLimit={data.tournament.knockoutPickCount}
         championLock={data.championLock}
         teamsLock={data.teamsLock}
+        qualifiers={data.qualifiers}
         readOnly={readOnly}
         memberLabel={memberLabel ?? data.user.name}
       />

@@ -9,6 +9,7 @@ import {
   type LeaderboardEntry,
   type Side,
 } from "./scoring";
+import { buildPredictedAdvancing } from "./qualifiers";
 import { STAGES, TEAM_PICK_TYPES } from "./constants";
 
 export interface PlayerBreakdown {
@@ -25,6 +26,10 @@ export interface PlayerBreakdown {
   correctOutcomes: number;
   qualifyingWinnerHits: number;
   predictionsMade: number;
+  /** Teams the player's predicted group results would send to the knockout stage. */
+  predictedQualifierTeamIds: string[];
+  /** Predicted qualifiers that actually advanced (each worth +2). */
+  qualifierHitTeamIds: string[];
   // matchId -> points earned (for finalized matches)
   matchPoints: Record<string, number>;
 }
@@ -34,6 +39,8 @@ export interface StandingsResult {
   breakdownByUser: Record<string, PlayerBreakdown>;
   prizePool: number;
   paidCount: number;
+  /** Teams that actually reached the knockout stage (empty until the group stage ends). */
+  actualQualifiedTeamIds: string[];
 }
 
 function sideFromTeamId(
@@ -53,7 +60,7 @@ function sideFromTeamId(
  * Pure-ish: reads the DB then delegates all math to the scoring engine.
  */
 export async function computeStandings(tournamentId: string): Promise<StandingsResult> {
-  const [tournament, users, matches, predictions, teamPicks, teamStatuses] =
+  const [tournament, users, matches, predictions, teamPicks, teamStatuses, teams] =
     await Promise.all([
       prisma.tournament.findUniqueOrThrow({ where: { id: tournamentId } }),
       prisma.user.findMany({ where: { role: "PLAYER", active: true } }),
@@ -66,7 +73,18 @@ export async function computeStandings(tournamentId: string): Promise<StandingsR
       }),
       prisma.teamPick.findMany({ where: { tournamentId } }),
       prisma.actualTeamStatus.findMany({ where: { tournamentId } }),
+      prisma.team.findMany({ where: { tournamentId } }),
     ]);
+
+  const teamMeta = teams.map((t) => ({ id: t.id, name: t.name, groupCode: t.groupCode }));
+  const groupMatchesMeta = matches
+    .filter((m) => m.stage === STAGES.GROUP)
+    .map((m) => ({
+      id: m.id,
+      groupCode: m.groupCode,
+      homeTeamId: m.homeTeamId,
+      awayTeamId: m.awayTeamId,
+    }));
 
   const matchById = new Map(matches.map((m) => [m.id, m]));
   const predsByUser = new Map<string, typeof predictions>();
@@ -101,6 +119,8 @@ export async function computeStandings(tournamentId: string): Promise<StandingsR
       correctOutcomes: 0,
       qualifyingWinnerHits: 0,
       predictionsMade: 0,
+      predictedQualifierTeamIds: [],
+      qualifierHitTeamIds: [],
       matchPoints: {},
     };
 
@@ -141,11 +161,22 @@ export async function computeStandings(tournamentId: string): Promise<StandingsR
       }
     }
 
-    // Team picks (knockout qualifiers)
-    const userQualifierPicks = teamPicks
-      .filter((tp) => tp.userId === user.id && tp.type === TEAM_PICK_TYPES.KNOCKOUT_QUALIFIER)
-      .map((tp) => tp.teamId);
-    bd.knockoutTeamPoints = scoreTeamPicks(userQualifierPicks, qualifiedTeamIds);
+    // Knockout qualifiers: derived from the player's own predicted group results.
+    // +2 for each team their predicted standings would advance that actually advanced.
+    const predByMatchId = new Map(preds.map((p) => [p.matchId, p]));
+    const advancing = buildPredictedAdvancing(
+      teamMeta,
+      groupMatchesMeta,
+      (i) => {
+        const p = predByMatchId.get(groupMatchesMeta[i].id);
+        if (!p) return null;
+        return { home: p.normalHomeGoals, away: p.normalAwayGoals };
+      },
+    );
+    const qualifiedSet = new Set(qualifiedTeamIds);
+    bd.predictedQualifierTeamIds = advancing.teamIds;
+    bd.qualifierHitTeamIds = advancing.teamIds.filter((id) => qualifiedSet.has(id));
+    bd.knockoutTeamPoints = scoreTeamPicks(advancing.teamIds, qualifiedTeamIds);
 
     // Champion pick
     const userChampion = teamPicks.find(
@@ -181,7 +212,13 @@ export async function computeStandings(tournamentId: string): Promise<StandingsR
   const breakdownByUser: Record<string, PlayerBreakdown> = {};
   for (const b of breakdowns) breakdownByUser[b.userId] = b;
 
-  return { leaderboard, breakdownByUser, prizePool, paidCount };
+  return {
+    leaderboard,
+    breakdownByUser,
+    prizePool,
+    paidCount,
+    actualQualifiedTeamIds: qualifiedTeamIds,
+  };
 }
 
 function applyResult(bd: PlayerBreakdown, res: ScoringResult, matchId: string) {

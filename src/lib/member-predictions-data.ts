@@ -7,8 +7,9 @@ import {
   canRevealPredictions,
 } from "./deadlines";
 import { buildGroupTables } from "./group-tables";
+import { buildPredictedAdvancing, buildQualifiersViz, type QualifiersViz } from "./qualifiers";
 import type { GroupStandingRowDTO, MatchDTO } from "@/components/predictions/types";
-import { PHASES, STAGES, TEAM_PICK_TYPES, type Phase } from "./constants";
+import { PHASES, POINTS, STAGES, TEAM_PICK_TYPES, type Phase } from "./constants";
 
 export interface MemberPredictionsData {
   user: { id: string; name: string; role: string };
@@ -19,6 +20,7 @@ export interface MemberPredictionsData {
   teams: { id: string; name: string; groupCode: string | null }[];
   championPick: string | null;
   qualifierPicks: string[];
+  qualifiers: QualifiersViz;
   breakdown: {
     totalPoints: number;
     rank: number;
@@ -172,6 +174,28 @@ export async function getMemberPredictionsData(
     }));
   }
 
+  const groupMatchesWithPred = matches
+    .filter((m) => m.stage === STAGES.GROUP)
+    .map((m) => ({
+      groupCode: m.groupCode,
+      homeTeamId: m.homeTeamId,
+      awayTeamId: m.awayTeamId,
+      pred: m.predictions[0] ?? null,
+    }));
+  const advancing = buildPredictedAdvancing(
+    teams.map((t) => ({ id: t.id, name: t.name, groupCode: t.groupCode })),
+    groupMatchesWithPred,
+    (i) => {
+      const p = groupMatchesWithPred[i].pred;
+      return p ? { home: p.normalHomeGoals, away: p.normalAwayGoals } : null;
+    },
+  );
+  const qualifiers = buildQualifiersViz(
+    advancing,
+    standings.actualQualifiedTeamIds,
+    POINTS.TEAM_PICK,
+  );
+
   const bd = standings.breakdownByUser[userId];
   const rankEntry = standings.leaderboard.find((e) => e.userId === userId);
 
@@ -195,6 +219,7 @@ export async function getMemberPredictionsData(
     qualifierPicks: picks
       .filter((p) => p.type === TEAM_PICK_TYPES.KNOCKOUT_QUALIFIER)
       .map((p) => p.teamId),
+    qualifiers,
     breakdown: bd
       ? {
           totalPoints: bd.totalPoints,

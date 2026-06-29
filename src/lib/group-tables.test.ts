@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildGroupTables, rankThirdPlaceTeams } from "./group-tables";
+import { buildGroupTables, rankThirdPlaceTeams, selectAdvancingTeams } from "./group-tables";
 
 describe("group-tables", () => {
   it("ranks a complete group by points", () => {
@@ -45,6 +45,50 @@ describe("group-tables", () => {
     const tables = buildGroupTables(teams, matches);
     const thirds = rankThirdPlaceTeams(tables);
     expect(thirds).toHaveLength(8);
+  });
+
+  it("selects top two per group plus eight best thirds as advancing teams", () => {
+    const teams = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"].flatMap((g) => [
+      { id: `${g}1`, name: `${g}1`, groupCode: g },
+      { id: `${g}2`, name: `${g}2`, groupCode: g },
+      { id: `${g}3`, name: `${g}3`, groupCode: g },
+      { id: `${g}4`, name: `${g}4`, groupCode: g },
+    ]);
+    const matches = teams.flatMap((t) => {
+      const g = t.groupCode!;
+      const others = teams.filter((x) => x.groupCode === g && x.id !== t.id);
+      return others.map((o) => {
+        const isThird = t.id.endsWith("3");
+        const homeGoals = isThird ? 0 : 2;
+        const awayGoals = isThird ? 2 : 0;
+        return mk(g, t.id, o.id, homeGoals, awayGoals, true);
+      });
+    });
+    const tables = buildGroupTables(teams, matches);
+    const advancing = selectAdvancingTeams(tables);
+
+    // 12 winners + 12 runners-up + 8 best thirds = 32.
+    expect(advancing.teamIds).toHaveLength(32);
+    expect(advancing.byGroup).toHaveLength(12);
+    expect(advancing.bestThirds).toHaveLength(8);
+    expect(advancing.byGroup.every((g) => g.complete)).toBe(true);
+    // Group winner/runner-up come from each group's top two rows.
+    expect(advancing.teamIds).toContain("A1");
+    expect(advancing.teamIds).toContain("A2");
+  });
+
+  it("excludes teams from incomplete groups", () => {
+    const teams = [
+      { id: "a", name: "Alpha", groupCode: "A" },
+      { id: "b", name: "Beta", groupCode: "A" },
+      { id: "c", name: "Gamma", groupCode: "A" },
+      { id: "d", name: "Delta", groupCode: "A" },
+    ];
+    // Only one match predicted → group not complete.
+    const tables = buildGroupTables(teams, [mk("A", "a", "b", 2, 0, true)]);
+    const advancing = selectAdvancingTeams(tables);
+    expect(advancing.byGroup[0].complete).toBe(false);
+    expect(advancing.teamIds).toHaveLength(0);
   });
 });
 
