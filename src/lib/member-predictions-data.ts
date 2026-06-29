@@ -129,6 +129,10 @@ export async function getMemberPredictionsData(
         ? {
             normalHome: actual!.normalHomeGoals,
             normalAway: actual!.normalAwayGoals,
+            extraHome: actual!.extraHomeGoals,
+            extraAway: actual!.extraAwayGoals,
+            penaltyHome: actual!.penaltyHomeGoals,
+            penaltyAway: actual!.penaltyAwayGoals,
           }
         : null,
       points: finalized ? (matchPoints[m.id] ?? 0) : null,

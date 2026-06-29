@@ -20,7 +20,14 @@ export interface MatchDTO {
     penaltyAway: number | null;
     winner: "HOME" | "AWAY" | null;
   } | null;
-  actual: { normalHome: number | null; normalAway: number | null } | null;
+  actual: {
+    normalHome: number | null;
+    normalAway: number | null;
+    extraHome: number | null;
+    extraAway: number | null;
+    penaltyHome: number | null;
+    penaltyAway: number | null;
+  } | null;
   points: number | null;
   averagePoints?: number | null;
   /** Others' predictions are visible (reveal window passed). */

@@ -6,6 +6,7 @@ import { MatchDTO } from "./types";
 import { ScoreInput } from "./score-input";
 import { SaveBar } from "./group-predictions";
 import { TeamChip } from "@/components/team-chip";
+import { KnockoutScoreDisplay, formatKnockoutScoreInline } from "@/components/knockout-score-display";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatDateTime } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
@@ -326,26 +327,36 @@ function KnockoutRow({
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
             <TeamChip name={m.homeName} seedLabel={m.homeSeedLabel} align="right" />
             {m.actual ? (
-              <div className="flex flex-col items-center gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalHome}</span>
-                  <span className="text-navy-500 font-bold text-lg">:</span>
-                  <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalAway}</span>
-                </div>
+              <div className="flex flex-col items-center gap-2">
+                <KnockoutScoreDisplay score={m.actual} size="lg" />
                 <div className="text-[11px] font-semibold text-pitch-300">
                   {memberLabel ? `${memberLabel}՝` : "Ձեր կանխատեսումը՝"}{" "}
                   <span className="font-bold">
-                    {value.normalHome ?? "—"} – {value.normalAway ?? "—"}
+                    {formatKnockoutScoreInline({
+                      normalHome: value.normalHome,
+                      normalAway: value.normalAway,
+                      extraHome: value.extraHome,
+                      extraAway: value.extraAway,
+                      penaltyHome: value.penaltyHome,
+                      penaltyAway: value.penaltyAway,
+                    })}
                   </span>
                 </div>
               </div>
             ) : m.locked ? (
               <div className="flex flex-col items-center gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-black text-white/60 tabular-nums">{value.normalHome ?? "—"}</span>
-                  <span className="text-navy-500 font-bold text-lg">:</span>
-                  <span className="text-2xl font-black text-white/60 tabular-nums">{value.normalAway ?? "—"}</span>
-                </div>
+                <KnockoutScoreDisplay
+                  score={{
+                    normalHome: value.normalHome,
+                    normalAway: value.normalAway,
+                    extraHome: value.extraHome,
+                    extraAway: value.extraAway,
+                    penaltyHome: value.penaltyHome,
+                    penaltyAway: value.penaltyAway,
+                  }}
+                  size="lg"
+                  muted
+                />
                 <div className="text-[10px] font-bold uppercase tracking-wider text-navy-400">
                   🔒 Կանխատեսումը կողպված է
                 </div>

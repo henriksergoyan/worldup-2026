@@ -187,6 +187,39 @@ export function isKnockoutNormalDraw(normal: ScoreInput): boolean {
   return bothPresent(normal) && normal.home === normal.away;
 }
 
+export interface KnockoutDisplayScore {
+  normalHome: number | null;
+  normalAway: number | null;
+  extraHome?: number | null;
+  extraAway?: number | null;
+  penaltyHome?: number | null;
+  penaltyAway?: number | null;
+}
+
+/** ET / penalty lines that should be shown when presenting a knockout score. */
+export function visibleKnockoutExtras(score: KnockoutDisplayScore): {
+  extra: { home: number; away: number } | null;
+  penalty: { home: number; away: number } | null;
+} {
+  if (score.normalHome === null || score.normalAway === null) {
+    return { extra: null, penalty: null };
+  }
+  const sanitized = sanitizeKnockoutExtras({
+    normal: { home: score.normalHome, away: score.normalAway },
+    extra: { home: score.extraHome ?? null, away: score.extraAway ?? null },
+    penalty: { home: score.penaltyHome ?? null, away: score.penaltyAway ?? null },
+  });
+  const extra =
+    sanitized.extra.home !== null && sanitized.extra.away !== null
+      ? { home: sanitized.extra.home, away: sanitized.extra.away }
+      : null;
+  const penalty =
+    sanitized.penalty.home !== null && sanitized.penalty.away !== null
+      ? { home: sanitized.penalty.home, away: sanitized.penalty.away }
+      : null;
+  return { extra, penalty };
+}
+
 /** Penalties apply only when normal + extra time aggregate is still tied. */
 export function canEnterKnockoutPenalties(input: {
   normal: ScoreInput;

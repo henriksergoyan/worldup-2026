@@ -11,6 +11,7 @@ import {
   isKnockoutPredictionAmbiguous,
   sanitizeKnockoutExtras,
   canEnterKnockoutPenalties,
+  visibleKnockoutExtras,
   calculateLeaderboard,
 } from "./scoring";
 
@@ -258,6 +259,37 @@ describe("scoreKnockoutMatch", () => {
     const normalOnly = scoreKnockoutMatch({ normal: { home: 0, away: 2 } }, actual);
     expect(withExtras.points).toBe(normalOnly.points);
     expect(normalOnly.points).toBe(4);
+  });
+});
+
+describe("visibleKnockoutExtras", () => {
+  it("shows extra time and penalties only when the score chain is valid", () => {
+    expect(
+      visibleKnockoutExtras({
+        normalHome: 1,
+        normalAway: 1,
+        extraHome: 0,
+        extraAway: 0,
+        penaltyHome: 4,
+        penaltyAway: 3,
+      }),
+    ).toEqual({
+      extra: { home: 0, away: 0 },
+      penalty: { home: 4, away: 3 },
+    });
+  });
+
+  it("hides extra time when normal time is not a draw", () => {
+    expect(
+      visibleKnockoutExtras({
+        normalHome: 2,
+        normalAway: 0,
+        extraHome: 1,
+        extraAway: 0,
+        penaltyHome: 5,
+        penaltyAway: 4,
+      }),
+    ).toEqual({ extra: null, penalty: null });
   });
 });
 

@@ -9,14 +9,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TeamChip } from "@/components/team-chip";
+import { KnockoutScoreDisplay, KnockoutScorePill, formatKnockoutScoreInline } from "@/components/knockout-score-display";
 import { translateTeam } from "@/lib/flags";
 import { ROUND_LABELS, STAGES, type Round } from "@/lib/constants";
+import type { KnockoutDisplayScore } from "@/lib/scoring";
 
 export interface ArenaPrediction {
   userId: string;
   name: string;
   home: number;
   away: number;
+  extraHome?: number | null;
+  extraAway?: number | null;
+  penaltyHome?: number | null;
+  penaltyAway?: number | null;
   points: number | null;
   isMe: boolean;
 }
@@ -32,7 +38,7 @@ export interface MatchArenaProps {
   awayName: string | null;
   homeSeedLabel: string | null;
   awaySeedLabel: string | null;
-  actual: { home: number; away: number } | null;
+  actual: KnockoutDisplayScore | { home: number; away: number } | null;
   finalized: boolean;
   canReveal: boolean;
   lockAt: string;
@@ -43,6 +49,40 @@ export interface MatchArenaProps {
 }
 
 type Tab = "crowd" | "columns" | "heatmap" | "rivals";
+
+function arenaToKnockoutScore(
+  p: Pick<
+    ArenaPrediction,
+    "home" | "away" | "extraHome" | "extraAway" | "penaltyHome" | "penaltyAway"
+  >,
+): KnockoutDisplayScore {
+  return {
+    normalHome: p.home,
+    normalAway: p.away,
+    extraHome: p.extraHome,
+    extraAway: p.extraAway,
+    penaltyHome: p.penaltyHome,
+    penaltyAway: p.penaltyAway,
+  };
+}
+
+function arenaPredScoreLabel(p: ArenaPrediction, isKnockout: boolean): string {
+  if (!isKnockout) return `${p.home}–${p.away}`;
+  return formatKnockoutScoreInline(arenaToKnockoutScore(p));
+}
+
+function ArenaPredScore({
+  p,
+  highlight,
+  isKnockout,
+}: {
+  p: ArenaPrediction;
+  highlight?: boolean;
+  isKnockout: boolean;
+}) {
+  if (!isKnockout) return <ScorePill home={p.home} away={p.away} highlight={highlight} />;
+  return <KnockoutScorePill score={arenaToKnockoutScore(p)} highlight={highlight} />;
+}
 
 export function MatchArena(props: MatchArenaProps) {
   const [tab, setTab] = useState<Tab>("crowd");
@@ -88,6 +128,14 @@ export function MatchArena(props: MatchArenaProps) {
       ? ROUND_LABELS[(props.round as Round) ?? "R32"]
       : `Խումբ ${props.groupCode}`;
 
+  const isKnockout = props.stage === STAGES.KNOCKOUT;
+
+  function actualKnockoutScore(): KnockoutDisplayScore | null {
+    if (!props.actual) return null;
+    if ("normalHome" in props.actual) return props.actual;
+    return { normalHome: props.actual.home, normalAway: props.actual.away };
+  }
+
   return (
     <div className="space-y-5">
       {/* Header card */}
@@ -112,15 +160,19 @@ export function MatchArena(props: MatchArenaProps) {
             <TeamChip name={props.homeName} seedLabel={props.homeSeedLabel} align="right" className="text-base sm:text-lg" />
             <div className="rounded-2xl bg-navy-900 px-3 py-2.5 text-center shadow-glow sm:px-5 sm:py-3">
               {props.actual ? (
-                <div className="text-2xl font-black tabular-nums text-white sm:text-4xl">
-                  {props.actual.home}–{props.actual.away}
-                </div>
+                isKnockout ? (
+                  <KnockoutScoreDisplay score={actualKnockoutScore()!} size="lg" />
+                ) : (
+                  <div className="text-2xl font-black tabular-nums text-white sm:text-4xl">
+                    {"home" in props.actual ? `${props.actual.home}–${props.actual.away}` : `${props.actual.normalHome}–${props.actual.normalAway}`}
+                  </div>
+                )
               ) : (
                 <div className="text-2xl font-black text-navy-500 sm:text-3xl">vs</div>
               )}
               {me && (
                 <div className="mt-1 text-xs text-pitch-300">
-                  Ձեր կանխատեսումը՝ {me.home}–{me.away}
+                  Ձեր կանխատեսումը՝ {arenaPredScoreLabel(me, isKnockout)}
                   {me.points !== null && ` · +${me.points} միավոր`}
                 </div>
               )}
@@ -147,7 +199,7 @@ export function MatchArena(props: MatchArenaProps) {
             </div>
             {me && (
               <div className="rounded-xl border border-pitch-500/30 bg-pitch-500/10 px-4 py-2 text-sm text-pitch-100">
-                Ձեր կանխատեսումը հաստատված է՝ <strong>{me.home}–{me.away}</strong>
+                Ձեր կանխատեսումը հաստատված է՝ <strong>{arenaPredScoreLabel(me, isKnockout)}</strong>
               </div>
             )}
           </CardContent>
@@ -267,7 +319,7 @@ export function MatchArena(props: MatchArenaProps) {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <ScorePill home={p.home} away={p.away} highlight={p.home === me?.home && p.away === me?.away} />
+                        <ArenaPredScore p={p} highlight={p.home === me?.home && p.away === me?.away} isKnockout={isKnockout} />
                         {p.points !== null && (
                           <Badge variant={p.points > 0 ? "success" : "muted"}>+{p.points}</Badge>
                         )}
@@ -324,7 +376,7 @@ export function MatchArena(props: MatchArenaProps) {
                               {p.isMe && <span className="ml-1 text-xs text-pitch-300">(դուք)</span>}
                             </td>
                             <td className="px-4 py-2.5 text-center">
-                              <ScorePill home={p.home} away={p.away} highlight={p.isMe} />
+                              <ArenaPredScore p={p} highlight={p.isMe} isKnockout={isKnockout} />
                             </td>
                             <td className="px-4 py-2.5 text-navy-200">
                               {outcome === "1"
@@ -351,7 +403,7 @@ export function MatchArena(props: MatchArenaProps) {
                 <CardTitle className="text-base">Կանխատեսումների տաք քարտեզը 🔥</CardTitle>
               </CardHeader>
               <CardContent>
-                <ScoreHeatmap predictions={preds} me={me} actual={props.actual} />
+                <ScoreHeatmap predictions={preds} me={me} actual={props.actual} isKnockout={isKnockout} />
                 <p className="mt-3 text-xs text-navy-400">
                   Որքան վառ է վանդակը, այնքան շատ մասնակից է նշել այդ հաշիվը: ★ = ձեր կանխատեսումն է:
                 </p>
@@ -361,8 +413,8 @@ export function MatchArena(props: MatchArenaProps) {
 
           {tab === "rivals" && (
             <div className="grid gap-4 md:grid-cols-2">
-              <RivalList title="🤝 Համախոհներ" subtitle="Ձեզ հետ նույն հաշիվն են կանխատեսել" items={soulmates} me={me} />
-              <RivalList title="⚔️ Հակառակորդներ" subtitle="Այլ ելք են կանխատեսել" items={contrarians.slice(0, 12)} me={me} />
+              <RivalList title="🤝 Համախոհներ" subtitle="Ձեզ հետ նույն հաշիվն են կանխատեսել" items={soulmates} me={me} isKnockout={isKnockout} />
+              <RivalList title="⚔️ Հակառակորդներ" subtitle="Այլ ելք են կանխատեսել" items={contrarians.slice(0, 12)} me={me} isKnockout={isKnockout} />
             </div>
           )}
 
@@ -378,12 +430,12 @@ export function MatchArena(props: MatchArenaProps) {
                 <div className="flex items-center gap-4">
                   <div className="text-center">
                     <div className="text-xs text-navy-400">Դուք</div>
-                    <ScorePill home={me.home} away={me.away} highlight />
+                    <ArenaPredScore p={me} highlight isKnockout={isKnockout} />
                   </div>
                   <span className="text-navy-500">vs</span>
                   <div className="text-center">
                     <div className="text-xs text-navy-400">{selected.name}</div>
-                    <ScorePill home={selected.home} away={selected.away} />
+                    <ArenaPredScore p={selected} isKnockout={isKnockout} />
                   </div>
                 </div>
               </CardContent>
@@ -478,10 +530,12 @@ function ScoreHeatmap({
   predictions,
   me,
   actual,
+  isKnockout,
 }: {
   predictions: ArenaPrediction[];
   me?: ArenaPrediction;
-  actual: { home: number; away: number } | null;
+  actual: MatchArenaProps["actual"];
+  isKnockout: boolean;
 }) {
   const maxGoals = 5;
   const grid: number[][] = Array.from({ length: maxGoals + 1 }, () => Array(maxGoals + 1).fill(0));
@@ -493,8 +547,20 @@ function ScoreHeatmap({
     }
   }
 
+  const actualNormal =
+    actual && "normalHome" in actual
+      ? { home: actual.normalHome!, away: actual.normalAway! }
+      : actual && "home" in actual
+        ? actual
+        : null;
+
   return (
     <div className="overflow-x-auto">
+      {isKnockout && (
+        <p className="mb-2 text-xs text-navy-400">
+          Տաք քարտեզը ցույց է տալիս միայն հիմնական ժամանակի հաշիվները։ Լրացուցիչ ժամանակը և 11 մետրանոցները՝ ցուցակում։
+        </p>
+      )}
       <div className="inline-grid gap-0.5" style={{ gridTemplateColumns: `auto repeat(${maxGoals + 1}, 2rem)` }}>
         <div />
         {Array.from({ length: maxGoals + 1 }, (_, a) => (
@@ -507,7 +573,7 @@ function ScoreHeatmap({
             <div className="flex items-center justify-end pr-1 text-[10px] text-navy-500">{h}</div>
             {row.map((count, a) => {
               const isMe = me && me.home === h && me.away === a;
-              const isActual = actual && actual.home === h && actual.away === a;
+              const isActual = actualNormal && actualNormal.home === h && actualNormal.away === a;
               const intensity = maxCount > 0 ? count / maxCount : 0;
               return (
                 <div
@@ -542,11 +608,13 @@ function RivalList({
   subtitle,
   items,
   me,
+  isKnockout,
 }: {
   title: string;
   subtitle: string;
   items: ArenaPrediction[];
   me?: ArenaPrediction;
+  isKnockout: boolean;
 }) {
   return (
     <Card>
@@ -561,7 +629,11 @@ function RivalList({
           items.map((p) => (
             <div key={p.userId} className="flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-2">
               <span className="font-medium text-white">{p.name}</span>
-              <ScorePill home={p.home} away={p.away} highlight={me && p.home === me.home && p.away === me.away} />
+              <ArenaPredScore
+                p={p}
+                highlight={me ? p.home === me.home && p.away === me.away : false}
+                isKnockout={isKnockout}
+              />
             </div>
           ))
         )}

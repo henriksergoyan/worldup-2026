@@ -111,6 +111,10 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       name: p.user.name,
       home: p.normalHomeGoals!,
       away: p.normalAwayGoals!,
+      extraHome: stage === STAGES.KNOCKOUT ? p.extraHomeGoals : undefined,
+      extraAway: stage === STAGES.KNOCKOUT ? p.extraAwayGoals : undefined,
+      penaltyHome: stage === STAGES.KNOCKOUT ? p.penaltyHomeGoals : undefined,
+      penaltyAway: stage === STAGES.KNOCKOUT ? p.penaltyAwayGoals : undefined,
       points: canReveal || p.user.id === user.id ? pointsFor(p) : null,
       isMe: p.user.id === user.id,
     }));
@@ -136,7 +140,16 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         awaySeedLabel={awaySeedLabel}
         actual={
           finalized && actual
-            ? { home: actual.normalHomeGoals!, away: actual.normalAwayGoals! }
+            ? stage === STAGES.KNOCKOUT
+              ? {
+                  normalHome: actual.normalHomeGoals,
+                  normalAway: actual.normalAwayGoals,
+                  extraHome: actual.extraHomeGoals,
+                  extraAway: actual.extraAwayGoals,
+                  penaltyHome: actual.penaltyHomeGoals,
+                  penaltyAway: actual.penaltyAwayGoals,
+                }
+              : { home: actual.normalHomeGoals!, away: actual.normalAwayGoals! }
             : null
         }
         finalized={finalized}
