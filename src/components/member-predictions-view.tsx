@@ -8,14 +8,21 @@ export function MemberPredictionsView({
   initialTab,
   readOnly = false,
   memberLabel,
+  adminEditUserId,
 }: {
   data: MemberPredictionsData;
   initialTab?: string;
   readOnly?: boolean;
   memberLabel?: string;
+  adminEditUserId?: string;
 }) {
   return (
     <div className="space-y-4">
+      {adminEditUserId && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          <strong>Ադմինի խմբագրում.</strong> Կարող եք փոխել այս մասնակցի կանխատեսումները ցանկացած խաղի համար, ներառյալ ավարտվածները։
+        </div>
+      )}
       {data.breakdown && (
         <Card className="border-white/10">
           <CardContent className="flex flex-wrap gap-3 py-4">
@@ -44,6 +51,7 @@ export function MemberPredictionsView({
         qualifiers={data.qualifiers}
         readOnly={readOnly}
         memberLabel={memberLabel ?? data.user.name}
+        adminEditUserId={adminEditUserId}
       />
     </div>
   );

@@ -35,7 +35,7 @@ export default async function AdminMemberPage({
             {data.user.name} — կանխատեսումներ
           </h1>
           <p className="text-sm text-navy-300">
-            {data.user.role === "ADMIN" ? "Ադմինիստրատոր" : "Մասնակից"} · Ադմինի դիտում (բոլոր տվյալները բաց են)
+            {data.user.role === "ADMIN" ? "Ադմինիստրատոր" : "Մասնակից"} · Ադմինի խմբագրում — կանխատեսումները կարելի է փոխել ցանկացած պահի
           </p>
         </div>
         {data.breakdown && (
@@ -48,7 +48,7 @@ export default async function AdminMemberPage({
 
       <AdminNav />
 
-      <MemberPredictionsView data={data} initialTab={tab} readOnly />
+      <MemberPredictionsView data={data} initialTab={tab} adminEditUserId={userId} />
     </div>
   );
 }

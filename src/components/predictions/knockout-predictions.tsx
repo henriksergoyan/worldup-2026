@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn, formatDateTime } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 import { translateTeam } from "@/lib/flags";
-import { saveKnockoutPredictions } from "@/app/actions/predictions";
+import { saveKnockoutPredictions, adminSaveKnockoutPredictions } from "@/app/actions/predictions";
 import { resolveKnockoutWinner, sanitizeKnockoutExtras, canEnterKnockoutPenalties, isKnockoutNormalDraw, patchKnockoutFields } from "@/lib/scoring";
 import { ROUND_LABELS, ROUNDS, type Round } from "@/lib/constants";
 import {
@@ -37,10 +37,12 @@ export function KnockoutPredictions({
   matches,
   readOnly = false,
   memberLabel,
+  adminEditUserId,
 }: {
   matches: MatchDTO[];
   readOnly?: boolean;
   memberLabel?: string;
+  adminEditUserId?: string;
 }) {
   const { toast } = useToast();
   const [pending, start] = useTransition();
@@ -140,13 +142,17 @@ export function KnockoutPredictions({
 
   function runSave(items: ({ matchId: string } & KO)[]) {
     start(async () => {
-      const res = await saveKnockoutPredictions(items);
+      const res = adminEditUserId
+        ? await adminSaveKnockoutPredictions(adminEditUserId, items)
+        : await saveKnockoutPredictions(items);
       toast(res.message, res.ok ? "success" : "error");
       if (res.ok) setDirty(new Set());
       setConfirmation(null);
       setPendingItems([]);
     });
   }
+
+  const editable = !readOnly || !!adminEditUserId;
 
   if (matches.length === 0) {
     return (
@@ -171,7 +177,7 @@ export function KnockoutPredictions({
         const totalPoints = list.reduce((sum, m) => sum + (m.points ?? 0), 0);
 
         const unpredictedCount = list.filter((m) => {
-          const isLocked = m.locked || m.actual !== null;
+          const isLocked = !adminEditUserId && (m.locked || m.actual !== null);
           if (isLocked) return false;
           const val = local[m.id];
           return !val || val.normalHome === null || val.normalAway === null;
@@ -232,6 +238,7 @@ export function KnockoutPredictions({
                     onChange={(p) => patch(m.id, p)}
                     readOnly={readOnly}
                     memberLabel={memberLabel}
+                    adminEdit={!!adminEditUserId}
                   />
                 ))}
               </div>
@@ -239,7 +246,7 @@ export function KnockoutPredictions({
           </div>
         );
       })}
-      {!readOnly && <SaveBar count={dirty.size} pending={pending} onSave={save} />}
+      {editable && <SaveBar count={dirty.size} pending={pending} onSave={save} />}
 
       <PredictionSaveDialog
         confirmation={confirmation}
@@ -261,14 +268,17 @@ function KnockoutRow({
   onChange,
   readOnly = false,
   memberLabel,
+  adminEdit = false,
 }: {
   m: MatchDTO;
   value: KO;
   onChange: (p: Partial<KO>) => void;
   readOnly?: boolean;
   memberLabel?: string;
+  adminEdit?: boolean;
 }) {
-  const disabled = readOnly || m.locked || m.actual !== null;
+  const disabled = !adminEdit && (readOnly || m.locked || m.actual !== null);
+  const useInputs = adminEdit || (!m.locked && m.actual === null);
   const derivedWinner = resolveKnockoutWinner({
     normal: { home: value.normalHome, away: value.normalAway },
     extra: { home: value.extraHome, away: value.extraAway },
@@ -326,48 +336,67 @@ function KnockoutRow({
         <div className="min-w-0 flex-1">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
             <TeamChip name={m.homeName} seedLabel={m.homeSeedLabel} align="right" />
-            {m.actual ? (
-              <div className="flex flex-col items-center gap-2">
-                <KnockoutScoreDisplay score={m.actual} size="lg" />
-                <div className="text-[11px] font-semibold text-pitch-300">
-                  {memberLabel ? `${memberLabel}՝` : "Ձեր կանխատեսումը՝"}{" "}
-                  <span className="font-bold">
-                    {formatKnockoutScoreInline({
+            <div className="flex flex-col items-center gap-2">
+              {m.actual && adminEdit && (
+                <>
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-navy-500">Արդյունք</div>
+                  <KnockoutScoreDisplay score={m.actual} size="lg" />
+                </>
+              )}
+              {useInputs ? (
+                <div className="flex flex-col items-center gap-1">
+                  {m.actual && adminEdit && (
+                    <div className="text-[10px] font-bold uppercase tracking-wide text-amber-300">Կանխատեսում</div>
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <ScoreInput value={value.normalHome} onChange={(v) => onChange({ normalHome: v })} disabled={disabled} />
+                    <span className="text-navy-500">:</span>
+                    <ScoreInput value={value.normalAway} onChange={(v) => onChange({ normalAway: v })} disabled={disabled} />
+                  </div>
+                </div>
+              ) : m.actual ? (
+                <div className="flex flex-col items-center gap-2">
+                  <KnockoutScoreDisplay score={m.actual} size="lg" />
+                  <div className="text-[11px] font-semibold text-pitch-300">
+                    {memberLabel ? `${memberLabel}՝` : "Ձեր կանխատեսումը՝"}{" "}
+                    <span className="font-bold">
+                      {formatKnockoutScoreInline({
+                        normalHome: value.normalHome,
+                        normalAway: value.normalAway,
+                        extraHome: value.extraHome,
+                        extraAway: value.extraAway,
+                        penaltyHome: value.penaltyHome,
+                        penaltyAway: value.penaltyAway,
+                      })}
+                    </span>
+                  </div>
+                </div>
+              ) : m.locked ? (
+                <div className="flex flex-col items-center gap-1">
+                  <KnockoutScoreDisplay
+                    score={{
                       normalHome: value.normalHome,
                       normalAway: value.normalAway,
                       extraHome: value.extraHome,
                       extraAway: value.extraAway,
                       penaltyHome: value.penaltyHome,
                       penaltyAway: value.penaltyAway,
-                    })}
-                  </span>
+                    }}
+                    size="lg"
+                    muted
+                  />
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-navy-400">
+                    🔒 Կանխատեսումը կողպված է
+                  </div>
                 </div>
-              </div>
-            ) : m.locked ? (
-              <div className="flex flex-col items-center gap-1">
-                <KnockoutScoreDisplay
-                  score={{
-                    normalHome: value.normalHome,
-                    normalAway: value.normalAway,
-                    extraHome: value.extraHome,
-                    extraAway: value.extraAway,
-                    penaltyHome: value.penaltyHome,
-                    penaltyAway: value.penaltyAway,
-                  }}
-                  size="lg"
-                  muted
-                />
-                <div className="text-[10px] font-bold uppercase tracking-wider text-navy-400">
-                  🔒 Կանխատեսումը կողպված է
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <ScoreInput value={value.normalHome} onChange={(v) => onChange({ normalHome: v })} disabled={disabled} />
+                  <span className="text-navy-500">:</span>
+                  <ScoreInput value={value.normalAway} onChange={(v) => onChange({ normalAway: v })} disabled={disabled} />
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <ScoreInput value={value.normalHome} onChange={(v) => onChange({ normalHome: v })} disabled={disabled} />
-                <span className="text-navy-500">:</span>
-                <ScoreInput value={value.normalAway} onChange={(v) => onChange({ normalAway: v })} disabled={disabled} />
-              </div>
-            )}
+              )}
+            </div>
             <TeamChip name={m.awayName} seedLabel={m.awaySeedLabel} />
           </div>
         </div>

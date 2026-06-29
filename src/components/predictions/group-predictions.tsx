@@ -8,7 +8,7 @@ import { TeamChip } from "@/components/team-chip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import { saveGroupPredictions } from "@/app/actions/predictions";
+import { saveGroupPredictions, adminSaveGroupPredictions } from "@/app/actions/predictions";
 import { cn, formatDateTime } from "@/lib/utils";
 import { flagFor, translateTeam } from "@/lib/flags";
 import {
@@ -25,11 +25,14 @@ export function GroupPredictions({
   standingsByGroup = {},
   readOnly = false,
   memberLabel,
+  adminEditUserId,
 }: {
   matches: MatchDTO[];
   standingsByGroup?: Record<string, GroupStandingRowDTO[]>;
   readOnly?: boolean;
   memberLabel?: string;
+  /** When set, admin can edit any match for this player (ignores locks / finalized results). */
+  adminEditUserId?: string;
 }) {
   const { toast } = useToast();
   const [pending, start] = useTransition();
@@ -107,13 +110,17 @@ export function GroupPredictions({
 
   function runSave(items: { matchId: string; home: number | null; away: number | null }[]) {
     start(async () => {
-      const res = await saveGroupPredictions(items);
+      const res = adminEditUserId
+        ? await adminSaveGroupPredictions(adminEditUserId, items)
+        : await saveGroupPredictions(items);
       toast(res.message, res.ok ? "success" : "error");
       if (res.ok) setDirty(new Set());
       setConfirmation(null);
       setPendingItems([]);
     });
   }
+
+  const editable = !readOnly || !!adminEditUserId;
 
   return (
     <div className="space-y-4 pb-savebar">
@@ -126,7 +133,7 @@ export function GroupPredictions({
         );
 
         const unpredictedCount = list.filter((m) => {
-          const isLocked = m.locked || m.actual !== null;
+          const isLocked = !adminEditUserId && (m.locked || m.actual !== null);
           if (isLocked) return false;
           const val = local[m.id];
           return !val || val.home === null || val.away === null;
@@ -211,6 +218,7 @@ export function GroupPredictions({
                     onChange={(side, v) => update(m.id, side, v)}
                     readOnly={readOnly}
                     memberLabel={memberLabel}
+                    adminEdit={!!adminEditUserId}
                   />
                 ))}
               </div>
@@ -219,7 +227,7 @@ export function GroupPredictions({
         );
       })}
 
-      {!readOnly && <SaveBar count={dirty.size} pending={pending} onSave={save} />}
+      {editable && <SaveBar count={dirty.size} pending={pending} onSave={save} />}
 
       <PredictionSaveDialog
         confirmation={confirmation}
@@ -340,14 +348,17 @@ function MatchRow({
   onChange,
   readOnly = false,
   memberLabel,
+  adminEdit = false,
 }: {
   m: MatchDTO;
   value: { home: number | null; away: number | null };
   onChange: (side: "home" | "away", v: number | null) => void;
   readOnly?: boolean;
   memberLabel?: string;
+  adminEdit?: boolean;
 }) {
-  const disabled = readOnly || m.locked || m.actual !== null;
+  const disabled = !adminEdit && (readOnly || m.locked || m.actual !== null);
+  const useInputs = adminEdit || (!m.locked && m.actual === null);
   const finalized = m.actual !== null;
   const hasPred = value.home !== null && value.away !== null;
   const won = (m.points ?? 0) > 0;
@@ -394,53 +405,86 @@ function MatchRow({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="grid min-w-0 flex-1 grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
           <TeamChip name={m.homeName} seedLabel={m.homeSeedLabel} align="right" />
-          {m.actual ? (
-            <div className="flex flex-col items-center gap-1.5">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalHome}</span>
-                <span className="text-navy-500 font-bold text-lg">:</span>
-                <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalAway}</span>
+          <div className="flex flex-col items-center gap-2">
+            {m.actual && adminEdit && (
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-[10px] font-bold uppercase tracking-wide text-navy-500">Արդյունք</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalHome}</span>
+                  <span className="text-navy-500 font-bold text-lg">:</span>
+                  <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalAway}</span>
+                </div>
               </div>
-              <div
-                className={cn(
-                  "flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold",
-                  won ? "bg-pitch-500/15 text-pitch-200" : lost ? "bg-red-500/15 text-red-300" : "bg-white/5 text-navy-300",
+            )}
+            {useInputs ? (
+              <div className="flex flex-col items-center gap-1">
+                {m.actual && adminEdit && (
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-amber-300">Կանխատեսում</div>
                 )}
-              >
-                <span className="text-[9px] font-bold uppercase tracking-wide opacity-70">
-                  {memberLabel ? `${memberLabel}՝` : "Ձեր կանխատեսումը"}
-                </span>
-                <span className="font-black tabular-nums">{value.home ?? "—"}–{value.away ?? "—"}</span>
+                <div className="flex items-center gap-1.5">
+                  <ScoreInput
+                    value={value.home}
+                    onChange={(v) => onChange("home", v)}
+                    disabled={disabled}
+                    ariaLabel={`${m.homeName} goals`}
+                  />
+                  <span className="text-navy-500">:</span>
+                  <ScoreInput
+                    value={value.away}
+                    onChange={(v) => onChange("away", v)}
+                    disabled={disabled}
+                    ariaLabel={`${m.awayName} goals`}
+                  />
+                </div>
               </div>
-            </div>
-          ) : m.locked ? (
-            <div className="flex flex-col items-center gap-1">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-black text-white/60 tabular-nums">{value.home ?? "—"}</span>
-                <span className="text-navy-500 font-bold text-lg">:</span>
-                <span className="text-2xl font-black text-white/60 tabular-nums">{value.away ?? "—"}</span>
+            ) : m.actual ? (
+              <div className="flex flex-col items-center gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalHome}</span>
+                  <span className="text-navy-500 font-bold text-lg">:</span>
+                  <span className="text-2xl font-black text-white tabular-nums">{m.actual.normalAway}</span>
+                </div>
+                <div
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold",
+                    won ? "bg-pitch-500/15 text-pitch-200" : lost ? "bg-red-500/15 text-red-300" : "bg-white/5 text-navy-300",
+                  )}
+                >
+                  <span className="text-[9px] font-bold uppercase tracking-wide opacity-70">
+                    {memberLabel ? `${memberLabel}՝` : "Ձեր կանխատեսումը"}
+                  </span>
+                  <span className="font-black tabular-nums">{value.home ?? "—"}–{value.away ?? "—"}</span>
+                </div>
               </div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-navy-400">
-                🔒 Կանխատեսումը կողպված է
+            ) : m.locked ? (
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-black text-white/60 tabular-nums">{value.home ?? "—"}</span>
+                  <span className="text-navy-500 font-bold text-lg">:</span>
+                  <span className="text-2xl font-black text-white/60 tabular-nums">{value.away ?? "—"}</span>
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-navy-400">
+                  🔒 Կանխատեսումը կողպված է
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5">
-              <ScoreInput
-                value={value.home}
-                onChange={(v) => onChange("home", v)}
-                disabled={disabled}
-                ariaLabel={`${m.homeName} goals`}
-              />
-              <span className="text-navy-500">:</span>
-              <ScoreInput
-                value={value.away}
-                onChange={(v) => onChange("away", v)}
-                disabled={disabled}
-                ariaLabel={`${m.awayName} goals`}
-              />
-            </div>
-          )}
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <ScoreInput
+                  value={value.home}
+                  onChange={(v) => onChange("home", v)}
+                  disabled={disabled}
+                  ariaLabel={`${m.homeName} goals`}
+                />
+                <span className="text-navy-500">:</span>
+                <ScoreInput
+                  value={value.away}
+                  onChange={(v) => onChange("away", v)}
+                  disabled={disabled}
+                  ariaLabel={`${m.awayName} goals`}
+                />
+              </div>
+            )}
+          </div>
           <TeamChip name={m.awayName} seedLabel={m.awaySeedLabel} />
         </div>
         <CrowdArenaLink matchId={m.id} disabled={!m.revealed} />

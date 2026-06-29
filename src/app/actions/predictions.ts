@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth";
+import { requireUser, requireAdmin } from "@/lib/auth";
 import { getActiveTournament } from "@/lib/standings";
 import { getDeadlineMap, isMatchLocked } from "@/lib/deadlines";
 import { isKnockoutPredictionAmbiguous, sanitizeKnockoutExtras } from "@/lib/scoring";
@@ -179,6 +179,167 @@ export async function saveKnockoutPredictions(
   return {
     ok: true,
     message: skipped > 0 ? `Saved ${saved}. ${skipped} locked match(es) skipped.` : `Saved ${saved} prediction(s).`,
+    saved,
+    skipped,
+  };
+}
+
+function revalidateAfterAdminPredictionEdit(targetUserId: string) {
+  revalidatePath("/predictions");
+  revalidatePath("/dashboard");
+  revalidatePath("/leaderboard");
+  revalidatePath(`/admin/members/${targetUserId}`);
+  revalidatePath("/admin/members");
+}
+
+/** Admin override: save group predictions for any player, ignoring locks and finalized matches. */
+export async function adminSaveGroupPredictions(
+  targetUserId: string,
+  items: z.input<typeof groupItem>[],
+): Promise<ActionResult> {
+  await requireAdmin();
+  const tournament = await getActiveTournament();
+
+  const target = await prisma.user.findFirst({
+    where: { id: targetUserId, role: "PLAYER" },
+  });
+  if (!target) return { ok: false, message: "Player not found." };
+
+  const parsed = z.array(groupItem).safeParse(items);
+  if (!parsed.success) return { ok: false, message: "Invalid prediction values." };
+
+  let saved = 0;
+  let skipped = 0;
+  for (const item of parsed.data) {
+    const match = await prisma.match.findFirst({
+      where: { id: item.matchId, tournamentId: tournament.id, stage: STAGES.GROUP },
+    });
+    if (!match) {
+      skipped++;
+      continue;
+    }
+    const home = item.home ?? null;
+    const away = item.away ?? null;
+    if (home === null || away === null) {
+      await prisma.prediction.deleteMany({ where: { userId: targetUserId, matchId: match.id } });
+      saved++;
+      continue;
+    }
+    await prisma.prediction.upsert({
+      where: { userId_matchId: { userId: targetUserId, matchId: match.id } },
+      create: {
+        userId: targetUserId,
+        matchId: match.id,
+        normalHomeGoals: home,
+        normalAwayGoals: away,
+      },
+      update: { normalHomeGoals: home, normalAwayGoals: away },
+    });
+    saved++;
+  }
+
+  revalidateAfterAdminPredictionEdit(targetUserId);
+  return {
+    ok: true,
+    message: skipped > 0 ? `Saved ${saved}. ${skipped} invalid match(es) skipped.` : `Saved ${saved} prediction(s).`,
+    saved,
+    skipped,
+  };
+}
+
+/** Admin override: save knockout predictions for any player, ignoring locks and finalized matches. */
+export async function adminSaveKnockoutPredictions(
+  targetUserId: string,
+  items: z.input<typeof koItem>[],
+): Promise<ActionResult> {
+  await requireAdmin();
+  const tournament = await getActiveTournament();
+
+  const target = await prisma.user.findFirst({
+    where: { id: targetUserId, role: "PLAYER" },
+  });
+  if (!target) return { ok: false, message: "Player not found." };
+
+  const parsed = z.array(koItem).safeParse(items);
+  if (!parsed.success) return { ok: false, message: "Invalid prediction values." };
+
+  let saved = 0;
+  let skipped = 0;
+  for (const item of parsed.data) {
+    const match = await prisma.match.findFirst({
+      where: { id: item.matchId, tournamentId: tournament.id, stage: STAGES.KNOCKOUT },
+    });
+    if (!match) {
+      skipped++;
+      continue;
+    }
+
+    const nh = item.normalHome ?? null;
+    const na = item.normalAway ?? null;
+    if (nh === null || na === null) {
+      await prisma.prediction.deleteMany({ where: { userId: targetUserId, matchId: match.id } });
+      saved++;
+      continue;
+    }
+
+    const sanitized = sanitizeKnockoutExtras({
+      normal: { home: nh, away: na },
+      extra: { home: item.extraHome ?? null, away: item.extraAway ?? null },
+      penalty: { home: item.penaltyHome ?? null, away: item.penaltyAway ?? null },
+    });
+    const extraHome = sanitized.extra.home;
+    const extraAway = sanitized.extra.away;
+    const penaltyHome = sanitized.penalty.home;
+    const penaltyAway = sanitized.penalty.away;
+
+    const winnerSide = item.winner ?? null;
+    if (
+      isKnockoutPredictionAmbiguous({
+        normal: { home: nh, away: na },
+        extra: { home: extraHome, away: extraAway },
+        penalty: { home: penaltyHome, away: penaltyAway },
+        winner: winnerSide,
+      })
+    ) {
+      return {
+        ok: false,
+        message: `Match ${match.matchNumber}: tie is unresolved. Add extra time / 11 մետրանոցներ or a predicted winner.`,
+      };
+    }
+
+    const predictedWinnerTeamId =
+      winnerSide === "HOME" ? match.homeTeamId : winnerSide === "AWAY" ? match.awayTeamId : null;
+
+    await prisma.prediction.upsert({
+      where: { userId_matchId: { userId: targetUserId, matchId: match.id } },
+      create: {
+        userId: targetUserId,
+        matchId: match.id,
+        normalHomeGoals: nh,
+        normalAwayGoals: na,
+        extraHomeGoals: extraHome,
+        extraAwayGoals: extraAway,
+        penaltyHomeGoals: penaltyHome,
+        penaltyAwayGoals: penaltyAway,
+        predictedWinnerTeamId,
+      },
+      update: {
+        normalHomeGoals: nh,
+        normalAwayGoals: na,
+        extraHomeGoals: extraHome,
+        extraAwayGoals: extraAway,
+        penaltyHomeGoals: penaltyHome,
+        penaltyAwayGoals: penaltyAway,
+        predictedWinnerTeamId,
+      },
+    });
+    saved++;
+  }
+
+  revalidateAfterAdminPredictionEdit(targetUserId);
+  return {
+    ok: true,
+    message: skipped > 0 ? `Saved ${saved}. ${skipped} invalid match(es) skipped.` : `Saved ${saved} prediction(s).`,
     saved,
     skipped,
   };

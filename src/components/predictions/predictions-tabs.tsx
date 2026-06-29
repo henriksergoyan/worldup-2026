@@ -31,6 +31,7 @@ export function PredictionsTabs({
   qualifiers,
   readOnly = false,
   memberLabel,
+  adminEditUserId,
 }: {
   initialTab?: string;
   groupMatches: MatchDTO[];
@@ -45,6 +46,7 @@ export function PredictionsTabs({
   qualifiers?: QualifiersViz;
   readOnly?: boolean;
   memberLabel?: string;
+  adminEditUserId?: string;
 }) {
   const [tab, setTab] = useState<Tab>(
     (TABS.find((t) => t.id === initialTab)?.id ?? "group") as Tab,
@@ -74,12 +76,18 @@ export function PredictionsTabs({
           standingsByGroup={standingsByGroup}
           readOnly={readOnly}
           memberLabel={memberLabel}
+          adminEditUserId={adminEditUserId}
         />
       )}
       {tab === "knockout" && (
         <>
           {qualifiers && <PlayoffQualifiers viz={qualifiers} />}
-          <KnockoutPredictions matches={knockoutMatches} readOnly={readOnly} memberLabel={memberLabel} />
+          <KnockoutPredictions
+            matches={knockoutMatches}
+            readOnly={readOnly}
+            memberLabel={memberLabel}
+            adminEditUserId={adminEditUserId}
+          />
         </>
       )}
       {tab === "champion" && (
