@@ -487,7 +487,7 @@ function MatchRow({
           </div>
           <TeamChip name={m.awayName} seedLabel={m.awaySeedLabel} />
         </div>
-        <CrowdArenaLink matchId={m.id} disabled={!m.revealed} />
+        <CrowdArenaLink matchId={m.id} disabled={!m.revealed} unlockAt={m.scheduledAt} />
       </div>
     </div>
   );

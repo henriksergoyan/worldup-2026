@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { DEFAULT_TIMEZONE } from "./constants";
+import { DEFAULT_TIMEZONE, TIMEZONE_LABEL } from "./constants";
 
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
@@ -31,7 +31,7 @@ const df = new Intl.DateTimeFormat("en-GB", {
 export function formatDateTime(date: Date | string | null | undefined): string {
   if (!date) return "TBD";
   const d = typeof date === "string" ? new Date(date) : date;
-  return dtf.format(d);
+  return `${dtf.format(d)} · ${TIMEZONE_LABEL}`;
 }
 
 export function formatDate(date: Date | string | null | undefined): string {

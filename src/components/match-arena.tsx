@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cn, formatDateTime } from "@/lib/utils";
 import { Countdown } from "@/components/countdown";
 import { getOutcome } from "@/lib/scoring";
@@ -85,9 +86,26 @@ function ArenaPredScore({
 }
 
 export function MatchArena(props: MatchArenaProps) {
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>("crowd");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(props.canReveal);
+
+  useEffect(() => {
+    if (props.canReveal) {
+      setRevealed(true);
+      return;
+    }
+    const targetMs = new Date(props.lockAt).getTime();
+    const tick = () => {
+      if (Date.now() < targetMs) return;
+      setRevealed(true);
+      router.refresh();
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [props.canReveal, props.lockAt, router]);
 
   const preds = props.predictions;
   const me = preds.find((p) => p.isMe);
@@ -146,12 +164,12 @@ export function MatchArena(props: MatchArenaProps) {
             <span>
               #{props.matchNumber} · {stageLabel} · {formatDateTime(props.scheduledAt)}
             </span>
-            {!props.canReveal && (
+            {!revealed && !props.canReveal && (
               <Badge variant="warning">
                 Մնացել է՝ <Countdown target={props.lockAt} mode="days" className="inline text-inherit" />
               </Badge>
             )}
-            {props.canReveal && !props.finalized && (
+            {(revealed || props.canReveal) && !props.finalized && (
               <Badge variant="info">Կանխատեսումները բաց են</Badge>
             )}
             {props.finalized && <Badge variant="success">Ավարտված է</Badge>}

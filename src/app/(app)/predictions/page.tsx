@@ -11,7 +11,7 @@ import { buildGroupTables } from "@/lib/group-tables";
 import { buildPredictedAdvancing, buildQualifiersViz } from "@/lib/qualifiers";
 import { PredictionsTabs } from "@/components/predictions/predictions-tabs";
 import type { GroupStandingRowDTO } from "@/components/predictions/types";
-import { PHASES, POINTS, STAGES, TEAM_PICK_TYPES, type Phase } from "@/lib/constants";
+import { PHASES, POINTS, STAGES, TEAM_PICK_TYPES, TIMEZONE_LABEL, type Phase } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -197,6 +197,9 @@ export default async function PredictionsPage({
         <h1 className="font-display text-2xl font-black text-white md:text-3xl">Իմ կանխատեսումները</h1>
         <p className="text-sm text-navy-300">
           Լրացրեք հաշիվները նախքան փուլերի փակվելը։ Միավորները կերևան, երբ խաղերի արդյունքները վերջնական հաստատվեն ադմինիստրատորի կողմից։
+        </p>
+        <p className="mt-1 text-xs text-navy-500">
+          Բոլոր ժամերը ցուցադրվում են {TIMEZONE_LABEL}ով (UTC+4) — անկախ ձեր գտնվելու վայրից։
         </p>
       </div>
 

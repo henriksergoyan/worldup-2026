@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import NextLink from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -6,18 +9,36 @@ export function CrowdArenaLink({
   className,
   compact = false,
   disabled = false,
+  /** When set, the link auto-enables once this instant passes (e.g. match kickoff). */
+  unlockAt,
 }: {
   matchId: string;
   className?: string;
   compact?: boolean;
   /** When true, the match center is not yet available (predictions still hidden). */
   disabled?: boolean;
+  unlockAt?: string | null;
 }) {
+  const [unlocked, setUnlocked] = useState(false);
+
+  useEffect(() => {
+    if (!disabled || !unlockAt) return;
+    const targetMs = new Date(unlockAt).getTime();
+    const tick = () => {
+      if (Date.now() >= targetMs) setUnlocked(true);
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [disabled, unlockAt]);
+
+  const isDisabled = disabled && !unlocked;
+
   if (compact) {
-    if (disabled) {
+    if (isDisabled) {
       return (
         <span
-          title="Կանխատեսումները դեռ փակ են — հասանելի կլինի վերջնաժամկետից հետո"
+          title="Կանխատեսումները դեռ փակ են — հասանելի կլինի խաղի սկզբին"
           className={cn(
             "inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg border-2 border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-bold text-navy-500",
             className,
@@ -40,10 +61,10 @@ export function CrowdArenaLink({
     );
   }
 
-  if (disabled) {
+  if (isDisabled) {
     return (
       <span
-        title="Կանխատեսումները դեռ փակ են — հասանելի կլինի վերջնաժամկետից հետո"
+        title="Կանխատեսումները դեռ փակ են — հասանելի կլինի խաղի սկզբին"
         className={cn(
           "flex shrink-0 cursor-not-allowed flex-col items-center justify-center rounded-xl border-2 border-white/10 bg-white/[0.02] px-4 py-2.5 text-center",
           className,

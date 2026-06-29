@@ -400,7 +400,7 @@ function KnockoutRow({
             <TeamChip name={m.awayName} seedLabel={m.awaySeedLabel} />
           </div>
         </div>
-        <CrowdArenaLink matchId={m.id} disabled={!m.revealed} />
+        <CrowdArenaLink matchId={m.id} disabled={!m.revealed} unlockAt={m.scheduledAt} />
       </div>
 
       {normalIsDraw && (
