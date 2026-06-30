@@ -342,11 +342,13 @@ export function scoreKnockoutMatch(
       extra: { home: actual.extra?.home ?? null, away: actual.extra?.away ?? null },
       penalty: { home: actual.penalty?.home ?? null, away: actual.penalty?.away ?? null },
     });
-    const predGated = sanitizeKnockoutExtras({
-      normal: actual.normal,
-      extra: { home: prediction.extra?.home ?? null, away: prediction.extra?.away ?? null },
-      penalty: { home: prediction.penalty?.home ?? null, away: prediction.penalty?.away ?? null },
-    });
+    const predGated = bothPresent(prediction.normal)
+      ? sanitizeKnockoutExtras({
+          normal: prediction.normal,
+          extra: { home: prediction.extra?.home ?? null, away: prediction.extra?.away ?? null },
+          penalty: { home: prediction.penalty?.home ?? null, away: prediction.penalty?.away ?? null },
+        })
+      : { extra: { home: null, away: null }, penalty: { home: null, away: null } };
 
     if (actualSanitized.extra.home !== null && actualSanitized.extra.away !== null) {
       extra = scoreExtraOrPenaltyPrediction(

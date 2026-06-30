@@ -260,6 +260,23 @@ describe("scoreKnockoutMatch", () => {
     expect(withExtras.points).toBe(normalOnly.points);
     expect(normalOnly.points).toBe(4);
   });
+
+  it("does not award extra-time or penalty points when the player did not predict a draw at 90 minutes", () => {
+    const actual = {
+      normal: { home: 1, away: 1 },
+      extra: { home: 0, away: 0 },
+      penalty: { home: 3, away: 4 },
+    };
+    const wrongWinnerWithStaleExtras = scoreKnockoutMatch(
+      { normal: { home: 2, away: 0 }, extra: { home: 0, away: 0 }, penalty: { home: 3, away: 4 } },
+      actual,
+    );
+    const wrongWinnerNormalOnly = scoreKnockoutMatch({ normal: { home: 2, away: 0 } }, actual);
+    expect(wrongWinnerWithStaleExtras.points).toBe(0);
+    expect(wrongWinnerNormalOnly.points).toBe(0);
+    expect(wrongWinnerWithStaleExtras.breakdown.extra?.points ?? 0).toBe(0);
+    expect(wrongWinnerWithStaleExtras.breakdown.penalty?.points ?? 0).toBe(0);
+  });
 });
 
 describe("visibleKnockoutExtras", () => {
