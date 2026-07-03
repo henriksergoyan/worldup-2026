@@ -111,3 +111,15 @@ export function buildQualifiersViz(
 
   return { points: hits * pointPerHit, actualKnown, groups, bestThirds };
 }
+
+/** Mean qualifier (+2) points across all players when actual qualifiers are known. */
+export function averageQualifierPoints(
+  breakdownByUser: Record<string, { knockoutTeamPoints: number } | undefined>,
+  actualKnown: boolean,
+): number | null {
+  if (!actualKnown) return null;
+  const users = Object.keys(breakdownByUser);
+  if (users.length === 0) return null;
+  const sum = users.reduce((s, id) => s + (breakdownByUser[id]?.knockoutTeamPoints ?? 0), 0);
+  return Number((sum / users.length).toFixed(2));
+}

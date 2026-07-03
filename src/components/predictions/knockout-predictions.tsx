@@ -87,9 +87,10 @@ export function KnockoutPredictions({
     return map;
   }, [matches]);
 
-  const rounds = useMemo(() => {
+  const upcomingRounds = useMemo(() => {
     const map = new Map<string, MatchDTO[]>();
     for (const m of matches) {
+      if (m.actual !== null) continue;
       const key = m.round ?? "R32";
       const arr = map.get(key) ?? [];
       arr.push(m);
@@ -97,6 +98,88 @@ export function KnockoutPredictions({
     }
     return ROUNDS.filter((r) => map.has(r)).map((r) => [r, map.get(r)!] as [Round, MatchDTO[]]);
   }, [matches]);
+
+  const finishedMatches = useMemo(
+    () =>
+      matches
+        .filter((m) => m.actual !== null)
+        .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()),
+    [matches],
+  );
+
+  function renderRoundBlock([round, list]: [Round, MatchDTO[]]) {
+    const isExpanded = expandedRounds[round] ?? false;
+    const totalPoints = list.reduce((sum, m) => sum + (m.points ?? 0), 0);
+
+    const unpredictedCount = list.filter((m) => {
+      const isLocked = !adminEditUserId && (m.locked || m.actual !== null);
+      if (isLocked) return false;
+      const val = local[m.id];
+      return !val || val.normalHome === null || val.normalAway === null;
+    }).length;
+
+    return (
+      <div
+        key={round}
+        className={cn(
+          "rounded-2xl border bg-navy-950/20 overflow-hidden transition-all duration-300",
+          unpredictedCount > 0
+            ? "border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.03)]"
+            : "border-white/5",
+        )}
+      >
+        <div
+          onClick={() => setExpandedRounds((prev) => ({ ...prev, [round]: !isExpanded }))}
+          className={cn(
+            "flex flex-wrap items-center justify-between gap-4 p-4 transition cursor-pointer select-none border-b border-white/5",
+            unpredictedCount > 0
+              ? "bg-amber-500/[0.02] hover:bg-amber-500/[0.04]"
+              : "bg-white/[0.02] hover:bg-white/[0.05]",
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-xl">{isExpanded ? "📂" : "📁"}</span>
+            <div>
+              <h3 className="font-display text-base font-bold text-white sm:text-lg">{ROUND_LABELS[round]}</h3>
+              <p className="text-xs text-navy-400">{list.length} խաղ</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {unpredictedCount > 0 && (
+              <Badge variant="warning" className="bg-amber-500/20 border-amber-500/35 text-amber-300 animate-pulse">
+                ✍️ {unpredictedCount} չլրացված
+              </Badge>
+            )}
+            {totalPoints > 0 && (
+              <Badge variant="success" className="bg-pitch-900/40 border-pitch-500/20 text-pitch-300">
+                🏆 +{totalPoints} միավոր
+              </Badge>
+            )}
+            <span className="text-xs text-navy-400 font-bold ml-1 hidden sm:inline">
+              {isExpanded ? "Փակել ➔" : "Բացել ➔"}
+            </span>
+          </div>
+        </div>
+
+        {isExpanded && (
+          <div className="p-4 space-y-3 bg-navy-900/10">
+            {list.map((m) => (
+              <KnockoutRow
+                key={m.id}
+                m={m}
+                value={local[m.id]}
+                onChange={(p) => patch(m.id, p)}
+                readOnly={readOnly}
+                memberLabel={memberLabel}
+                adminEdit={!!adminEditUserId}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   function patch(id: string, p: Partial<KO>) {
     setLocal((prev) => {
@@ -167,85 +250,53 @@ export function KnockoutPredictions({
   }
 
   return (
-    <div className="space-y-4 pb-savebar">
+    <div className="space-y-6 pb-savebar">
       <p className="rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-navy-300">
         💡 +1 միավոր՝ ճիշտ կանխատեսված անցնող թիմի համար (անկախ նրանից՝ հիմնական, լրացուցիչ ժամանակում, թե 11 մետրանոցներով է անցել)։
       </p>
-      {rounds.map(([round, list]) => {
-        const isExpanded = expandedRounds[round] ?? false;
-        const completedCount = list.filter((m) => m.actual !== null).length;
-        const totalPoints = list.reduce((sum, m) => sum + (m.points ?? 0), 0);
 
-        const unpredictedCount = list.filter((m) => {
-          const isLocked = !adminEditUserId && (m.locked || m.actual !== null);
-          if (isLocked) return false;
-          const val = local[m.id];
-          return !val || val.normalHome === null || val.normalAway === null;
-        }).length;
-
-        return (
-          <div
-            key={round}
-            className={cn(
-              "rounded-2xl border bg-navy-950/20 overflow-hidden transition-all duration-300",
-              unpredictedCount > 0
-                ? "border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.03)]"
-                : "border-white/5"
-            )}
-          >
-            {/* Clickable Collapsible Header */}
-            <div
-              onClick={() => setExpandedRounds((prev) => ({ ...prev, [round]: !isExpanded }))}
-              className={cn(
-                "flex flex-wrap items-center justify-between gap-4 p-4 transition cursor-pointer select-none border-b border-white/5",
-                unpredictedCount > 0
-                  ? "bg-amber-500/[0.02] hover:bg-amber-500/[0.04]"
-                  : "bg-white/[0.02] hover:bg-white/[0.05]"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-xl">{isExpanded ? "📂" : "📁"}</span>
-                <div>
-                  <h3 className="font-display text-base font-bold text-white sm:text-lg">{ROUND_LABELS[round]}</h3>
-                  <p className="text-xs text-navy-400">{list.length} խաղ · Ավարտված՝ {completedCount}/{list.length}</p>
-                </div>
-              </div>
-
-              {/* Stats Bar */}
-              <div className="flex flex-wrap items-center gap-2">
-                {unpredictedCount > 0 && (
-                  <Badge variant="warning" className="bg-amber-500/20 border-amber-500/35 text-amber-300 animate-pulse">
-                    ✍️ {unpredictedCount} չլրացված
-                  </Badge>
-                )}
-                <Badge variant="success" className="bg-pitch-900/40 border-pitch-500/20 text-pitch-300">
-                  🏆 +{totalPoints} միավոր
-                </Badge>
-                <span className="text-xs text-navy-400 font-bold ml-1 hidden sm:inline">
-                  {isExpanded ? "Փակել ➔" : "Բացել ➔"}
-                </span>
-              </div>
-            </div>
-
-            {/* Collapsible Content */}
-            {isExpanded && (
-              <div className="p-4 space-y-3 bg-navy-900/10">
-                {list.map((m) => (
-                  <KnockoutRow
-                    key={m.id}
-                    m={m}
-                    value={local[m.id]}
-                    onChange={(p) => patch(m.id, p)}
-                    readOnly={readOnly}
-                    memberLabel={memberLabel}
-                    adminEdit={!!adminEditUserId}
-                  />
-                ))}
-              </div>
-            )}
+      {upcomingRounds.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h2 className="font-display text-lg font-bold text-white">Գալիք խաղեր</h2>
+            <Badge variant="info">
+              {upcomingRounds.reduce((n, [, list]) => n + list.length, 0)} խաղ
+            </Badge>
           </div>
-        );
-      })}
+          <div className="space-y-4">{upcomingRounds.map(renderRoundBlock)}</div>
+        </section>
+      )}
+
+      {finishedMatches.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-display text-lg font-bold text-white">Ավարտված խաղեր</h2>
+            <Badge variant="muted">{finishedMatches.length} խաղ</Badge>
+            <Badge variant="success" className="bg-pitch-900/40 border-pitch-500/20 text-pitch-300">
+              🏆 +{finishedMatches.reduce((sum, m) => sum + (m.points ?? 0), 0)} միավոր
+            </Badge>
+          </div>
+          <div className="space-y-3">
+            {finishedMatches.map((m) => (
+              <KnockoutRow
+                key={m.id}
+                m={m}
+                value={local[m.id]}
+                onChange={(p) => patch(m.id, p)}
+                readOnly={readOnly}
+                memberLabel={memberLabel}
+                adminEdit={!!adminEditUserId}
+                roundLabel={ROUND_LABELS[(m.round as Round) ?? "R32"]}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {upcomingRounds.length === 0 && finishedMatches.length === 0 && (
+        <p className="text-center text-sm text-navy-400">Փլեյ-օֆֆի խաղեր դեռ չկան։</p>
+      )}
+
       {editable && <SaveBar count={dirty.size} pending={pending} onSave={save} />}
 
       <PredictionSaveDialog
@@ -269,6 +320,7 @@ function KnockoutRow({
   readOnly = false,
   memberLabel,
   adminEdit = false,
+  roundLabel,
 }: {
   m: MatchDTO;
   value: KO;
@@ -276,6 +328,7 @@ function KnockoutRow({
   readOnly?: boolean;
   memberLabel?: string;
   adminEdit?: boolean;
+  roundLabel?: string;
 }) {
   const disabled = !adminEdit && (readOnly || m.locked || m.actual !== null);
   const useInputs = adminEdit || (!m.locked && m.actual === null);
@@ -309,7 +362,8 @@ function KnockoutRow({
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-400">
         <span className="truncate">
-          #{m.matchNumber} · {formatDateTime(m.scheduledAt)}
+          #{m.matchNumber}
+          {roundLabel ? ` · ${roundLabel}` : ""} · {formatDateTime(m.scheduledAt)}
         </span>
         <div className="flex flex-wrap items-center gap-1.5">
           {won && <Badge variant="success">✓ +{m.points} միավոր</Badge>}

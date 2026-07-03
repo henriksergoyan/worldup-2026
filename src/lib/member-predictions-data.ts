@@ -7,7 +7,7 @@ import {
   canRevealPredictions,
 } from "./deadlines";
 import { buildGroupTables } from "./group-tables";
-import { buildPredictedAdvancing, buildQualifiersViz, type QualifiersViz } from "./qualifiers";
+import { buildPredictedAdvancing, buildQualifiersViz, averageQualifierPoints, type QualifiersViz } from "./qualifiers";
 import type { GroupStandingRowDTO, MatchDTO } from "@/components/predictions/types";
 import { PHASES, POINTS, STAGES, TEAM_PICK_TYPES, type Phase } from "./constants";
 
@@ -21,6 +21,7 @@ export interface MemberPredictionsData {
   championPick: string | null;
   qualifierPicks: string[];
   qualifiers: QualifiersViz;
+  averageQualifierPoints: number | null;
   breakdown: {
     totalPoints: number;
     rank: number;
@@ -224,6 +225,10 @@ export async function getMemberPredictionsData(
       .filter((p) => p.type === TEAM_PICK_TYPES.KNOCKOUT_QUALIFIER)
       .map((p) => p.teamId),
     qualifiers,
+    averageQualifierPoints: averageQualifierPoints(
+      standings.breakdownByUser,
+      qualifiers.actualKnown,
+    ),
     breakdown: bd
       ? {
           totalPoints: bd.totalPoints,

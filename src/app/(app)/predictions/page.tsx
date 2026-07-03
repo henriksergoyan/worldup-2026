@@ -8,7 +8,7 @@ import {
   canRevealPredictions,
 } from "@/lib/deadlines";
 import { buildGroupTables } from "@/lib/group-tables";
-import { buildPredictedAdvancing, buildQualifiersViz } from "@/lib/qualifiers";
+import { buildPredictedAdvancing, buildQualifiersViz, averageQualifierPoints } from "@/lib/qualifiers";
 import { PredictionsTabs } from "@/components/predictions/predictions-tabs";
 import type { GroupStandingRowDTO } from "@/components/predictions/types";
 import { PHASES, POINTS, STAGES, TEAM_PICK_TYPES, TIMEZONE_LABEL, type Phase } from "@/lib/constants";
@@ -185,6 +185,10 @@ export default async function PredictionsPage({
     standings.actualQualifiedTeamIds,
     POINTS.TEAM_PICK,
   );
+  const qualifierAverage = averageQualifierPoints(
+    standings.breakdownByUser,
+    qualifiersViz.actualKnown,
+  );
 
   const lockInfo = (phase: Phase) => {
     const d = deadlines.get(phase);
@@ -215,6 +219,7 @@ export default async function PredictionsPage({
         championLock={lockInfo(PHASES.CHAMPION)}
         teamsLock={{ locked: false, lockAt: null }}
         qualifiers={qualifiersViz}
+        averageQualifierPoints={qualifierAverage}
       />
     </div>
   );

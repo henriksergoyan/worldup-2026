@@ -28,7 +28,8 @@ type SortKey =
   | "name"
   | "totalPoints"
   | "groupStagePoints"
-  | "playoff"
+  | "knockoutTeamPoints"
+  | "knockoutStagePoints"
   | "championPoints"
   | "exactScoreHits"
   | "complicatedExactScoreHits"
@@ -41,7 +42,8 @@ const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "name", label: "Մասնակից", align: "left" },
   { key: "totalPoints", label: "Ընդհանուր", align: "right" },
   { key: "groupStagePoints", label: "Խմբային", align: "right" },
-  { key: "playoff", label: "Փլեյ-օֆֆ", align: "right" },
+  { key: "knockoutTeamPoints", label: "Անցում ՓՕ", align: "right" },
+  { key: "knockoutStagePoints", label: "Փլեյ-օֆֆ", align: "right" },
   { key: "championPoints", label: "Չեմպ", align: "right" },
   { key: "exactScoreHits", label: "Ճշգրիտ", align: "right" },
   { key: "complicatedExactScoreHits", label: "Բարդ ճշգրիտ", align: "right" },
@@ -55,8 +57,6 @@ function getValue(r: Row, key: SortKey): number | string {
       return r.name;
     case "rank":
       return r.rank;
-    case "playoff":
-      return r.knockoutStagePoints + r.knockoutTeamPoints;
     default:
       return r[key];
   }
@@ -112,9 +112,8 @@ function RowCells({ r, isAdmin }: { r: Row; isAdmin: boolean }) {
       </td>
       <td className="px-3 py-2.5 text-right font-bold tabular-nums text-pitch-300">{r.totalPoints}</td>
       <td className="px-3 py-2.5 text-right tabular-nums text-navy-200">{r.groupStagePoints}</td>
-      <td className="px-3 py-2.5 text-right tabular-nums text-navy-200">
-        {r.knockoutStagePoints + r.knockoutTeamPoints}
-      </td>
+      <td className="px-3 py-2.5 text-right tabular-nums text-navy-200">{r.knockoutTeamPoints}</td>
+      <td className="px-3 py-2.5 text-right tabular-nums text-navy-200">{r.knockoutStagePoints}</td>
       <td className="px-3 py-2.5 text-right tabular-nums text-navy-200">{r.championPoints}</td>
       <td className="px-3 py-2.5 text-right tabular-nums text-navy-300">{r.exactScoreHits}</td>
       <td className="px-3 py-2.5 text-right tabular-nums text-navy-300">{r.complicatedExactScoreHits}</td>
@@ -295,7 +294,8 @@ export function LeaderboardClient({
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5 text-xs text-navy-300">
                 <Badge variant="muted">Խումբ՝ {row.groupStagePoints}</Badge>
-                <Badge variant="muted">Փլեյ-օֆֆ՝ {row.knockoutStagePoints + row.knockoutTeamPoints}</Badge>
+                <Badge variant="muted">Անցում ՓՕ՝ {row.knockoutTeamPoints}</Badge>
+                <Badge variant="muted">Փլեյ-օֆֆ՝ {row.knockoutStagePoints}</Badge>
                 <Badge variant="muted">Չեմպ՝ {row.championPoints}</Badge>
                 <Badge variant="muted">{row.exactScoreHits} ճշգրիտ հաշիվ</Badge>
                 {row.prizeAmount > 0 && <Badge variant="gold">{formatAMD(row.prizeAmount)}</Badge>}

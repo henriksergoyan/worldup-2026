@@ -9,10 +9,11 @@ import { PlayoffQualifiers } from "./playoff-qualifiers";
 import type { QualifiersViz } from "@/lib/qualifiers";
 import { cn } from "@/lib/utils";
 
-type Tab = "group" | "knockout" | "champion";
+type Tab = "group" | "qualifiers" | "knockout" | "champion";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "group", label: "Խմբային փուլ", icon: "🏟️" },
+  { id: "qualifiers", label: "Անցում փլեյ-օֆֆ", icon: "🎟️" },
   { id: "knockout", label: "Փլեյ-օֆֆ", icon: "🥅" },
   { id: "champion", label: "Չեմպիոն", icon: "🏆" },
 ];
@@ -29,6 +30,7 @@ export function PredictionsTabs({
   championLock,
   teamsLock,
   qualifiers,
+  averageQualifierPoints,
   readOnly = false,
   memberLabel,
   adminEditUserId,
@@ -44,6 +46,7 @@ export function PredictionsTabs({
   championLock: LockInfo;
   teamsLock: LockInfo;
   qualifiers?: QualifiersViz;
+  averageQualifierPoints?: number | null;
   readOnly?: boolean;
   memberLabel?: string;
   adminEditUserId?: string;
@@ -79,16 +82,16 @@ export function PredictionsTabs({
           adminEditUserId={adminEditUserId}
         />
       )}
+      {tab === "qualifiers" && qualifiers && (
+        <PlayoffQualifiers viz={qualifiers} averagePoints={averageQualifierPoints ?? null} />
+      )}
       {tab === "knockout" && (
-        <>
-          {qualifiers && <PlayoffQualifiers viz={qualifiers} />}
-          <KnockoutPredictions
-            matches={knockoutMatches}
-            readOnly={readOnly}
-            memberLabel={memberLabel}
-            adminEditUserId={adminEditUserId}
-          />
-        </>
+        <KnockoutPredictions
+          matches={knockoutMatches}
+          readOnly={readOnly}
+          memberLabel={memberLabel}
+          adminEditUserId={adminEditUserId}
+        />
       )}
       {tab === "champion" && (
         <ChampionPicker teams={teams} current={championPick} lock={championLock} readOnly={readOnly} />

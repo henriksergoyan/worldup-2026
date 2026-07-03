@@ -38,12 +38,18 @@ function TeamRow({ t, actualKnown }: { t: QualifierTeamView; actualKnown: boolea
  * Visualizes the +2-per-qualifier rule: which teams the player's predicted group
  * standings send to the knockout stage, and whether each actually advanced.
  */
-export function PlayoffQualifiers({ viz }: { viz: QualifiersViz }) {
+export function PlayoffQualifiers({
+  viz,
+  averagePoints,
+}: {
+  viz: QualifiersViz;
+  averagePoints?: number | null;
+}) {
   const anyPredicted =
     viz.groups.some((g) => g.teams.length > 0) || viz.bestThirds.length > 0;
 
   return (
-    <Card className="mb-5 border-white/10">
+    <Card className="border-white/10">
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div>
           <CardTitle className="text-base">🎟️ Անցում փլեյ-օֆֆ</CardTitle>
@@ -51,9 +57,16 @@ export function PlayoffQualifiers({ viz }: { viz: QualifiersViz }) {
             +2 միավոր՝ ձեր կանխատեսած աղյուսակով անցած յուրաքանչյուր թիմի համար, որն իրականում էլ անցնում է։
           </p>
         </div>
-        <Badge variant={viz.points > 0 ? "gold" : "muted"} className="shrink-0">
-          {viz.points} մվ
-        </Badge>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <Badge variant={viz.points > 0 ? "gold" : "muted"}>
+            {viz.points} մվ
+          </Badge>
+          {averagePoints !== null && averagePoints !== undefined && (
+            <Badge variant="info" className="bg-sky-950/80 border-sky-900/50 text-sky-400">
+              📊 Միջինը՝ {averagePoints} մվ
+            </Badge>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {!anyPredicted ? (
