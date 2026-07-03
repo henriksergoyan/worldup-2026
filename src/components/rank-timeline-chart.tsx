@@ -50,8 +50,7 @@ export function RankTimelineChart({
   const maxRank = Math.min(players.length, Math.max(...visibleRanks) + 1);
 
   const padding = { top: 28, right: 20, bottom: 56, left: 44 };
-  const pointWidth = 44;
-  const width = Math.max(480, padding.left + padding.right + (timeline.length - 1) * pointWidth);
+  const width = 900;
   const height = 300;
   const innerW = width - padding.left - padding.right;
   const innerH = height - padding.top - padding.bottom;
@@ -123,11 +122,11 @@ export function RankTimelineChart({
         <span className="self-center text-[11px] text-navy-500">Մինչև {MAX_SELECT} խաղացող</span>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-white/10 bg-gradient-to-b from-navy-950/60 to-navy-950/30 p-2 sm:p-3">
+      <div className="rounded-xl border border-white/10 bg-gradient-to-b from-navy-950/60 to-navy-950/30 p-2 sm:p-3">
         <svg
           viewBox={`0 0 ${width} ${height}`}
-          className="w-full"
-          style={{ minWidth: width }}
+          className="h-auto w-full"
+          preserveAspectRatio="xMidYMid meet"
           role="img"
           aria-label="Դիրքի պատմության գծապատկեր"
         >

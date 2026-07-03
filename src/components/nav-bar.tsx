@@ -12,6 +12,11 @@ interface NavLink {
   label: string;
 }
 
+function isNavLinkActive(pathname: string, href: string): boolean {
+  const path = href.split("?")[0]!;
+  return pathname === path || pathname.startsWith(`${path}/`);
+}
+
 export function NavBar({
   user,
 }: {
@@ -29,7 +34,7 @@ export function NavBar({
       ]
     : [
         { href: "/dashboard", label: "Իմ էջը" },
-        { href: "/predictions", label: "Իմ կանխատեսումները" },
+        { href: "/predictions?tab=knockout", label: "Իմ կանխատեսումները" },
         { href: "/leaderboard", label: "Մրցաշարային աղյուսակ" },
         { href: "/account", label: "Իմ հաշիվը" },
       ];
@@ -48,7 +53,7 @@ export function NavBar({
 
         <nav className="hidden items-center gap-1 md:flex">
           {links.map((l) => {
-            const active = pathname === l.href || pathname.startsWith(l.href + "/");
+            const active = isNavLinkActive(pathname, l.href);
             return (
               <Link
                 key={l.href}
@@ -115,7 +120,7 @@ export function NavBar({
             </div>
           </div>
           {links.map((l) => {
-            const active = pathname === l.href || pathname.startsWith(l.href + "/");
+            const active = isNavLinkActive(pathname, l.href);
             return (
               <Link
                 key={l.href}

@@ -21,6 +21,8 @@ import {
   type PredictionOutcome,
 } from "./prediction-save-dialog";
 
+type KnockoutView = "upcoming" | "finished";
+
 interface KO {
   normalHome: number | null;
   normalAway: number | null;
@@ -80,6 +82,9 @@ export function KnockoutPredictions({
   const [pendingItems, setPendingItems] = useState<({ matchId: string } & KO)[]>([]);
   // Rounds start collapsed for a cleaner overview.
   const [expandedRounds, setExpandedRounds] = useState<Record<string, boolean>>({});
+  const [view, setView] = useState<KnockoutView>(() =>
+    matches.some((m) => m.actual === null) ? "upcoming" : "finished",
+  );
 
   const matchById = useMemo(() => {
     const map = new Map<string, MatchDTO>();
@@ -255,23 +260,43 @@ export function KnockoutPredictions({
         💡 +1 միավոր՝ ճիշտ կանխատեսված անցնող թիմի համար (անկախ նրանից՝ հիմնական, լրացուցիչ ժամանակում, թե 11 մետրանոցներով է անցել)։
       </p>
 
-      {upcomingRounds.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <h2 className="font-display text-lg font-bold text-white">Գալիք խաղեր</h2>
-            <Badge variant="info">
-              {upcomingRounds.reduce((n, [, list]) => n + list.length, 0)} խաղ
+      <div className="flex gap-1.5 rounded-2xl border border-white/10 bg-navy-950/40 p-1.5">
+        {(
+          [
+            ["upcoming", "Գալիք խաղեր", upcomingRounds.reduce((n, [, list]) => n + list.length, 0)],
+            ["finished", "Ավարտված խաղեր", finishedMatches.length],
+          ] as const
+        ).map(([id, label, count]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setView(id)}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition",
+              view === id ? "bg-pitch-500/20 text-pitch-100" : "text-navy-300 hover:bg-white/5",
+            )}
+          >
+            {label}
+            <Badge variant={view === id ? "info" : "muted"} className="tabular-nums">
+              {count}
             </Badge>
-          </div>
-          <div className="space-y-4">{upcomingRounds.map(renderRoundBlock)}</div>
-        </section>
+          </button>
+        ))}
+      </div>
+
+      {view === "upcoming" && upcomingRounds.length > 0 && (
+        <div className="space-y-4">{upcomingRounds.map(renderRoundBlock)}</div>
       )}
 
-      {finishedMatches.length > 0 && (
+      {view === "upcoming" && upcomingRounds.length === 0 && (
+        <p className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-8 text-center text-sm text-navy-400">
+          Գալիք փլեյ-օֆֆի խաղեր չկան։
+        </p>
+      )}
+
+      {view === "finished" && finishedMatches.length > 0 && (
         <section className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-display text-lg font-bold text-white">Ավարտված խաղեր</h2>
-            <Badge variant="muted">{finishedMatches.length} խաղ</Badge>
             <Badge variant="success" className="bg-pitch-900/40 border-pitch-500/20 text-pitch-300">
               🏆 +{finishedMatches.reduce((sum, m) => sum + (m.points ?? 0), 0)} միավոր
             </Badge>
@@ -293,8 +318,10 @@ export function KnockoutPredictions({
         </section>
       )}
 
-      {upcomingRounds.length === 0 && finishedMatches.length === 0 && (
-        <p className="text-center text-sm text-navy-400">Փլեյ-օֆֆի խաղեր դեռ չկան։</p>
+      {view === "finished" && finishedMatches.length === 0 && (
+        <p className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-8 text-center text-sm text-navy-400">
+          Ավարտված փլեյ-օֆֆի խաղեր դեռ չկան։
+        </p>
       )}
 
       {editable && <SaveBar count={dirty.size} pending={pending} onSave={save} />}
@@ -482,7 +509,7 @@ function KnockoutRow({
 
       {!disabled && hasScores && !normalIsDraw && (
         <p className="mt-3 text-xs text-navy-400">
-          Լրացուցիչ ժամանակ և 11 մետրանոցները հասանելի են միայն ոչ-ոքու հաշվի դեպքում։
+          Լրացուցիչ ժամանակ և 11 մետրանոցները հասանելի են միայն ոչ-ոքի հաշվի դեպքում։
         </p>
       )}
 

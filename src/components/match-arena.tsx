@@ -463,7 +463,7 @@ export function MatchArena(props: MatchArenaProps) {
       )}
 
       <div className="flex gap-2">
-        <Link href="/predictions">
+        <Link href="/predictions?tab=knockout">
           <Button variant="ghost" size="sm">
             ← Իմ կանխատեսումները
           </Button>

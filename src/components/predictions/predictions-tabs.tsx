@@ -52,7 +52,7 @@ export function PredictionsTabs({
   adminEditUserId?: string;
 }) {
   const [tab, setTab] = useState<Tab>(
-    (TABS.find((t) => t.id === initialTab)?.id ?? "group") as Tab,
+    (TABS.find((t) => t.id === initialTab)?.id ?? "knockout") as Tab,
   );
 
   return (
