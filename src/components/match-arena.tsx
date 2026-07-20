@@ -67,6 +67,22 @@ function arenaToKnockoutScore(
   };
 }
 
+function sameOptionalGoal(a: number | null | undefined, b: number | null | undefined): boolean {
+  return (a ?? null) === (b ?? null);
+}
+
+/** True when two crowd predictions match in full (90' + ET + pens for knockout). */
+function sameArenaPrediction(a: ArenaPrediction, b: ArenaPrediction, isKnockout: boolean): boolean {
+  if (a.home !== b.home || a.away !== b.away) return false;
+  if (!isKnockout) return true;
+  return (
+    sameOptionalGoal(a.extraHome, b.extraHome) &&
+    sameOptionalGoal(a.extraAway, b.extraAway) &&
+    sameOptionalGoal(a.penaltyHome, b.penaltyHome) &&
+    sameOptionalGoal(a.penaltyAway, b.penaltyAway)
+  );
+}
+
 function arenaPredScoreLabel(p: ArenaPrediction, isKnockout: boolean): string {
   if (!isKnockout) return `${p.home}–${p.away}`;
   return formatKnockoutScoreInline(arenaToKnockoutScore(p));
@@ -119,21 +135,21 @@ export function MatchArena(props: MatchArenaProps) {
 
   const total = preds.length || 1;
 
+  const isKnockout = props.stage === STAGES.KNOCKOUT;
+
   const scoreCounts = useMemo(() => {
     const map = new Map<string, number>();
     for (const p of preds) {
-      const k = `${p.home}-${p.away}`;
+      const k = arenaPredScoreLabel(p, isKnockout);
       map.set(k, (map.get(k) ?? 0) + 1);
     }
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
-  }, [preds]);
+  }, [preds, isKnockout]);
 
   const soulmates = useMemo(() => {
     if (!me) return [];
-    return preds.filter(
-      (p) => !p.isMe && p.home === me.home && p.away === me.away,
-    );
-  }, [preds, me]);
+    return preds.filter((p) => !p.isMe && sameArenaPrediction(p, me, isKnockout));
+  }, [preds, me, isKnockout]);
 
   const contrarians = useMemo(() => {
     if (!me) return [];
@@ -145,8 +161,6 @@ export function MatchArena(props: MatchArenaProps) {
     props.stage === STAGES.KNOCKOUT
       ? ROUND_LABELS[(props.round as Round) ?? "R32"]
       : `Խումբ ${props.groupCode}`;
-
-  const isKnockout = props.stage === STAGES.KNOCKOUT;
 
   function actualKnockoutScore(): KnockoutDisplayScore | null {
     if (!props.actual) return null;
@@ -327,7 +341,7 @@ export function MatchArena(props: MatchArenaProps) {
                           </div>
                           {me && !p.isMe && (
                             <div className="text-xs text-navy-400">
-                              {p.home === me.home && p.away === me.away
+                              {sameArenaPrediction(p, me, isKnockout)
                                 ? "🤝 Ճիշտ նույն հաշիվը"
                                 : getOutcome(p.home, p.away) === getOutcome(me.home, me.away)
                                   ? "Նույն ելքը"
@@ -337,7 +351,11 @@ export function MatchArena(props: MatchArenaProps) {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <ArenaPredScore p={p} highlight={p.home === me?.home && p.away === me?.away} isKnockout={isKnockout} />
+                        <ArenaPredScore
+                          p={p}
+                          highlight={!!me && sameArenaPrediction(p, me, isKnockout)}
+                          isKnockout={isKnockout}
+                        />
                         {p.points !== null && (
                           <Badge variant={p.points > 0 ? "success" : "muted"}>+{p.points}</Badge>
                         )}
@@ -649,7 +667,7 @@ function RivalList({
               <span className="font-medium text-white">{p.name}</span>
               <ArenaPredScore
                 p={p}
-                highlight={me ? p.home === me.home && p.away === me.away : false}
+                highlight={me ? sameArenaPrediction(p, me, isKnockout) : false}
                 isKnockout={isKnockout}
               />
             </div>
