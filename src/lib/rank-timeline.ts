@@ -105,30 +105,45 @@ export async function computeRankTimeline(tournamentId: string): Promise<RankTim
   const championTeamId = teamStatuses.find((t) => t.champion)?.teamId ?? null;
   const paidCount = users.filter((u) => u.paid).length;
 
-  const accs: Accumulator[] = users.map((user) => {
+  const groupMatchIds = matches.filter((m) => m.stage === STAGES.GROUP).map((m) => m.id);
+  const processedGroupIds = new Set<string>();
+
+  const accs: Accumulator[] = users.map((user) => ({
+    userId: user.id,
+    name: user.name,
+    paid: user.paid,
+    groupStagePoints: 0,
+    knockoutStagePoints: 0,
+    // Qualifier + champion bonuses are awarded only when those outcomes become known
+    // (end of group stage / after the Final) — not from match #1.
+    knockoutTeamPoints: 0,
+    championPoints: 0,
+    exactScoreHits: 0,
+    complicatedExactScoreHits: 0,
+    correctOutcomes: 0,
+  }));
+
+  const qualifierTeamIdsByUser = new Map<string, string[]>();
+  for (const user of users) {
     const advancing = buildPredictedAdvancing(teamMeta, groupMatchesMeta, (i) => {
       const p = predsByUserMatch.get(`${user.id}:${groupMatchesMeta[i].id}`);
       if (!p) return null;
       return { home: p.normalHomeGoals, away: p.normalAwayGoals };
     });
-    const userChampion = teamPicks.find(
+    qualifierTeamIdsByUser.set(user.id, advancing.teamIds);
+  }
+
+  const championPickByUser = new Map<string, string | null>();
+  for (const user of users) {
+    const pick = teamPicks.find(
       (tp) => tp.userId === user.id && tp.type === TEAM_PICK_TYPES.CHAMPION,
     );
-    return {
-      userId: user.id,
-      name: user.name,
-      paid: user.paid,
-      groupStagePoints: 0,
-      knockoutStagePoints: 0,
-      knockoutTeamPoints: scoreTeamPicks(advancing.teamIds, qualifiedTeamIds),
-      championPoints: scoreChampionPick(userChampion?.teamId ?? null, championTeamId),
-      exactScoreHits: 0,
-      complicatedExactScoreHits: 0,
-      correctOutcomes: 0,
-    };
-  });
+    championPickByUser.set(user.id, pick?.teamId ?? null);
+  }
 
   const timeline: RankTimelinePoint[] = [];
+  let qualifiersAwarded = false;
+  let championAwarded = false;
 
   for (const match of finalized) {
     const actual = match.actualResult!;
@@ -149,6 +164,32 @@ export async function computeRankTimeline(tournamentId: string): Promise<RankTim
         );
         applyScoring(acc, res, false);
       }
+    }
+
+    if (match.stage === STAGES.GROUP) processedGroupIds.add(match.id);
+
+    if (
+      !qualifiersAwarded &&
+      groupMatchIds.length > 0 &&
+      processedGroupIds.size >= groupMatchIds.length
+    ) {
+      for (const acc of accs) {
+        acc.knockoutTeamPoints = scoreTeamPicks(
+          qualifierTeamIdsByUser.get(acc.userId) ?? [],
+          qualifiedTeamIds,
+        );
+      }
+      qualifiersAwarded = true;
+    }
+
+    if (!championAwarded && (match.round === "FINAL" || match.matchNumber === 104)) {
+      for (const acc of accs) {
+        acc.championPoints = scoreChampionPick(
+          championPickByUser.get(acc.userId) ?? null,
+          championTeamId,
+        );
+      }
+      championAwarded = true;
     }
 
     const home = match.homeTeam?.name ?? match.homeSeedLabel ?? "?";

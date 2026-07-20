@@ -26,7 +26,7 @@ export function TournamentFinaleModal({
   prizeAmount: number;
   playerName: string;
 }) {
-  const storageKey = `wc2026-finale-${tournamentId}`;
+  const storageKey = `wc2026-finale-v2-${tournamentId}`;
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export function TournamentFinaleModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 p-4 backdrop-blur-md sm:items-center"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/85 p-3 backdrop-blur-md sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="finale-title"
@@ -62,41 +62,27 @@ export function TournamentFinaleModal({
       <div
         className={cn(
           "relative w-full max-w-md overflow-hidden rounded-3xl border shadow-2xl",
-          wonMoney
-            ? "border-gold-500/40 bg-gradient-to-b from-gold-500/20 via-[#0a0a12] to-[#050508]"
-            : "border-white/15 bg-gradient-to-b from-sky-500/15 via-[#0a0a12] to-[#050508]",
+          wonMoney ? "border-gold-500/45 bg-[#08080c]" : "border-white/15 bg-[#08080c]",
         )}
       >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(ellipse 80% 50% at 50% 0%, rgba(236, 72, 153, 0.2), transparent 55%),
-              radial-gradient(ellipse 60% 40% at 100% 100%, rgba(56, 189, 248, 0.15), transparent 50%)
-            `,
-          }}
-        />
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-navy-900">
+          <Image
+            src={wonMoney ? "/finale-won.png" : "/finale-lost.png"}
+            alt=""
+            fill
+            className="object-cover object-center"
+            sizes="(max-width: 448px) 100vw, 448px"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#08080c] via-[#08080c]/40 to-transparent" />
+        </div>
 
-        <div className="relative flex flex-col items-center px-6 pb-6 pt-8 text-center">
-          <div className="mb-4 w-28 sm:w-32">
-            <Image
-              src="/euro-2028-logo.png"
-              alt="UEFA EURO 2028"
-              width={256}
-              height={256}
-              className="h-auto w-full"
-              priority
-            />
-          </div>
-
+        <div className="relative flex flex-col items-center px-6 pb-6 pt-2 text-center">
           <p id="finale-title" className="font-display text-2xl font-black text-white sm:text-3xl">
             {wonMoney ? (
-              <>
-                Շնորհավորում ենք, {firstName}! 🎉
-              </>
+              <>Շնորհավորում ենք, {firstName}! 🎉</>
             ) : (
-              <>Էս անգամ չստացվեց… 😅</>
+              <>Էս անգամ չստացվեց….</>
             )}
           </p>
 
@@ -131,11 +117,6 @@ export function TournamentFinaleModal({
               </p>
             )}
           </div>
-
-          <p className="mt-6 font-display text-lg font-bold tracking-tight text-white sm:text-xl">
-            Կտեսնվենք Euro 2028-ին
-          </p>
-          <p className="mt-1 text-xs text-white/40">UK & Ireland · UEFA EURO 2028</p>
 
           <Button onClick={dismiss} className="mt-6 w-full" size="lg">
             Շարունակել ⚽

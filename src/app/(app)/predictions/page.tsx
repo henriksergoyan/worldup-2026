@@ -20,7 +20,7 @@ export default async function PredictionsPage({
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-black text-white md:text-3xl">Իմ կանխատեսումները</h1>
-        <p className="text-sm text-navy-300">
+        <p className="mt-1 text-sm text-navy-300">
           Լրացրեք հաշիվները նախքան փուլերի փակվելը։ Միավորները կերևան, երբ խաղերի արդյունքները վերջնական հաստատվեն ադմինիստրատորի կողմից։
         </p>
         <p className="mt-1 text-xs text-navy-500">

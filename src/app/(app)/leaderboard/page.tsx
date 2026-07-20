@@ -47,8 +47,11 @@ export default async function LeaderboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-black text-white md:text-3xl">Մրցաշարային աղյուսակ 🏆</h1>
-        <p className="text-sm text-navy-300">
-          {rows.length} մասնակից · Մրցանակային ֆոնդ՝ {prizePool.toLocaleString()} ֏ · {paidCount} վճարած 💸 · Միավորների հավասարության դեպքում հաշվի է առնվում ճշգրիտ հաշիվների քանակը:
+        <p className="mt-1 text-sm text-navy-300">
+          {rows.length} մասնակից · Մրցանակային ֆոնդ՝ {prizePool.toLocaleString()} ֏ · {paidCount} վճարած 💸
+        </p>
+        <p className="mt-1 text-xs text-navy-500">
+          Չեմպիոնի միավորները գումարվում են եզրափակչից հետո։ Հավասար միավորների դեպքում՝ ճշգրիտ հաշիվներ։
         </p>
       </div>
 

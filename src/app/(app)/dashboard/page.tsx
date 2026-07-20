@@ -157,11 +157,17 @@ export default async function DashboardPage() {
           <h1 className="font-display text-2xl font-black text-white md:text-3xl">
             Բարի վերադարձ, {user.name.split(" ")[0]} 👋
           </h1>
-          <p className="text-sm text-navy-300">{tournament.name} · Էքսպերտների լիգա</p>
+          <p className="mt-1 text-sm text-navy-300">{tournament.name} · Էքսպերտների լիգա</p>
         </div>
-        <Link href="/predictions?tab=knockout">
-          <Button>Կատարել կանխատեսումներ ✍️ →</Button>
-        </Link>
+        {actualChampion ? (
+          <Button disabled variant="outline" className="cursor-not-allowed opacity-60">
+            Կանխատեսումները փակ են 🔒
+          </Button>
+        ) : (
+          <Link href="/predictions?tab=knockout">
+            <Button>Կատարել կանխատեսումներ ✍️ →</Button>
+          </Link>
+        )}
       </div>
 
       {actualChampion?.team ? (
@@ -520,33 +526,38 @@ export default async function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Link href="/predictions?tab=group" className="group">
-                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition group-hover:border-pitch-500/40">
-                  <div className="text-2xl">🏟️</div>
-                  <div className="mt-1 text-sm font-semibold text-white">Խմբային փուլ</div>
-                </div>
-              </Link>
-              <Link href="/predictions?tab=qualifiers" className="group">
-                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition group-hover:border-pitch-500/40">
-                  <div className="text-2xl">🎟️</div>
-                  <div className="mt-1 text-sm font-semibold text-white">Անցում փլեյ-օֆֆ</div>
-                </div>
-              </Link>
-              <Link href="/predictions?tab=knockout" className="group">
-                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition group-hover:border-pitch-500/40">
-                  <div className="text-2xl">🥅</div>
-                  <div className="mt-1 text-sm font-semibold text-white">Փլեյ-օֆֆ</div>
-                </div>
-              </Link>
-              <Link href="/champion" className="group">
-                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition group-hover:border-pitch-500/40">
-                  <div className="text-2xl">🏆</div>
-                  <div className="mt-1 text-sm font-semibold text-white">Չեմպիոն</div>
-                  <div className="mt-2 text-[11px] font-medium text-gold-400/90 group-hover:text-gold-300">
-                    Տեսնել բոլորի ընտրությունները →
+              {(
+                [
+                  { href: "/predictions?tab=group", icon: "🏟️", label: "Խմբային փուլ" },
+                  { href: "/predictions?tab=qualifiers", icon: "🎟️", label: "Անցում փլեյ-օֆֆ" },
+                  { href: "/predictions?tab=knockout", icon: "🥅", label: "Փլեյ-օֆֆ" },
+                  { href: "/champion", icon: "🏆", label: "Չեմպիոն", hint: "Տեսնել բոլորի ընտրությունները →" },
+                ] as const
+              ).map((item) =>
+                actualChampion && item.href.startsWith("/predictions") ? (
+                  <div
+                    key={item.href}
+                    className="rounded-xl border border-white/10 bg-white/[0.02] p-4 opacity-50"
+                    title="Կանխատեսումները փակ են"
+                  >
+                    <div className="text-2xl">{item.icon}</div>
+                    <div className="mt-1 text-sm font-semibold text-navy-300">{item.label}</div>
+                    <div className="mt-0.5 text-[10px] text-navy-500">Փակ է 🔒</div>
                   </div>
-                </div>
-              </Link>
+                ) : (
+                  <Link key={item.href} href={item.href} className="group">
+                    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition group-hover:border-pitch-500/40">
+                      <div className="text-2xl">{item.icon}</div>
+                      <div className="mt-1 text-sm font-semibold text-white">{item.label}</div>
+                      {"hint" in item && item.hint && (
+                        <div className="mt-2 text-[11px] font-medium text-gold-400/90 group-hover:text-gold-300">
+                          {item.hint}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                ),
+              )}
             </div>
           </CardContent>
         </Card>
