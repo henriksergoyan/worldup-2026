@@ -9,6 +9,7 @@ import {
 } from "./scoring";
 import { buildPredictedAdvancing } from "./qualifiers";
 import { STAGES, TEAM_PICK_TYPES } from "./constants";
+import { syncChampionFromFinal } from "./bracket-engine";
 
 export interface RankTimelinePoint {
   matchId: string;
@@ -68,6 +69,8 @@ function ranksFromAccumulators(
 
 /** Overall rank after each finalized match, chronologically from match #1. */
 export async function computeRankTimeline(tournamentId: string): Promise<RankTimelinePoint[]> {
+  await syncChampionFromFinal(tournamentId);
+
   const [tournament, users, matches, predictions, teamPicks, teamStatuses, teams] = await Promise.all([
     prisma.tournament.findUniqueOrThrow({ where: { id: tournamentId } }),
     prisma.user.findMany({ where: { role: "PLAYER", active: true } }),

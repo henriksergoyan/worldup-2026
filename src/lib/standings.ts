@@ -11,6 +11,7 @@ import {
 } from "./scoring";
 import { buildPredictedAdvancing } from "./qualifiers";
 import { STAGES, TEAM_PICK_TYPES } from "./constants";
+import { syncChampionFromFinal } from "./bracket-engine";
 
 export interface PlayerBreakdown {
   userId: string;
@@ -49,6 +50,9 @@ export interface StandingsResult {
  * Pure-ish: reads the DB then delegates all math to the scoring engine.
  */
 export async function computeStandings(tournamentId: string): Promise<StandingsResult> {
+  // Final winner → champion flag (awards +8) even if admin forgot to mark the team.
+  await syncChampionFromFinal(tournamentId);
+
   const [tournament, users, matches, predictions, teamPicks, teamStatuses, teams] =
     await Promise.all([
       prisma.tournament.findUniqueOrThrow({ where: { id: tournamentId } }),

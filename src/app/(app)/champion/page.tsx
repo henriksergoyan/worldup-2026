@@ -7,12 +7,14 @@ import { ChampionStats } from "@/components/champion-stats";
 import { ChampionFarewell } from "@/components/champion-farewell";
 import { Button } from "@/components/ui/button";
 import { TEAM_PICK_TYPES } from "@/lib/constants";
+import { syncChampionFromFinal } from "@/lib/bracket-engine";
 
 export const dynamic = "force-dynamic";
 
 export default async function ChampionPage() {
   const user = await requireUser();
   const tournament = await getActiveTournament();
+  await syncChampionFromFinal(tournament.id);
 
   const [picks, actualChampion] = await Promise.all([
     prisma.teamPick.findMany({

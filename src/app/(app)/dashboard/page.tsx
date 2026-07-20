@@ -12,8 +12,10 @@ import { DeadlineNotifications } from "@/components/deadline-notifications";
 import { Countdown } from "@/components/countdown";
 import { ChampionHero } from "@/components/champion-hero";
 import { ChampionFarewell } from "@/components/champion-farewell";
+import { TournamentFinaleModal } from "@/components/tournament-finale-modal";
 import { mapChampionPickRows } from "@/lib/champion-picks";
 import { PHASE_LABELS, PHASE_ORDER, ROUND_LABELS, STAGES, TEAM_PICK_TYPES, type Round } from "@/lib/constants";
+import { syncChampionFromFinal } from "@/lib/bracket-engine";
 import { cn } from "@/lib/utils";
 import { KnockoutScoreDisplay, formatKnockoutScoreInline } from "@/components/knockout-score-display";
 import { pickUpcomingMatches, isMatchLive, UPCOMING_MATCH_VISIBLE_AFTER_KICKOFF_MS } from "@/lib/upcoming-matches";
@@ -67,6 +69,9 @@ function Stat({
 export default async function DashboardPage() {
   const user = await requireUser();
   const tournament = await getActiveTournament();
+
+  // Ensure Spain (or whoever won the Final) is marked champion before we render.
+  await syncChampionFromFinal(tournament.id);
 
   const [{ leaderboard, breakdownByUser }, deadlines, totalMatches, championPick, qualifierCount, recentResults, actualChampion, upcomingPool, championPicks] =
     await Promise.all([
@@ -160,19 +165,24 @@ export default async function DashboardPage() {
       </div>
 
       {actualChampion?.team ? (
-        <div className="space-y-3">
+        <>
+          <TournamentFinaleModal
+            tournamentId={tournament.id}
+            championName={actualChampion.team.name}
+            myPickName={championPick?.team.name ?? null}
+            championCorrect={!!championPick && championPick.teamId === actualChampion.teamId}
+            championPoints={me?.championPoints ?? 0}
+            rank={myRank?.rank ?? 0}
+            prizeAmount={myRank?.prizeAmount ?? 0}
+            playerName={user.name}
+          />
           <ChampionFarewell
             compact
             picks={mapChampionPickRows(championPicks, user.id)}
             actualChampionId={actualChampion.teamId}
             actualChampionName={actualChampion.team.name}
           />
-          <div className="text-center">
-            <Link href="/champion" className="text-sm font-medium text-fuchsia-300/90 underline-offset-4 hover:underline">
-              Տեսնել բոլորի ընտրությունները →
-            </Link>
-          </div>
-        </div>
+        </>
       ) : (
         <ChampionHero
           teamName={championPick?.team.name ?? null}
@@ -180,6 +190,35 @@ export default async function DashboardPage() {
           championPoints={me?.championPoints ?? 0}
           hasPick={!!championPick}
         />
+      )}
+
+      {actualChampion && (
+        <Card className="border-gold-500/25 bg-gradient-to-br from-gold-500/10 via-transparent to-transparent p-4 sm:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-gold-400/90">
+                Վերջնական արդյունք
+              </div>
+              <p className="mt-1 text-sm text-navy-200">
+                Դիրք՝{" "}
+                <span className="font-bold text-white">#{myRank?.rank ?? "—"}</span>
+                {myRank && myRank.prizeAmount > 0 ? (
+                  <>
+                    {" "}
+                    · Մրցանակ՝ <span className="font-bold text-gold-400">{formatAMD(myRank.prizeAmount)}</span>
+                  </>
+                ) : (
+                  <> · այս անգամ մրցանակային տեղում չեք</>
+                )}
+              </p>
+            </div>
+            <Link href="/leaderboard">
+              <Button variant="outline" size="sm">
+                Աղյուսակ →
+              </Button>
+            </Link>
+          </div>
+        </Card>
       )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -212,10 +251,18 @@ export default async function DashboardPage() {
           sub={next ? PHASE_LABELS[next.phase] : "Բոլոր խաղերը փակված են"}
         />
         <Stat
-          label="Հնարավոր մրցանակ"
+          label={actualChampion ? "Մրցանակ" : "Հնարավոր մրցանակ"}
           value={myRank && myRank.prizeAmount > 0 ? formatAMD(myRank.prizeAmount) : "—"}
           accent="text-gold-400"
-          sub={myRank && myRank.prizeAmount > 0 ? "եթե դիրքը պահպանվի" : "դեռ մրցանակային տեղում չեք"}
+          sub={
+            actualChampion
+              ? myRank && myRank.prizeAmount > 0
+                ? "շնորհավորում ենք"
+                : "այս անգամ մրցանակ չկա"
+              : myRank && myRank.prizeAmount > 0
+                ? "եթե դիրքը պահպանվի"
+                : "դեռ մրցանակային տեղում չեք"
+          }
         />
       </div>
 

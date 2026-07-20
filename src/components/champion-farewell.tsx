@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { flagFor, translateTeam } from "@/lib/flags";
 import { POINTS } from "@/lib/constants";
@@ -30,12 +31,12 @@ export function ChampionFarewell({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-3xl border border-white/10",
+        "relative overflow-hidden rounded-3xl border",
         "bg-[#050508]",
+        iWon ? "border-emerald-500/35" : me ? "border-rose-500/30" : "border-white/10",
         compact ? "p-5 sm:p-6" : "p-6 sm:p-10",
       )}
     >
-      {/* Atmosphere — Euro 2028 palette */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -96,28 +97,28 @@ export function ChampionFarewell({
         {me && (
           <div
             className={cn(
-              "animate-fade-in mt-5 inline-flex max-w-md flex-col items-center gap-1 rounded-2xl px-5 py-3",
+              "animate-fade-in mt-5 inline-flex max-w-md flex-col items-center gap-1.5 rounded-2xl px-5 py-3.5",
               iWon
-                ? "bg-lime-400/15 ring-1 ring-lime-400/40"
-                : "bg-white/5 ring-1 ring-white/10",
+                ? "bg-emerald-500/20 ring-2 ring-emerald-400/50"
+                : "bg-rose-500/20 ring-2 ring-rose-400/45",
             )}
             style={{ animationDelay: "200ms" }}
           >
             {iWon ? (
               <>
-                <span className="text-sm font-bold text-lime-300">
-                  Ճիշտ գուշակեցիր չեմպիոնին · +{POINTS.CHAMPION} միավոր
+                <span className="text-base font-bold text-emerald-300">
+                  ✓ Ճիշտ գուշակեցիր չեմպիոնին · +{POINTS.CHAMPION} միավոր
                 </span>
-                <span className="text-xs text-white/50">
+                <span className="text-xs text-emerald-200/70">
                   Քո ընտրությունը՝ {flagFor(me.teamName)} {translateTeam(me.teamName)}
                 </span>
               </>
             ) : (
               <>
-                <span className="text-sm font-semibold text-fuchsia-300">
-                  Այս անգամ չստացվեց
+                <span className="text-base font-bold text-rose-300">
+                  ✗ Այս անգամ չստացվեց չեմպիոնի գուշակումը
                 </span>
-                <span className="text-xs text-white/50">
+                <span className="text-xs text-rose-200/70">
                   Դու ընտրել էիր {flagFor(me.teamName)} {translateTeam(me.teamName)}
                 </span>
               </>
@@ -140,7 +141,7 @@ export function ChampionFarewell({
           />
           <PickColumn
             title="Այլ ընտրություններ"
-            accent="fuchsia"
+            accent="rose"
             empty="Բոլորը ճիշտ էին"
             picks={others}
             showTeam
@@ -150,16 +151,24 @@ export function ChampionFarewell({
 
       {compact && (
         <div
-          className="animate-fade-in relative mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-white/45"
+          className="animate-fade-in relative mt-6 flex flex-col items-center gap-3"
           style={{ animationDelay: "260ms" }}
         >
-          <span>
-            <span className="font-semibold text-lime-300">{winners.length}</span> ճիշտ
-          </span>
-          <span className="text-white/20">·</span>
-          <span>
-            <span className="font-semibold text-fuchsia-300">{others.length}</span> այլ ընտրություն
-          </span>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-white/45">
+            <span>
+              <span className="font-semibold text-emerald-300">{winners.length}</span> ճիշտ
+            </span>
+            <span className="text-white/20">·</span>
+            <span>
+              <span className="font-semibold text-rose-300">{others.length}</span> այլ ընտրություն
+            </span>
+          </div>
+          <Link
+            href="/champion"
+            className="text-sm font-medium text-sky-300 underline-offset-4 hover:underline"
+          >
+            Տեսնել բոլորի ընտրությունները →
+          </Link>
         </div>
       )}
     </section>
@@ -174,16 +183,16 @@ function PickColumn({
   showTeam,
 }: {
   title: string;
-  accent: "lime" | "fuchsia";
+  accent: "lime" | "rose";
   empty: string;
   picks: ChampionPickRow[];
   showTeam: boolean;
 }) {
-  const titleColor = accent === "lime" ? "text-lime-300" : "text-fuchsia-300";
+  const titleColor = accent === "lime" ? "text-emerald-300" : "text-rose-300";
   const bar =
     accent === "lime"
-      ? "from-lime-400/80 to-sky-400/60"
-      : "from-fuchsia-400/80 to-sky-400/40";
+      ? "from-emerald-400/80 to-sky-400/60"
+      : "from-rose-400/80 to-fuchsia-400/40";
 
   return (
     <div className="text-left">
@@ -205,7 +214,11 @@ function PickColumn({
               key={p.userId}
               className={cn(
                 "flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 transition",
-                p.isMe ? "bg-white/10 ring-1 ring-white/20" : "bg-white/[0.03] hover:bg-white/[0.06]",
+                p.isMe
+                  ? accent === "lime"
+                    ? "bg-emerald-500/15 ring-1 ring-emerald-400/40"
+                    : "bg-rose-500/15 ring-1 ring-rose-400/40"
+                  : "bg-white/[0.03] hover:bg-white/[0.06]",
               )}
               style={{ animationDelay: `${280 + i * 30}ms` }}
             >

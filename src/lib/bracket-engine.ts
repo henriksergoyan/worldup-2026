@@ -4,6 +4,7 @@ import { prisma } from "./prisma";
 import { buildGroupTables, rankThirdPlaceTeams, selectAdvancingTeams } from "./group-tables";
 import { MATCH_STATUS, STAGES } from "./constants";
 import { lookupResult } from "./wc-results";
+import { knockoutInputFromGoals, resolveKnockoutWinner } from "./scoring";
 
 type SlotSource =
   | { kind: "position"; group: string; position: 1 | 2 }
@@ -106,6 +107,7 @@ export interface BracketSyncResult {
 /**
  * When the Final (match 104 / round FINAL) is finalized, mark its winner as champion.
  * Clears any previous champion flag so standings award the +8 correctly.
+ * If winnerTeamId was never stored, derives it from normal/ET/penalties.
  */
 export async function syncChampionFromFinal(tournamentId: string): Promise<boolean> {
   const final = await prisma.match.findFirst({
@@ -117,7 +119,23 @@ export async function syncChampionFromFinal(tournamentId: string): Promise<boole
     orderBy: { matchNumber: "desc" },
   });
 
-  const winnerId = final?.actualResult?.finalized ? final.actualResult.winnerTeamId : null;
+  const result = final?.actualResult;
+  if (!final || !result?.finalized) return false;
+
+  let winnerId = result.winnerTeamId;
+  if (!winnerId) {
+    const side = resolveKnockoutWinner(
+      knockoutInputFromGoals(result, null, final.homeTeamId, final.awayTeamId),
+    );
+    winnerId =
+      side === "HOME" ? final.homeTeamId : side === "AWAY" ? final.awayTeamId : null;
+    if (winnerId) {
+      await prisma.actualResult.update({
+        where: { matchId: final.id },
+        data: { winnerTeamId: winnerId },
+      });
+    }
+  }
   if (!winnerId) return false;
 
   const current = await prisma.actualTeamStatus.findFirst({
