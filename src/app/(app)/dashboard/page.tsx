@@ -173,11 +173,7 @@ export default async function DashboardPage() {
       {actualChampion?.team ? (
         <>
           <TournamentFinaleModal
-            tournamentId={tournament.id}
             championName={actualChampion.team.name}
-            myPickName={championPick?.team.name ?? null}
-            championCorrect={!!championPick && championPick.teamId === actualChampion.teamId}
-            championPoints={me?.championPoints ?? 0}
             rank={myRank?.rank ?? 0}
             prizeAmount={myRank?.prizeAmount ?? 0}
             playerName={user.name}

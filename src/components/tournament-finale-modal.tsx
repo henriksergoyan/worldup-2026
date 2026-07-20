@@ -1,56 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { cn, formatAMD } from "@/lib/utils";
 import { flagFor, translateTeam } from "@/lib/flags";
 import { Button } from "@/components/ui/button";
-import { POINTS } from "@/lib/constants";
 
 export function TournamentFinaleModal({
-  tournamentId,
   championName,
-  myPickName,
-  championCorrect,
-  championPoints,
   rank,
   prizeAmount,
   playerName,
 }: {
-  tournamentId: string;
   championName: string;
-  myPickName: string | null;
-  championCorrect: boolean;
-  championPoints: number;
   rank: number;
   prizeAmount: number;
   playerName: string;
 }) {
-  const storageKey = `wc2026-finale-v2-${tournamentId}`;
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (window.localStorage.getItem(storageKey) === "1") return;
-    } catch {
-      /* ignore */
-    }
-    setOpen(true);
-  }, [storageKey]);
-
-  function dismiss() {
-    try {
-      window.localStorage.setItem(storageKey, "1");
-    } catch {
-      /* ignore */
-    }
-    setOpen(false);
-  }
+  const [open, setOpen] = useState(true);
 
   if (!open) return null;
 
   const wonMoney = prizeAmount > 0;
   const firstName = playerName.trim().split(/\s+/)[0] || playerName;
+  const prizeLabel = formatAMD(prizeAmount).replace(" AMD", "");
 
   return (
     <div
@@ -74,51 +47,39 @@ export function TournamentFinaleModal({
             sizes="(max-width: 448px) 100vw, 448px"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#08080c] via-[#08080c]/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#08080c] via-[#08080c]/50 to-transparent" />
         </div>
 
         <div className="relative flex flex-col items-center px-6 pb-6 pt-2 text-center">
-          <p id="finale-title" className="font-display text-2xl font-black text-white sm:text-3xl">
-            {wonMoney ? (
-              <>Շնորհավորում ենք, {firstName}! 🎉</>
-            ) : (
-              <>Էս անգամ չստացվեց….</>
-            )}
-          </p>
-
           {wonMoney ? (
-            <p className="mt-3 font-display text-xl font-bold text-gold-400 sm:text-2xl">
-              Դուք հաղթեցիք {formatAMD(prizeAmount).replace(" AMD", "")} դրամ
-            </p>
+            <>
+              <p id="finale-title" className="font-display text-2xl font-black text-white sm:text-3xl">
+                Շնորհավորում ենք, {firstName}! 🎉
+              </p>
+              <p className="mt-3 font-display text-xl font-bold text-gold-400 sm:text-2xl">
+                Դուք հաղթեցիք {prizeLabel} դրամ
+              </p>
+              <p className="mt-2 text-sm text-white/55">
+                Վերջնական դիրք՝ <span className="font-bold text-white">#{rank}</span>
+              </p>
+            </>
           ) : (
-            <p className="mt-3 text-base text-white/70">
-              Ձեր վերջնական դիրքը՝{" "}
-              <span className="font-display text-2xl font-black text-white">#{rank}</span>
-            </p>
+            <>
+              <p id="finale-title" className="font-display text-2xl font-black text-white sm:text-3xl">
+                Էս անգամ չստացվեց….
+              </p>
+              <p className="mt-3 text-base text-white/70">
+                Մրցանակային տեղում չեք · վերջնական դիրք՝{" "}
+                <span className="font-display text-2xl font-black text-white">#{rank}</span>
+              </p>
+            </>
           )}
 
-          <div className="mt-5 w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
-            <p className="text-xs uppercase tracking-wider text-white/45">Աշխարհի չեմպիոն</p>
-            <p className="mt-1 text-lg font-bold text-white">
-              {flagFor(championName)} {translateTeam(championName)}
-            </p>
-            {myPickName && (
-              <p
-                className={cn(
-                  "mt-2 rounded-xl px-3 py-2 text-sm font-semibold",
-                  championCorrect
-                    ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/40"
-                    : "bg-rose-500/20 text-rose-300 ring-1 ring-rose-400/40",
-                )}
-              >
-                {championCorrect
-                  ? `✓ Ճիշտ գուշակեցիր · +${championPoints || POINTS.CHAMPION} միավոր`
-                  : `✗ Քո ընտրությունը՝ ${flagFor(myPickName)} ${translateTeam(myPickName)}`}
-              </p>
-            )}
-          </div>
+          <p className="mt-5 text-xs text-white/40">
+            Աշխարհի չեմպիոն՝ {flagFor(championName)} {translateTeam(championName)}
+          </p>
 
-          <Button onClick={dismiss} className="mt-6 w-full" size="lg">
+          <Button onClick={() => setOpen(false)} className="mt-6 w-full" size="lg">
             Շարունակել ⚽
           </Button>
         </div>
