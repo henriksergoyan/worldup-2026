@@ -100,6 +100,42 @@ export interface BracketSyncResult {
   winnersPropagated: number;
   qualifiersMarked: number;
   allGroupsComplete: boolean;
+  championSet: boolean;
+}
+
+/**
+ * When the Final (match 104 / round FINAL) is finalized, mark its winner as champion.
+ * Clears any previous champion flag so standings award the +8 correctly.
+ */
+export async function syncChampionFromFinal(tournamentId: string): Promise<boolean> {
+  const final = await prisma.match.findFirst({
+    where: {
+      tournamentId,
+      OR: [{ round: "FINAL" }, { matchNumber: 104 }],
+    },
+    include: { actualResult: true },
+    orderBy: { matchNumber: "desc" },
+  });
+
+  const winnerId = final?.actualResult?.finalized ? final.actualResult.winnerTeamId : null;
+  if (!winnerId) return false;
+
+  const current = await prisma.actualTeamStatus.findFirst({
+    where: { tournamentId, champion: true },
+    select: { teamId: true },
+  });
+  if (current?.teamId === winnerId) return false;
+
+  await prisma.actualTeamStatus.updateMany({
+    where: { tournamentId, champion: true },
+    data: { champion: false },
+  });
+  await prisma.actualTeamStatus.upsert({
+    where: { tournamentId_teamId: { tournamentId, teamId: winnerId } },
+    create: { tournamentId, teamId: winnerId, champion: true, qualifiedToKnockout: true },
+    update: { champion: true },
+  });
+  return true;
 }
 
 /** Fill R32 teams from group tables + propagate knockout winners into later rounds. */
@@ -213,7 +249,9 @@ export async function syncTournamentBracket(tournamentId: string): Promise<Brack
     }
   }
 
-  return { r32Filled, winnersPropagated, qualifiersMarked, allGroupsComplete };
+  const championSet = await syncChampionFromFinal(tournamentId);
+
+  return { r32Filled, winnersPropagated, qualifiersMarked, allGroupsComplete, championSet };
 }
 
 /** Apply scores from src/lib/wc-results.ts to group matches not yet finalized. */

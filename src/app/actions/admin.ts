@@ -192,6 +192,7 @@ export async function bulkSaveResults(inputs: z.input<typeof resultSchema>[]): P
 
 export async function setMatchFinalized(matchId: string, finalized: boolean): Promise<AdminResult> {
   const admin = await requireAdmin();
+  const tournament = await getActiveTournament();
   const result = await prisma.actualResult.findUnique({ where: { matchId } });
   if (!result) return { ok: false, message: "Վերջնականացնելուց առաջ մուտքագրեք հաշիվը։" };
   await prisma.actualResult.update({ where: { matchId }, data: { finalized } });
@@ -200,6 +201,9 @@ export async function setMatchFinalized(matchId: string, finalized: boolean): Pr
     data: { status: finalized ? MATCH_STATUS.FINISHED : MATCH_STATUS.SCHEDULED },
   });
   await audit(admin.id, finalized ? "FINALIZE" : "UNFINALIZE", "Match", matchId, undefined, { finalized });
+  if (finalized) {
+    await refreshBracketFromResults(tournament.id);
+  }
   revalidateAll();
   return { ok: true, message: finalized ? "Վերջնականացվեց։" : "Վերաբացվեց։" };
 }

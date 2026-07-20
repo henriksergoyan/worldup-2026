@@ -36,7 +36,8 @@ export default async function AdminTeamsPage() {
         <div>
           <h1 className="font-display text-2xl font-black text-white md:text-3xl">Թիմեր</h1>
           <p className="text-sm text-navy-300">
-            Խմբագրեք անուններն ու խմբերը, նշեք փլեյ-օֆ անցած թիմերը ({qualifiedCount}) և չեմպիոնին։
+            Խմբագրեք անուններն ու խմբերը, նշեք փլեյ-օֆ անցած թիմերը ({qualifiedCount})։
+            Չեմպիոնը ավտոմատ նշվում է եզրափակչի հաղթողից (կարող եք նաև ձեռքով փոխել)։
           </p>
         </div>
         <ClearChampion />

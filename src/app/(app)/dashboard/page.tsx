@@ -11,6 +11,7 @@ import { formatDateTime, formatAMD } from "@/lib/utils";
 import { DeadlineNotifications } from "@/components/deadline-notifications";
 import { Countdown } from "@/components/countdown";
 import { ChampionHero } from "@/components/champion-hero";
+import { ChampionFarewell } from "@/components/champion-farewell";
 import { PHASE_LABELS, PLAYER_DEADLINE_PHASES, ROUND_LABELS, STAGES, TEAM_PICK_TYPES, type Round } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { KnockoutScoreDisplay, formatKnockoutScoreInline } from "@/components/knockout-score-display";
@@ -66,7 +67,7 @@ export default async function DashboardPage() {
   const user = await requireUser();
   const tournament = await getActiveTournament();
 
-  const [{ leaderboard, breakdownByUser }, deadlines, totalMatches, championPick, qualifierCount, recentResults, actualChampion, upcomingPool] =
+  const [{ leaderboard, breakdownByUser }, deadlines, totalMatches, championPick, qualifierCount, recentResults, actualChampion, upcomingPool, championPicks] =
     await Promise.all([
       computeStandings(tournament.id),
       getDeadlineMap(tournament.id),
@@ -91,7 +92,7 @@ export default async function DashboardPage() {
       }),
       prisma.actualTeamStatus.findFirst({
         where: { tournamentId: tournament.id, champion: true },
-        select: { teamId: true },
+        include: { team: true },
       }),
       prisma.match.findMany({
         where: {
@@ -107,6 +108,10 @@ export default async function DashboardPage() {
         },
         orderBy: { scheduledAt: "asc" },
         take: 48,
+      }),
+      prisma.teamPick.findMany({
+        where: { tournamentId: tournament.id, type: TEAM_PICK_TYPES.CHAMPION },
+        include: { user: true, team: true },
       }),
     ]);
 
@@ -158,13 +163,35 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      <ChampionHero
-        teamName={championPick?.team.name ?? null}
-        groupCode={championPick?.team.groupCode ?? null}
-        championPoints={me?.championPoints ?? 0}
-        isActualChampion={!!championPick && actualChampion?.teamId === championPick.teamId}
-        hasPick={!!championPick}
-      />
+      {actualChampion?.team ? (
+        <div className="space-y-3">
+          <ChampionFarewell
+            compact
+            picks={championPicks.map((p) => ({
+              userId: p.userId,
+              name: p.user.name,
+              teamId: p.teamId,
+              teamName: p.team.name,
+              isMe: p.userId === user.id,
+            }))}
+            actualChampionId={actualChampion.teamId}
+            actualChampionName={actualChampion.team.name}
+          />
+          <div className="text-center">
+            <Link href="/champion" className="text-sm font-medium text-fuchsia-300/90 underline-offset-4 hover:underline">
+              Տեսնել բոլորի ընտրությունները →
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <ChampionHero
+          teamName={championPick?.team.name ?? null}
+          groupCode={championPick?.team.groupCode ?? null}
+          championPoints={me?.championPoints ?? 0}
+          isActualChampion={false}
+          hasPick={!!championPick}
+        />
+      )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat

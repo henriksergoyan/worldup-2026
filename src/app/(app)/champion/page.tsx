@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getActiveTournament } from "@/lib/standings";
 import { ChampionStats } from "@/components/champion-stats";
+import { ChampionFarewell } from "@/components/champion-farewell";
 import { Button } from "@/components/ui/button";
 import { TEAM_PICK_TYPES } from "@/lib/constants";
 
@@ -35,11 +36,17 @@ export default async function ChampionPage() {
   const myPickId = picks.find((p) => p.userId === user.id)?.teamId ?? null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-black text-white md:text-3xl">Չեմպիոնի ընտրությունները 🏆</h1>
-          <p className="text-sm text-navy-300">Ո՞ւմ հաղթանակի վրա են հույս դրել (ում են չեմպիոն տեսնում) մեր մասնակիցները։</p>
+          <h1 className="font-display text-2xl font-black text-white md:text-3xl">
+            {actualChampion ? "Չեմպիոնի եզրափակում 🏆" : "Չեմպիոնի ընտրությունները 🏆"}
+          </h1>
+          <p className="text-sm text-navy-300">
+            {actualChampion
+              ? "Ով ճիշտ գուշակեց աշխարհի չեմպիոնին, և ով՝ ոչ։"
+              : "Ո՞ւմ հաղթանակի վրա են հույս դրել (ում են չեմպիոն տեսնում) մեր մասնակիցները։"}
+          </p>
         </div>
         <Link href="/dashboard">
           <Button variant="ghost" size="sm">
@@ -47,6 +54,14 @@ export default async function ChampionPage() {
           </Button>
         </Link>
       </div>
+
+      {actualChampion?.team && (
+        <ChampionFarewell
+          picks={rows}
+          actualChampionId={actualChampion.teamId}
+          actualChampionName={actualChampion.team.name}
+        />
+      )}
 
       <ChampionStats
         picks={rows}
