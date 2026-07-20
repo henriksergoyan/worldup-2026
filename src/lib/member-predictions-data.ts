@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { computeStandings } from "./standings";
+import { computeStandings, getActiveTournament } from "./standings";
 import {
   getDeadlineMap,
   isMatchLocked,
@@ -9,7 +9,7 @@ import {
 import { buildGroupTables } from "./group-tables";
 import { buildPredictedAdvancing, buildQualifiersViz, averageQualifierPoints, type QualifiersViz } from "./qualifiers";
 import type { GroupStandingRowDTO, MatchDTO } from "@/components/predictions/types";
-import { PHASES, POINTS, STAGES, TEAM_PICK_TYPES, type Phase } from "./constants";
+import { POINTS, STAGES, TEAM_PICK_TYPES } from "./constants";
 
 export interface MemberPredictionsData {
   user: { id: string; name: string; role: string };
@@ -19,7 +19,6 @@ export interface MemberPredictionsData {
   standingsByGroup: Record<string, GroupStandingRowDTO[]>;
   teams: { id: string; name: string; groupCode: string | null }[];
   championPick: string | null;
-  qualifierPicks: string[];
   qualifiers: QualifiersViz;
   averageQualifierPoints: number | null;
   breakdown: {
@@ -32,8 +31,6 @@ export interface MemberPredictionsData {
     exactScoreHits: number;
     correctOutcomes: number;
   } | null;
-  championLock: { locked: boolean; lockAt: string | null };
-  teamsLock: { locked: boolean; lockAt: string | null };
 }
 
 export async function getMemberPredictionsData(
@@ -43,7 +40,7 @@ export async function getMemberPredictionsData(
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return null;
 
-  const tournament = await prisma.tournament.findFirstOrThrow({ orderBy: { createdAt: "asc" } });
+  const tournament = await getActiveTournament();
 
   const [matches, teams, picks, deadlines, standings] = await Promise.all([
     prisma.match.findMany({
@@ -79,7 +76,7 @@ export async function getMemberPredictionsData(
 
   const toDTO = (m: (typeof matches)[number]): MatchDTO => {
     const pred = m.predictions[0] ?? null;
-    const locked = isMatchLocked(m, deadlines, tournament.kickoffLockMinutes);
+    const locked = isMatchLocked(m, tournament.kickoffLockMinutes);
     const actual = m.actualResult;
     const finalized = actual?.finalized ?? false;
     const revealed = canRevealPredictions(m, {
@@ -204,11 +201,6 @@ export async function getMemberPredictionsData(
   const bd = standings.breakdownByUser[userId];
   const rankEntry = standings.leaderboard.find((e) => e.userId === userId);
 
-  const lockInfo = (phase: Phase) => {
-    const d = deadlines.get(phase);
-    return { locked: d?.locked ?? false, lockAt: d?.lockAt?.toISOString() ?? null };
-  };
-
   return {
     user: { id: user.id, name: user.name, role: user.role },
     tournament: {
@@ -221,9 +213,6 @@ export async function getMemberPredictionsData(
     standingsByGroup,
     teams: teams.map((t) => ({ id: t.id, name: t.name, groupCode: t.groupCode })),
     championPick: picks.find((p) => p.type === TEAM_PICK_TYPES.CHAMPION)?.teamId ?? null,
-    qualifierPicks: picks
-      .filter((p) => p.type === TEAM_PICK_TYPES.KNOCKOUT_QUALIFIER)
-      .map((p) => p.teamId),
     qualifiers,
     averageQualifierPoints: averageQualifierPoints(
       standings.breakdownByUser,
@@ -241,7 +230,5 @@ export async function getMemberPredictionsData(
           correctOutcomes: bd.correctOutcomes,
         }
       : null,
-    championLock: lockInfo(PHASES.CHAMPION),
-    teamsLock: { locked: false, lockAt: null },
   };
 }

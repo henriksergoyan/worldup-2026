@@ -1,6 +1,3 @@
-import { type Phase } from "./constants";
-import type { DeadlineState } from "./deadlines";
-
 export type UpcomingMatchInput = {
   stage: string;
   round: string | null;
@@ -42,12 +39,10 @@ export function isMatchVisibleInUpcomingList(
 
 /**
  * Pick the next N fixtures for the player dashboard.
- * Live games first, then everything else in kickoff order (lock status does not reorder).
+ * Live games first, then everything else in kickoff order.
  */
 export function pickUpcomingMatches<T extends UpcomingMatchInput>(
   matches: T[],
-  _deadlines: Map<Phase, DeadlineState>,
-  _kickoffLockMinutes: number,
   limit = 3,
   now = Date.now(),
 ): T[] {

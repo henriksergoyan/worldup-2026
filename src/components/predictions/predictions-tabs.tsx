@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MatchDTO, TeamDTO, LockInfo, GroupStandingRowDTO } from "./types";
+import { MatchDTO, TeamDTO, GroupStandingRowDTO } from "./types";
 import { GroupPredictions } from "./group-predictions";
 import { KnockoutPredictions } from "./knockout-predictions";
 import { ChampionPicker } from "./champion-picker";
@@ -25,10 +25,6 @@ export function PredictionsTabs({
   standingsByGroup,
   teams,
   championPick,
-  qualifierPicks,
-  pickLimit,
-  championLock,
-  teamsLock,
   qualifiers,
   averageQualifierPoints,
   readOnly = false,
@@ -41,10 +37,6 @@ export function PredictionsTabs({
   standingsByGroup: Record<string, GroupStandingRowDTO[]>;
   teams: TeamDTO[];
   championPick: string | null;
-  qualifierPicks: string[];
-  pickLimit: number;
-  championLock: LockInfo;
-  teamsLock: LockInfo;
   qualifiers?: QualifiersViz;
   averageQualifierPoints?: number | null;
   readOnly?: boolean;
@@ -94,7 +86,7 @@ export function PredictionsTabs({
         />
       )}
       {tab === "champion" && (
-        <ChampionPicker teams={teams} current={championPick} lock={championLock} readOnly={readOnly} />
+        <ChampionPicker teams={teams} current={championPick} readOnly={readOnly} />
       )}
     </div>
   );

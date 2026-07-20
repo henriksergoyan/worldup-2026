@@ -18,22 +18,7 @@ export interface GroupTable {
   complete: boolean;
 }
 
-export interface GroupMatchResult {
-  homeTeamId: string;
-  awayTeamId: string;
-  homeGoals: number;
-  awayGoals: number;
-  finalized: boolean;
-}
-
-function compareRows(a: GroupStandingRow, b: GroupStandingRow): number {
-  if (b.points !== a.points) return b.points - a.points;
-  if (b.gd !== a.gd) return b.gd - a.gd;
-  if (b.gf !== a.gf) return b.gf - a.gf;
-  return a.teamName.localeCompare(b.teamName);
-}
-
-/** Build FIFA-style group tables from finalized match results (3 matches per group). */
+/** Build FIFA-style group tables from finalized match results (6 matches per group of 4). */
 export function buildGroupTables(
   teams: { id: string; name: string; groupCode: string | null }[],
   matches: {

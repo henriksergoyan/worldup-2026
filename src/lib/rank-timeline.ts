@@ -5,7 +5,7 @@ import {
   scoreTeamPicks,
   scoreChampionPick,
   calculateLeaderboard,
-  type Side,
+  knockoutInputFromGoals,
 } from "./scoring";
 import { buildPredictedAdvancing } from "./qualifiers";
 import { STAGES, TEAM_PICK_TYPES } from "./constants";
@@ -30,17 +30,6 @@ interface Accumulator {
   exactScoreHits: number;
   complicatedExactScoreHits: number;
   correctOutcomes: number;
-}
-
-function sideFromTeamId(
-  teamId: string | null | undefined,
-  homeTeamId: string | null,
-  awayTeamId: string | null,
-): Side | null {
-  if (!teamId) return null;
-  if (teamId === homeTeamId) return "HOME";
-  if (teamId === awayTeamId) return "AWAY";
-  return null;
 }
 
 function applyScoring(acc: Accumulator, res: ReturnType<typeof scoreNormalPrediction>, isGroup: boolean) {
@@ -152,18 +141,8 @@ export async function computeRankTimeline(tournamentId: string): Promise<RankTim
         applyScoring(acc, res, true);
       } else {
         const res = scoreKnockoutMatch(
-          {
-            normal: { home: pred.normalHomeGoals, away: pred.normalAwayGoals },
-            extra: { home: pred.extraHomeGoals, away: pred.extraAwayGoals },
-            penalty: { home: pred.penaltyHomeGoals, away: pred.penaltyAwayGoals },
-            winner: sideFromTeamId(pred.predictedWinnerTeamId, match.homeTeamId, match.awayTeamId),
-          },
-          {
-            normal: { home: actual.normalHomeGoals, away: actual.normalAwayGoals },
-            extra: { home: actual.extraHomeGoals, away: actual.extraAwayGoals },
-            penalty: { home: actual.penaltyHomeGoals, away: actual.penaltyAwayGoals },
-            winner: sideFromTeamId(actual.winnerTeamId, match.homeTeamId, match.awayTeamId),
-          },
+          knockoutInputFromGoals(pred, pred.predictedWinnerTeamId, match.homeTeamId, match.awayTeamId),
+          knockoutInputFromGoals(actual, actual.winnerTeamId, match.homeTeamId, match.awayTeamId),
         );
         applyScoring(acc, res, false);
       }

@@ -16,9 +16,6 @@ export function isPhaseLocked(deadline: { lockAt: Date | null } | null | undefin
   return Date.now() >= deadline.lockAt.getTime();
 }
 
-/** @deprecated alias */
-export const isLocked = isPhaseLocked;
-
 /** Map a match to the deadline phase that governs champion/team picks context. */
 export function phaseForMatch(match: {
   stage: string;
@@ -136,23 +133,11 @@ export function matchEditLockAt(scheduledAt: Date, kickoffLockMinutes: number): 
  * Match predictions lock at kickoff minus the configured window (default: 0 = at kickoff).
  * Champion/team picks still use phase deadlines (checked separately).
  */
-export function isMatchPredictionLocked(
+export function isMatchLocked(
   match: { scheduledAt: Date },
   kickoffLockMinutes: number = DEFAULT_KICKOFF_LOCK_MINUTES,
 ): boolean {
   return Date.now() >= matchEditLockAt(match.scheduledAt, kickoffLockMinutes).getTime();
-}
-
-/**
- * Match predictions lock at kickoff minus the configured window (default: 0 = at kickoff).
- * Phase deadlines govern champion/team picks only — not per-match score entry.
- */
-export function isMatchLocked(
-  match: { scheduledAt: Date },
-  _deadlines?: Map<Phase, DeadlineState>,
-  kickoffLockMinutes: number = DEFAULT_KICKOFF_LOCK_MINUTES,
-): boolean {
-  return isMatchPredictionLocked(match, kickoffLockMinutes);
 }
 
 /** When others' predictions become visible (phase deadline or kickoff lock, whichever is earlier). */
@@ -181,38 +166,14 @@ export function canRevealPredictions(
 ): boolean {
   if (options.isAdmin) return true;
   const kickoffLockMinutes = options.kickoffLockMinutes ?? DEFAULT_KICKOFF_LOCK_MINUTES;
-  if (isMatchPredictionLocked(match, kickoffLockMinutes)) return true;
+  if (isMatchLocked(match, kickoffLockMinutes)) return true;
   const phase = phaseForMatch(match);
   return isPhaseLocked(options.deadlines.get(phase));
-}
-
-export function upcomingDeadlines(
-  deadlines: Map<Phase, DeadlineState>,
-  limit = 5,
-): DeadlineState[] {
-  const now = Date.now();
-  return [...deadlines.values()]
-    .filter((d) => d.lockAt && d.lockAt.getTime() > now)
-    .sort((a, b) => a.lockAt!.getTime() - b.lockAt!.getTime())
-    .slice(0, limit);
 }
 
 export function nextDeadline(deadlines: Map<Phase, DeadlineState>): DeadlineState | null {
   const upcoming = [...deadlines.values()]
     .filter((d) => !d.locked && d.lockAt && d.lockAt.getTime() > Date.now())
     .sort((a, b) => a.lockAt!.getTime() - b.lockAt!.getTime());
-  return upcoming[0] ?? null;
-}
-
-/** Next match edit lock across all upcoming fixtures. */
-export function nextMatchLock(
-  matches: { scheduledAt: Date }[],
-  kickoffLockMinutes: number,
-): Date | null {
-  const now = Date.now();
-  const upcoming = matches
-    .map((m) => matchEditLockAt(m.scheduledAt, kickoffLockMinutes))
-    .filter((d) => d.getTime() > now)
-    .sort((a, b) => a.getTime() - b.getTime());
   return upcoming[0] ?? null;
 }

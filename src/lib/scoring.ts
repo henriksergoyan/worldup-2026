@@ -137,6 +137,42 @@ export function scoreExtraOrPenaltyPrediction(
 
 export type Side = "HOME" | "AWAY";
 
+/** Map a team id to HOME/AWAY relative to a fixture's sides. */
+export function sideFromTeamId(
+  teamId: string | null | undefined,
+  homeTeamId: string | null,
+  awayTeamId: string | null,
+): Side | null {
+  if (!teamId) return null;
+  if (teamId === homeTeamId) return "HOME";
+  if (teamId === awayTeamId) return "AWAY";
+  return null;
+}
+
+type GoalsRow = {
+  normalHomeGoals: number | null;
+  normalAwayGoals: number | null;
+  extraHomeGoals: number | null;
+  extraAwayGoals: number | null;
+  penaltyHomeGoals: number | null;
+  penaltyAwayGoals: number | null;
+};
+
+/** Build a KnockoutScoreInput from Prisma prediction/result goal columns. */
+export function knockoutInputFromGoals(
+  row: GoalsRow,
+  winnerTeamId: string | null | undefined,
+  homeTeamId: string | null,
+  awayTeamId: string | null,
+): KnockoutScoreInput {
+  return {
+    normal: { home: row.normalHomeGoals, away: row.normalAwayGoals },
+    extra: { home: row.extraHomeGoals, away: row.extraAwayGoals },
+    penalty: { home: row.penaltyHomeGoals, away: row.penaltyAwayGoals },
+    winner: sideFromTeamId(winnerTeamId, homeTeamId, awayTeamId),
+  };
+}
+
 export interface KnockoutScoreInput {
   normal: ScoreInput;
   extra?: ScoreInput | null;

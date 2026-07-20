@@ -111,8 +111,3 @@ export async function requireAdmin(): Promise<CurrentUser> {
   if (user.role !== ROLES.ADMIN) throw new Error("FORBIDDEN");
   return user;
 }
-
-export async function isAdmin(): Promise<boolean> {
-  const user = await getCurrentUser();
-  return user?.role === ROLES.ADMIN;
-}

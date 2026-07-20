@@ -7,14 +7,12 @@ import { cn } from "@/lib/utils";
 export function CrowdArenaLink({
   matchId,
   className,
-  compact = false,
   disabled = false,
   /** When set, the link auto-enables once this instant passes (e.g. match kickoff). */
   unlockAt,
 }: {
   matchId: string;
   className?: string;
-  compact?: boolean;
   /** When true, the match center is not yet available (predictions still hidden). */
   disabled?: boolean;
   unlockAt?: string | null;
@@ -33,33 +31,6 @@ export function CrowdArenaLink({
   }, [disabled, unlockAt]);
 
   const isDisabled = disabled && !unlocked;
-
-  if (compact) {
-    if (isDisabled) {
-      return (
-        <span
-          title="Կանխատեսումները դեռ փակ են — հասանելի կլինի խաղի սկզբին"
-          className={cn(
-            "inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg border-2 border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-bold text-navy-500",
-            className,
-          )}
-        >
-          <span aria-hidden>🔒</span> Խաղի կենտրոն
-        </span>
-      );
-    }
-    return (
-      <NextLink
-        href={`/matches/${matchId}`}
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded-lg border-2 border-pitch-500/50 bg-pitch-500/20 px-3 py-1.5 text-xs font-bold text-pitch-100 shadow-glow transition hover:border-pitch-400 hover:bg-pitch-500/30",
-          className,
-        )}
-      >
-        <span aria-hidden>👥</span> Խաղի կենտրոն
-      </NextLink>
-    );
-  }
 
   if (isDisabled) {
     return (

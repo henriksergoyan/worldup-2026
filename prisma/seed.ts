@@ -9,8 +9,13 @@ import {
 import { KNOCKOUT_FIXTURES, knockoutScheduledAt } from "../src/lib/knockout-bracket";
 import { EXCEL_DEADLINES } from "../src/lib/excel-deadlines";
 import { refreshBracketFromResults } from "../src/lib/bracket-engine";
-import { lookupResult } from "../src/lib/wc-results";
 import { applyOfficialKickoffs } from "../src/lib/wc-fixtures";
+import {
+  DEFAULT_ENTRY_FEE,
+  DEFAULT_KNOCKOUT_PICK_COUNT,
+  DEFAULT_PRIZE_SPLIT,
+  DEFAULT_TIMEZONE,
+} from "../src/lib/constants";
 import { splitDisplayName, buildUsername, uniqueUsername } from "../src/lib/user-utils";
 
 const prisma = new PrismaClient();
@@ -71,8 +76,8 @@ function buildFallback(): ParsedWorkbook {
     predictions: [],
     championPicks: [],
     qualifierPicks: [],
-    entryFee: 10000,
-    prizeSplit: { "1": 0.4, "2": 0.2, "3": 0.15, "4": 0.1, "5": 0.07, "6": 0.05, "7": 0.03 },
+    entryFee: DEFAULT_ENTRY_FEE,
+    prizeSplit: { ...DEFAULT_PRIZE_SPLIT },
   };
 }
 
@@ -116,10 +121,10 @@ async function main() {
   const tournament = await prisma.tournament.create({
     data: {
       name: "FIFA World Cup 2026",
-      timezone: "Asia/Yerevan",
+      timezone: DEFAULT_TIMEZONE,
       entryFee: data.entryFee,
       prizeSplitJson: data.prizeSplit,
-      knockoutPickCount: 16,
+      knockoutPickCount: DEFAULT_KNOCKOUT_PICK_COUNT,
       kickoffLockMinutes: 0,
       registrationOpen: true,
     },
@@ -206,28 +211,6 @@ async function main() {
     include: { homeTeam: true, awayTeam: true },
   });
   const matchByNumber = new Map(matches.map((m) => [m.matchNumber, m]));
-
-  // --- Apply real World Cup 2026 results (Jun 11–13) ---
-  let resultsApplied = 0;
-  for (const m of matches) {
-    if (!m.homeTeam || !m.awayTeam) continue;
-    const score = lookupResult(m.homeTeam.name, m.awayTeam.name);
-    if (!score) continue;
-    await prisma.actualResult.create({
-      data: {
-        matchId: m.id,
-        normalHomeGoals: score.home,
-        normalAwayGoals: score.away,
-        finalized: score.finalized ?? true,
-      },
-    });
-    await prisma.match.update({
-      where: { id: m.id },
-      data: { status: "FINISHED" },
-    });
-    resultsApplied += 1;
-  }
-  console.log(`Applied ${resultsApplied} actual results from World Cup 2026.`);
 
   // --- Imported group-stage predictions ---
   if (data.predictions.length > 0) {

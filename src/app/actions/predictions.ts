@@ -5,9 +5,9 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser, requireAdmin } from "@/lib/auth";
 import { getActiveTournament } from "@/lib/standings";
-import { getDeadlineMap, isMatchLocked } from "@/lib/deadlines";
+import { isMatchLocked } from "@/lib/deadlines";
 import { isKnockoutPredictionAmbiguous, sanitizeKnockoutExtras } from "@/lib/scoring";
-import { PHASES, STAGES, TEAM_PICK_TYPES } from "@/lib/constants";
+import { STAGES } from "@/lib/constants";
 
 export interface ActionResult {
   ok: boolean;
@@ -30,7 +30,6 @@ export async function saveGroupPredictions(
 ): Promise<ActionResult> {
   const user = await requireUser();
   const tournament = await getActiveTournament();
-  const deadlines = await getDeadlineMap(tournament.id);
 
   const parsed = z.array(groupItem).safeParse(items);
   if (!parsed.success) return { ok: false, message: "Invalid prediction values." };
@@ -45,7 +44,7 @@ export async function saveGroupPredictions(
       skipped++;
       continue;
     }
-    if (isMatchLocked(match, deadlines, tournament.kickoffLockMinutes)) {
+    if (isMatchLocked(match, tournament.kickoffLockMinutes)) {
       skipped++;
       continue;
     }
@@ -96,7 +95,6 @@ export async function saveKnockoutPredictions(
 ): Promise<ActionResult> {
   const user = await requireUser();
   const tournament = await getActiveTournament();
-  const deadlines = await getDeadlineMap(tournament.id);
 
   const parsed = z.array(koItem).safeParse(items);
   if (!parsed.success) return { ok: false, message: "Invalid prediction values." };
@@ -107,7 +105,7 @@ export async function saveKnockoutPredictions(
     const match = await prisma.match.findFirst({
       where: { id: item.matchId, tournamentId: tournament.id, stage: STAGES.KNOCKOUT },
     });
-    if (!match || isMatchLocked(match, deadlines, tournament.kickoffLockMinutes)) {
+    if (!match || isMatchLocked(match, tournament.kickoffLockMinutes)) {
       skipped++;
       continue;
     }
@@ -343,51 +341,4 @@ export async function adminSaveKnockoutPredictions(
     saved,
     skipped,
   };
-}
-
-export async function setChampion(_teamId: string | null): Promise<ActionResult> {
-  await requireUser();
-  return {
-    ok: false,
-    message: "Your champion pick is locked and cannot be changed.",
-  };
-}
-
-export async function setQualifierPicks(teamIds: string[]): Promise<ActionResult> {
-  const user = await requireUser();
-  const tournament = await getActiveTournament();
-
-  const unique = [...new Set(teamIds)];
-  if (unique.length > tournament.knockoutPickCount) {
-    return {
-      ok: false,
-      message: `Pick at most ${tournament.knockoutPickCount} teams.`,
-    };
-  }
-
-  // Validate all teams belong to the tournament.
-  const count = await prisma.team.count({
-    where: { id: { in: unique }, tournamentId: tournament.id },
-  });
-  if (count !== unique.length) {
-    return { ok: false, message: "Invalid team selection." };
-  }
-
-  await prisma.$transaction([
-    prisma.teamPick.deleteMany({
-      where: { userId: user.id, tournamentId: tournament.id, type: TEAM_PICK_TYPES.KNOCKOUT_QUALIFIER },
-    }),
-    prisma.teamPick.createMany({
-      data: unique.map((teamId) => ({
-        userId: user.id,
-        tournamentId: tournament.id,
-        teamId,
-        type: TEAM_PICK_TYPES.KNOCKOUT_QUALIFIER,
-      })),
-    }),
-  ]);
-
-  revalidatePath("/predictions");
-  revalidatePath("/dashboard");
-  return { ok: true, message: `Saved ${unique.length} team pick(s).` };
 }

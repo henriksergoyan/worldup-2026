@@ -12,7 +12,8 @@ import { DeadlineNotifications } from "@/components/deadline-notifications";
 import { Countdown } from "@/components/countdown";
 import { ChampionHero } from "@/components/champion-hero";
 import { ChampionFarewell } from "@/components/champion-farewell";
-import { PHASE_LABELS, PLAYER_DEADLINE_PHASES, ROUND_LABELS, STAGES, TEAM_PICK_TYPES, type Round } from "@/lib/constants";
+import { mapChampionPickRows } from "@/lib/champion-picks";
+import { PHASE_LABELS, PHASE_ORDER, ROUND_LABELS, STAGES, TEAM_PICK_TYPES, type Round } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { KnockoutScoreDisplay, formatKnockoutScoreInline } from "@/components/knockout-score-display";
 import { pickUpcomingMatches, isMatchLive, UPCOMING_MATCH_VISIBLE_AFTER_KICKOFF_MS } from "@/lib/upcoming-matches";
@@ -115,12 +116,7 @@ export default async function DashboardPage() {
       }),
     ]);
 
-  const upcomingMatches = pickUpcomingMatches(
-    upcomingPool,
-    deadlines,
-    tournament.kickoffLockMinutes,
-    6,
-  );
+  const upcomingMatches = pickUpcomingMatches(upcomingPool, 6);
 
   const me = breakdownByUser[user.id];
   const myRank = leaderboard.find((e) => e.userId === user.id);
@@ -137,7 +133,7 @@ export default async function DashboardPage() {
   const predictionsMade = me?.predictionsMade ?? 0;
   const pct = totalMatches > 0 ? Math.round((predictionsMade / totalMatches) * 100) : 0;
 
-  const deadlineItems = PLAYER_DEADLINE_PHASES.flatMap((phase) => {
+  const deadlineItems = PHASE_ORDER.flatMap((phase) => {
     const d = deadlines.get(phase);
     if (!d?.lockAt) return [];
     return [
@@ -167,13 +163,7 @@ export default async function DashboardPage() {
         <div className="space-y-3">
           <ChampionFarewell
             compact
-            picks={championPicks.map((p) => ({
-              userId: p.userId,
-              name: p.user.name,
-              teamId: p.teamId,
-              teamName: p.team.name,
-              isMe: p.userId === user.id,
-            }))}
+            picks={mapChampionPickRows(championPicks, user.id)}
             actualChampionId={actualChampion.teamId}
             actualChampionName={actualChampion.team.name}
           />
@@ -188,7 +178,6 @@ export default async function DashboardPage() {
           teamName={championPick?.team.name ?? null}
           groupCode={championPick?.team.groupCode ?? null}
           championPoints={me?.championPoints ?? 0}
-          isActualChampion={false}
           hasPick={!!championPick}
         />
       )}
@@ -260,7 +249,7 @@ export default async function DashboardPage() {
                 const pred = m.predictions[0] ?? null;
                 const hasPred =
                   pred != null && pred.normalHomeGoals != null && pred.normalAwayGoals != null;
-                const locked = isMatchLocked(m, deadlines, tournament.kickoffLockMinutes);
+                const locked = isMatchLocked(m, tournament.kickoffLockMinutes);
                 const live = isMatchLive(m);
                 const lockAt = matchEditLockAt(m.scheduledAt, tournament.kickoffLockMinutes);
                 const stageLabel =

@@ -60,7 +60,7 @@ describe("pickUpcomingMatches", () => {
       matchNumber: 2,
       scheduledAt: new Date("2026-06-16T18:00:00Z"),
     };
-    const picked = pickUpcomingMatches([future, live], new Map(), 60, 2, now);
+    const picked = pickUpcomingMatches([future, live], 2, now);
     expect(picked[0]?.matchNumber).toBe(1);
   });
 
@@ -76,7 +76,7 @@ describe("pickUpcomingMatches", () => {
       matchNumber: 71,
       scheduledAt: new Date("2026-06-24T19:00:00Z"),
     };
-    const picked = pickUpcomingMatches([laterOpen, soonerLocked], new Map(), 60, 3, now);
+    const picked = pickUpcomingMatches([laterOpen, soonerLocked], 3, now);
     expect(picked[0]?.matchNumber).toBe(63);
     expect(picked[1]?.matchNumber).toBe(71);
   });

@@ -42,13 +42,6 @@ export function formatUserName(u: { firstName?: string | null; lastName?: string
   return u.name?.trim() ?? "Player";
 }
 
-export function userInitials(u: { firstName?: string | null; lastName?: string | null; name?: string }): string {
-  const first = u.firstName?.trim() || u.name?.trim().split(/\s+/)[0] || "?";
-  const last = u.lastName?.trim() || u.name?.trim().split(/\s+/)[1] || "";
-  if (last) return (first[0] + last[0]).toUpperCase();
-  return first.slice(0, 2).toUpperCase();
-}
-
 /** Generate a readable random password for admin resets. */
 export function generateReadablePassword(): string {
   const words = ["goal", "pitch", "cup", "star", "kick", "net", "win", "team"];

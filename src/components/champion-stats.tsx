@@ -5,14 +5,9 @@ import { cn } from "@/lib/utils";
 import { flagFor, translateTeam } from "@/lib/flags";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import type { ChampionPickRow } from "@/lib/champion-picks";
 
-export interface ChampionPickRow {
-  userId: string;
-  name: string;
-  teamId: string;
-  teamName: string;
-  isMe: boolean;
-}
+export type { ChampionPickRow };
 
 export function ChampionStats({
   picks,

@@ -4,14 +4,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { flagFor, translateTeam } from "@/lib/flags";
 import { POINTS } from "@/lib/constants";
-
-export interface FarewellPick {
-  userId: string;
-  name: string;
-  teamId: string;
-  teamName: string;
-  isMe: boolean;
-}
+import type { ChampionPickRow } from "@/lib/champion-picks";
 
 export function ChampionFarewell({
   picks,
@@ -19,7 +12,7 @@ export function ChampionFarewell({
   actualChampionName,
   compact = false,
 }: {
-  picks: FarewellPick[];
+  picks: ChampionPickRow[];
   actualChampionId: string;
   actualChampionName: string;
   compact?: boolean;
@@ -183,7 +176,7 @@ function PickColumn({
   title: string;
   accent: "lime" | "fuchsia";
   empty: string;
-  picks: FarewellPick[];
+  picks: ChampionPickRow[];
   showTeam: boolean;
 }) {
   const titleColor = accent === "lime" ? "text-lime-300" : "text-fuchsia-300";

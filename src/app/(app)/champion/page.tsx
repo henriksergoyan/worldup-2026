@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getActiveTournament } from "@/lib/standings";
+import { mapChampionPickRows } from "@/lib/champion-picks";
 import { ChampionStats } from "@/components/champion-stats";
 import { ChampionFarewell } from "@/components/champion-farewell";
 import { Button } from "@/components/ui/button";
@@ -25,14 +26,7 @@ export default async function ChampionPage() {
     }),
   ]);
 
-  const rows = picks.map((p) => ({
-    userId: p.user.id,
-    name: p.user.name,
-    teamId: p.team.id,
-    teamName: p.team.name,
-    isMe: p.user.id === user.id,
-  }));
-
+  const rows = mapChampionPickRows(picks, user.id);
   const myPickId = picks.find((p) => p.userId === user.id)?.teamId ?? null;
 
   return (

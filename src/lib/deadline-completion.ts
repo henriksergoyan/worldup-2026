@@ -1,6 +1,6 @@
 import { prisma } from "./prisma";
 import { getDeadlineMap, isMatchLocked, nextDeadline, phaseForMatch } from "./deadlines";
-import { isKnockoutPredictionAmbiguous, type Side } from "./scoring";
+import { isKnockoutPredictionAmbiguous, sideFromTeamId } from "./scoring";
 import { PHASE_LABELS, PHASES, STAGES, TEAM_PICK_TYPES, type Phase } from "./constants";
 
 export type CompletionStatus = "complete" | "partial" | "none";
@@ -19,17 +19,6 @@ export interface DeadlineCompletionReport {
   lockAt: string | null;
   kind: "matches" | "champion";
   players: PlayerDeadlineCompletion[];
-}
-
-function sideFromTeamId(
-  teamId: string | null | undefined,
-  homeTeamId: string | null,
-  awayTeamId: string | null,
-): Side | null {
-  if (!teamId) return null;
-  if (teamId === homeTeamId) return "HOME";
-  if (teamId === awayTeamId) return "AWAY";
-  return null;
 }
 
 function completionStatus(filled: number, total: number): CompletionStatus {
@@ -169,7 +158,7 @@ export async function getDeadlineCompletionReport(tournamentId: string): Promise
     (m) =>
       phaseForMatch(m) === phase &&
       !m.actualResult?.finalized &&
-      !isMatchLocked(m, deadlines, tournament.kickoffLockMinutes),
+      !isMatchLocked(m, tournament.kickoffLockMinutes),
   );
 
   const matchById = new Map(requiredMatches.map((m) => [m.id, m]));

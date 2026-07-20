@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { prisma } from "./prisma";
-import { buildGroupTables, rankThirdPlaceTeams } from "./group-tables";
+import { buildGroupTables, rankThirdPlaceTeams, selectAdvancingTeams } from "./group-tables";
 import { MATCH_STATUS, STAGES } from "./constants";
 import { lookupResult } from "./wc-results";
 
@@ -198,14 +198,7 @@ export async function syncTournamentBracket(tournamentId: string): Promise<Brack
   // Mark knockout qualifiers when group stage is complete.
   let qualifiersMarked = 0;
   if (allGroupsComplete && advancingGroups.length === 8) {
-    const qualifierIds = new Set<string>();
-    for (const table of tables.values()) {
-      const first = table.rows.find((r) => r.rank === 1);
-      const second = table.rows.find((r) => r.rank === 2);
-      if (first) qualifierIds.add(first.teamId);
-      if (second) qualifierIds.add(second.teamId);
-    }
-    for (const t of topThirds) qualifierIds.add(t.teamId);
+    const { teamIds: qualifierIds } = selectAdvancingTeams(tables);
 
     for (const teamId of qualifierIds) {
       await prisma.actualTeamStatus.upsert({

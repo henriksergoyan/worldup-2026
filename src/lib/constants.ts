@@ -63,6 +63,7 @@ export const PHASE_LABELS: Record<Phase, string> = {
   KNOCKOUT_TEAMS: "Փլեյ-օֆֆի թիմերի ընտրություն",
 };
 
+/** Phases shown on the player deadline timeline (knockout-team picks have no lock). */
 export const PHASE_ORDER: Phase[] = [
   PHASES.CHAMPION,
   PHASES.GROUP_R1_R2,
@@ -73,9 +74,6 @@ export const PHASE_ORDER: Phase[] = [
   PHASES.KO_SF,
   PHASES.KO_3RD_FINAL,
 ];
-
-/** Phases shown on the player deadline timeline (knockout-team picks have no lock). */
-export const PLAYER_DEADLINE_PHASES: Phase[] = PHASE_ORDER;
 
 // Map a knockout round to its deadline phase.
 export const ROUND_TO_PHASE: Record<Round, Phase> = {
@@ -115,4 +113,3 @@ export const DEFAULT_KNOCKOUT_PICK_COUNT = 16;
 /** League display timezone — all kickoffs and deadlines shown in this zone. */
 export const DEFAULT_TIMEZONE = "Asia/Yerevan";
 export const TIMEZONE_LABEL = "Երևանի ժամանակ";
-export const TOURNAMENT_NAME = "FIFA World Cup 2026";

@@ -27,8 +27,6 @@ export interface ResultDTO {
   awayName: string | null;
   homeSeedLabel: string | null;
   awaySeedLabel: string | null;
-  homeTeamId: string | null;
-  awayTeamId: string | null;
   result: {
     normalHome: number | null;
     normalAway: number | null;

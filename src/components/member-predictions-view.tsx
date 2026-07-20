@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PredictionsTabs } from "@/components/predictions/predictions-tabs";
 import type { MemberPredictionsData } from "@/lib/member-predictions-data";
@@ -6,13 +5,11 @@ import type { MemberPredictionsData } from "@/lib/member-predictions-data";
 export function MemberPredictionsView({
   data,
   initialTab,
-  readOnly = false,
   memberLabel,
   adminEditUserId,
 }: {
   data: MemberPredictionsData;
   initialTab?: string;
-  readOnly?: boolean;
   memberLabel?: string;
   adminEditUserId?: string;
 }) {
@@ -44,13 +41,8 @@ export function MemberPredictionsView({
         standingsByGroup={data.standingsByGroup}
         teams={data.teams}
         championPick={data.championPick}
-        qualifierPicks={data.qualifierPicks}
-        pickLimit={data.tournament.knockoutPickCount}
-        championLock={data.championLock}
-        teamsLock={data.teamsLock}
         qualifiers={data.qualifiers}
         averageQualifierPoints={data.averageQualifierPoints}
-        readOnly={readOnly}
         memberLabel={memberLabel ?? data.user.name}
         adminEditUserId={adminEditUserId}
       />

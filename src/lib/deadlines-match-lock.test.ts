@@ -1,9 +1,5 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
-import {
-  canRevealPredictions,
-  isMatchLocked,
-  isMatchPredictionLocked,
-} from "./deadlines";
+import { canRevealPredictions, isMatchLocked } from "./deadlines";
 import { PHASES, STAGES } from "./constants";
 
 const r32Match = {
@@ -32,18 +28,17 @@ describe("isMatchLocked", () => {
 
   it("does not lock upcoming matches when the phase deadline has passed", () => {
     vi.setSystemTime(new Date("2026-06-29T12:00:00Z"));
-    expect(isMatchLocked(r32Match, deadlines, 0)).toBe(false);
+    expect(isMatchLocked(r32Match, 0)).toBe(false);
   });
 
   it("locks a match once kickoff arrives", () => {
     vi.setSystemTime(new Date("2026-07-05T20:00:00Z"));
-    expect(isMatchLocked(r32Match, deadlines, 0)).toBe(true);
-    expect(isMatchPredictionLocked(r32Match, 0)).toBe(true);
+    expect(isMatchLocked(r32Match, 0)).toBe(true);
   });
 
   it("respects a configured pre-kickoff lock window", () => {
     vi.setSystemTime(new Date("2026-07-05T19:30:00Z"));
-    expect(isMatchLocked(r32Match, deadlines, 60)).toBe(true);
+    expect(isMatchLocked(r32Match, 60)).toBe(true);
   });
 });
 

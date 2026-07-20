@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { CrowdArenaLink } from "@/components/crowd-arena-link";
 import { MatchDTO } from "./types";
 import { ScoreInput } from "./score-input";
-import { SaveBar } from "./group-predictions";
+import { SaveBar } from "./save-bar";
 import { TeamChip } from "@/components/team-chip";
 import { KnockoutScoreDisplay, formatKnockoutScoreInline } from "@/components/knockout-score-display";
 import { Badge } from "@/components/ui/badge";

@@ -13,6 +13,7 @@
 import path from "node:path";
 import * as XLSX from "xlsx";
 import { applyOfficialKickoffs } from "../src/lib/wc-fixtures";
+import { DEFAULT_ENTRY_FEE, DEFAULT_PRIZE_SPLIT } from "../src/lib/constants";
 
 export interface ParsedFixture {
   matchNumber: number;
@@ -202,18 +203,8 @@ export function parseMainWorkbook(filePath: string): ParsedWorkbook {
   }
 
   // --- ToR defaults (entry fee + prize split) ---
-  // The current workbook uses the standard split; parsing is best-effort with
-  // a safe fallback to the documented defaults.
-  const entryFee = 10000;
-  const prizeSplit: Record<string, number> = {
-    "1": 0.4,
-    "2": 0.2,
-    "3": 0.15,
-    "4": 0.1,
-    "5": 0.07,
-    "6": 0.05,
-    "7": 0.03,
-  };
+  const entryFee = DEFAULT_ENTRY_FEE;
+  const prizeSplit: Record<string, number> = { ...DEFAULT_PRIZE_SPLIT };
 
   const { championPicks, qualifierPicks } = parsePlayoffWinnerSheet(wb);
 

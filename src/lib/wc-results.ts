@@ -44,19 +44,14 @@ function key(home: string, away: string): string {
 export const WC_2026_RESULTS: Record<string, ActualScore> = {
   [key("Mexico", "South Africa")]: { home: 2, away: 0, finalized: true },
   [key("South Korea", "Czech Republic")]: { home: 2, away: 1, finalized: true },
-  [key("South Korea", "Czechia")]: { home: 2, away: 1, finalized: true },
   [key("Canada", "Bosnia and Herzegovina")]: { home: 1, away: 1, finalized: true },
   [key("United States", "Paraguay")]: { home: 4, away: 1, finalized: true },
-  [key("USA", "Paraguay")]: { home: 4, away: 1, finalized: true },
   [key("Qatar", "Switzerland")]: { home: 1, away: 1, finalized: true },
   [key("Brazil", "Morocco")]: { home: 1, away: 1, finalized: true },
   [key("Haiti", "Scotland")]: { home: 0, away: 1, finalized: true },
   [key("Australia", "Turkey")]: { home: 2, away: 0, finalized: true },
-  [key("Australia", "Türkiye")]: { home: 2, away: 0, finalized: true },
   [key("Germany", "Curaçao")]: { home: 7, away: 1, finalized: true },
-  [key("Germany", "Curacao")]: { home: 7, away: 1, finalized: true },
   [key("Ivory Coast", "Ecuador")]: { home: 1, away: 0, finalized: true },
-  [key("Côte d'Ivoire", "Ecuador")]: { home: 1, away: 0, finalized: true },
   [key("Netherlands", "Japan")]: { home: 2, away: 2, finalized: true },
 };
 

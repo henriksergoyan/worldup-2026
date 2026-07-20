@@ -27,8 +27,6 @@ export default async function AdminResultsPage() {
     awayName: m.awayTeam?.name ?? null,
     homeSeedLabel: m.homeSeedLabel,
     awaySeedLabel: m.awaySeedLabel,
-    homeTeamId: m.homeTeamId,
-    awayTeamId: m.awayTeamId,
     result: m.actualResult
       ? {
           normalHome: m.actualResult.normalHomeGoals,

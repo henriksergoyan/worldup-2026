@@ -30,21 +30,3 @@ export const Label = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttribute
   ),
 );
 Label.displayName = "Label";
-
-export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
-  ({ className, children, ...props }, ref) => (
-    <select
-      ref={ref}
-      className={cn(
-        "h-11 w-full rounded-xl border border-white/10 bg-navy-900/70 px-3 text-base text-white outline-none transition sm:text-sm",
-        "focus:border-pitch-400 focus:ring-2 focus:ring-pitch-500/30",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </select>
-  ),
-);
-Select.displayName = "Select";

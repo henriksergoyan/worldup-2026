@@ -73,6 +73,3 @@ export const EXCEL_DEADLINES: ExcelDeadline[] = [
     label: "Third-place match & Final",
   },
 ];
-
-/** Fee payment reminder (not a lock phase in the app). */
-export const EXCEL_FEE_DEADLINE = yerevanLocalToUtc(2026, 6, 9, 20, 0);

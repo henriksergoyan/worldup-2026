@@ -5,9 +5,9 @@ import {
   scoreTeamPicks,
   scoreChampionPick,
   calculateLeaderboard,
+  knockoutInputFromGoals,
   type ScoringResult,
   type LeaderboardEntry,
-  type Side,
 } from "./scoring";
 import { buildPredictedAdvancing } from "./qualifiers";
 import { STAGES, TEAM_PICK_TYPES } from "./constants";
@@ -41,17 +41,6 @@ export interface StandingsResult {
   paidCount: number;
   /** Teams that actually reached the knockout stage (empty until the group stage ends). */
   actualQualifiedTeamIds: string[];
-}
-
-function sideFromTeamId(
-  teamId: string | null | undefined,
-  homeTeamId: string | null,
-  awayTeamId: string | null,
-): Side | null {
-  if (!teamId) return null;
-  if (teamId === homeTeamId) return "HOME";
-  if (teamId === awayTeamId) return "AWAY";
-  return null;
 }
 
 /**
@@ -142,18 +131,8 @@ export async function computeStandings(tournamentId: string): Promise<StandingsR
         bd.groupStagePoints += res.points;
       } else {
         const res = scoreKnockoutMatch(
-          {
-            normal: { home: pred.normalHomeGoals, away: pred.normalAwayGoals },
-            extra: { home: pred.extraHomeGoals, away: pred.extraAwayGoals },
-            penalty: { home: pred.penaltyHomeGoals, away: pred.penaltyAwayGoals },
-            winner: sideFromTeamId(pred.predictedWinnerTeamId, match.homeTeamId, match.awayTeamId),
-          },
-          {
-            normal: { home: actual.normalHomeGoals, away: actual.normalAwayGoals },
-            extra: { home: actual.extraHomeGoals, away: actual.extraAwayGoals },
-            penalty: { home: actual.penaltyHomeGoals, away: actual.penaltyAwayGoals },
-            winner: sideFromTeamId(actual.winnerTeamId, match.homeTeamId, match.awayTeamId),
-          },
+          knockoutInputFromGoals(pred, pred.predictedWinnerTeamId, match.homeTeamId, match.awayTeamId),
+          knockoutInputFromGoals(actual, actual.winnerTeamId, match.homeTeamId, match.awayTeamId),
         );
         applyResult(bd, res, match.id);
         if (res.qualifyingWinnerHit) bd.qualifyingWinnerHits += 1;

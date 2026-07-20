@@ -7,13 +7,11 @@ export function ChampionHero({
   teamName,
   groupCode,
   championPoints,
-  isActualChampion,
   hasPick,
 }: {
   teamName: string | null;
   groupCode: string | null;
   championPoints: number;
-  isActualChampion: boolean;
   hasPick: boolean;
 }) {
   return (
@@ -36,7 +34,6 @@ export function ChampionHero({
                     <span className="text-sm text-navy-300">Խումբ {groupCode}</span>
                   )}
                   <Badge variant="muted">🔒 Կողպված է</Badge>
-                  {isActualChampion && <Badge variant="success">Աշխարհի չեմպիոն ★</Badge>}
                   {championPoints > 0 && (
                     <Badge variant="gold">+{championPoints} միավոր</Badge>
                   )}
